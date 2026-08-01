@@ -53,13 +53,49 @@
   nav.main-nav a{font-size:14px; font-weight:500; color:#C7C0A6; transition:color .15s;}
   nav.main-nav a:hover{color:var(--gold-light);}
   .header-actions{display:flex; align-items:center; gap:18px;}
+  .wa-menu-wrap{position:relative;}
+  .whatsapp-btn{display:flex; align-items:center; gap:7px; background:#25D366; color:#fff; padding:9px 16px; border-radius:999px; font-weight:700; font-size:13px; white-space:nowrap; transition:background .15s;}
+  .whatsapp-btn:hover{background:#1DA851;}
+  .whatsapp-btn svg{width:16px; height:16px; flex-shrink:0;}
+  .wa-menu-panel{position:absolute; top:calc(100% + 8px); right:0; background:#fff; border-radius:10px; box-shadow:0 14px 32px rgba(0,0,0,.22); min-width:250px; padding:8px; z-index:60; display:none;}
+  .wa-menu-panel.open{display:block;}
+  .wa-menu-panel a{display:flex; align-items:center; gap:10px; padding:11px 12px; border-radius:6px; font-size:13px; font-weight:600; color:var(--ink);}
+  .wa-menu-panel a:hover{background:var(--paper-2);}
+  .wa-menu-panel a .wa-sub{display:block; font-weight:400; font-size:11px; color:var(--ink-soft); margin-top:1px;}
+  .wa-menu-panel a svg{width:18px; height:18px; flex-shrink:0; color:#25D366;}
   #authArea{display:flex; align-items:center;}
-  #googleSignInWrap{display:flex; align-items:center;}
+  .login-trigger-btn{background:var(--paper); color:var(--charcoal); border:1.5px solid var(--gold); padding:8px 16px; border-radius:999px; font-weight:700; font-size:12.5px; white-space:nowrap;}
+  .login-trigger-btn:hover{background:var(--gold); }
   .user-chip{display:flex; align-items:center; gap:8px; background:#221F15; padding:5px 10px 5px 5px; border-radius:999px; border:1px solid #3A3628;}
-  .user-chip img{width:26px; height:26px; border-radius:50%; display:block;}
+  .user-chip img, .user-chip .initials-avatar{width:26px; height:26px; border-radius:50%; display:block;}
+  .user-chip .initials-avatar{background:var(--gold); color:var(--charcoal); font-weight:700; font-size:11px; display:flex; align-items:center; justify-content:center;}
   .user-chip .user-name{font-size:12.5px; color:#fff; font-weight:600; max-width:110px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
   .user-chip button{font-size:11px; color:var(--gold-light); font-weight:600; border-left:1px solid #3A3628; padding-left:8px; white-space:nowrap;}
   .user-chip button:hover{color:#fff;}
+  /* AUTH MODAL */
+  .auth-modal-head{text-align:center; margin-bottom:22px;}
+  .auth-modal-head h3{font-family:var(--font-display); font-size:22px; font-weight:600; margin-bottom:6px;}
+  .auth-modal-head p{font-size:13px; color:var(--ink-soft);}
+  .auth-back-btn{font-size:12.5px; color:var(--ink-soft); font-weight:600; margin-bottom:14px; display:inline-flex; align-items:center; gap:4px;}
+  .auth-back-btn:hover{color:var(--ink);}
+  .social-login-btn{width:100%; display:flex; align-items:center; justify-content:center; gap:10px; padding:12px; border-radius:8px; border:1.5px solid var(--line); font-weight:600; font-size:13.5px; margin-bottom:10px; background:var(--white); color:var(--ink);}
+  .social-login-btn:hover{background:var(--paper-2);}
+  .social-login-btn.fb{background:#1877F2; color:#fff; border-color:#1877F2;}
+  .social-login-btn.fb:hover{background:#0e5fc9;}
+  .social-login-btn .icon{width:18px; height:18px; flex-shrink:0;}
+  #googleSignInModalBtn{width:100%; display:flex; justify-content:center; margin-bottom:10px;}
+  .auth-divider{display:flex; align-items:center; gap:10px; margin:18px 0; color:var(--ink-soft); font-size:11.5px; text-transform:uppercase; letter-spacing:.05em;}
+  .auth-divider::before, .auth-divider::after{content:''; flex:1; height:1px; background:var(--line);}
+  .auth-option-btn{width:100%; padding:12px; border-radius:8px; border:1.5px solid var(--line); font-weight:600; font-size:13.5px; margin-bottom:10px; text-align:center;}
+  .auth-option-btn:hover{border-color:var(--gold-dark); background:var(--paper-2);}
+  .auth-form label{display:block; font-size:12px; font-weight:600; color:var(--ink-soft); margin-bottom:5px; margin-top:14px;}
+  .auth-form label:first-child{margin-top:0;}
+  .auth-form input{width:100%; border:1.5px solid var(--line); border-radius:8px; padding:11px 12px; font-size:13.5px; font-family:var(--font-body); color:var(--ink);}
+  .auth-form input:focus{outline:none; border-color:var(--gold-dark);}
+  .auth-error{background:#FBEAE5; color:#A3402C; font-size:12.5px; padding:10px 12px; border-radius:8px; margin-top:14px; display:none;}
+  .auth-error.show{display:block;}
+  .auth-switch{text-align:center; font-size:12.5px; color:var(--ink-soft); margin-top:16px;}
+  .auth-switch button{color:var(--gold-dark); font-weight:700;}
   .price-locked{display:flex; align-items:center; gap:5px; font-size:11.5px; color:var(--ink-soft); font-weight:600; font-family:var(--font-body);}
   .price-locked-cart{font-size:12px; color:var(--ink-soft); font-weight:600;}
   .login-hint-banner{background:var(--paper-2); border:1px dashed var(--line); border-radius:8px; padding:12px 16px; font-size:12.5px; color:var(--ink-soft); text-align:center; margin-bottom:16px;}
@@ -225,7 +261,7 @@
 
   /* FOOTER */
   footer{background:var(--charcoal); color:#A79F84; padding:56px 0 28px; margin-top:60px;}
-  .footer-grid{display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr; gap:32px; margin-bottom:36px;}
+  .footer-grid{display:grid; grid-template-columns:1.2fr .8fr .8fr 1fr 1fr; gap:28px; margin-bottom:36px;}
   .footer-grid h4{font-family:var(--font-display); color:#fff; font-size:14px; margin-bottom:14px; font-weight:600;}
   .footer-grid ul li{margin-bottom:9px; font-size:13.5px;}
   .footer-grid ul li a:hover{color:var(--gold-light);}
@@ -344,10 +380,27 @@
       <a href="#footer">Contacto</a>
     </nav>
     <div class="header-actions">
+      <div class="wa-menu-wrap" id="waMenuWrap">
+        <button class="whatsapp-btn" onclick="toggleWaMenu()">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1 1 12 20zm4.4-5.9c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1-.2.2-.7.8-.8.9-.1.2-.3.2-.5.1-.2-.1-1-.4-2-1.2-.7-.6-1.2-1.4-1.4-1.6-.1-.2 0-.4.1-.5l.4-.4c.1-.1.2-.3.2-.4.1-.1.1-.3 0-.4-.1-.1-.6-1.5-.8-2-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.4.1-.6.3-.2.2-.8.8-.8 1.9s.8 2.2 1 2.4c.1.1 1.6 2.5 4 3.5.6.2 1 .4 1.3.5.5.2 1 .1 1.4-.1.4-.2 1.2-.9 1.4-1.4.2-.5.2-.8.1-.9-.1-.1-.2-.1-.4-.2z"/></svg>
+          WhatsApp
+        </button>
+        <div class="wa-menu-panel" id="waMenuPanel">
+          <a href="https://wa.me/525618832057?text=Hola%20Crescen%20Inc,%20tengo%20una%20duda" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1 1 12 20z"/></svg>
+            <span>Sucursal Plaza de la Tecnología<span class="wa-sub">Uruguay 17, Local 23 · 56-1883-2057</span></span>
+          </a>
+          <a href="https://wa.me/525549539145?text=Hola%20Crescen%20Inc,%20tengo%20una%20duda" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1 1 12 20z"/></svg>
+            <span>Sucursal Las Cruces<span class="wa-sub">Las Cruces 56 B · 55-4953-9145</span></span>
+          </a>
+        </div>
+      </div>
       <div id="authArea">
-        <div id="googleSignInWrap"><div id="googleSignInBtn"></div></div>
+        <button class="login-trigger-btn" id="loginTriggerBtn" onclick="openAuthModal()">Iniciar sesión / Crear cuenta</button>
         <div class="user-chip" id="userChip" style="display:none;">
-          <img id="userAvatar" src="" alt="">
+          <img id="userAvatar" src="" alt="" style="display:none;">
+          <div class="initials-avatar" id="userInitials" style="display:none;"></div>
           <span class="user-name" id="userName"></span>
           <button onclick="handleLogout()">Salir</button>
         </div>
@@ -611,6 +664,10 @@
   </div>
 </aside>
 
+<div class="modal-overlay" id="authModalOverlay">
+  <div class="modal" id="authModal"></div>
+</div>
+
 <div class="modal-overlay" id="checkoutOverlay">
   <div class="modal" id="checkoutModal"></div>
 </div>
@@ -640,17 +697,28 @@
         <ul>
           <li><a href="#">Nosotros</a></li>
           <li><a href="#">Distribuidor Katun</a></li>
-          <li><a href="#">Envíos</a></li>
-          <li><a href="#">Facturación</a></li>
+          <li><a href="https://www.facebook.com/CrescenInc" target="_blank" rel="noopener">Facebook: CrescenInc</a></li>
+          <li><a href="https://www.instagram.com/CrescenInc" target="_blank" rel="noopener">Instagram: CrescenInc</a></li>
         </ul>
       </div>
       <div>
-        <h4>Contacto</h4>
+        <h4>Sucursal Plaza de la Tecnología</h4>
         <ul>
-          <li>hola@crescen.demo</li>
-          <li>55 0000 0000</li>
-          <li>Ciudad de México, MX</li>
-          <li>Lun–Vie: 9:00–19:00</li>
+          <li>Uruguay 17, Local N° 23, Planta Baja</li>
+          <li>Tel: 55-5510-4229 / 55-5542-4509</li>
+          <li>WhatsApp: 56-1883-2057</li>
+          <li>ventas.crescen@gmail.com</li>
+          <li>Horario: 10:00–18:30</li>
+        </ul>
+      </div>
+      <div>
+        <h4>Sucursal Las Cruces (Centro Histórico)</h4>
+        <ul>
+          <li>Las Cruces 56 B</li>
+          <li>Tel: 55-5491-0486 / 55-5522-1465</li>
+          <li>WhatsApp: 55-4953-9145</li>
+          <li>cresenservicios.cruces@gmail.com</li>
+          <li>Horario: 9:00–18:30</li>
         </ul>
       </div>
     </div>
@@ -682,8 +750,11 @@ const PRODUCTS = [
 let currentCat = 'all';
 let isLoggedIn = false;
 let currentUser = null;
+let localAccounts = []; // {name, phone, email, address, password} — solo en memoria, se pierde al recargar
 
 const GOOGLE_CLIENT_ID = '240721962065-t6uhe074f2an5m98rio046a5e571j7bq.apps.googleusercontent.com';
+// Cuando tengas tu App ID de Facebook, ponlo aquí para activar el botón de verdad:
+const FACEBOOK_APP_ID = '';
 
 function parseJwt(token){
   const base64Url = token.split('.')[1];
@@ -691,15 +762,32 @@ function parseJwt(token){
   const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
   return JSON.parse(jsonPayload);
 }
-function handleCredentialResponse(response){
-  const payload = parseJwt(response.credential);
-  currentUser = { name: payload.name, email: payload.email, picture: payload.picture };
+function loginSuccess(user, methodLabel){
+  currentUser = user;
   isLoggedIn = true;
+  closeAuthModal();
   updateAuthUI();
   renderGrid();
   renderOffers();
   renderCart();
-  showToast('Sesión iniciada como ' + payload.given_name);
+  showToast('Sesión iniciada' + (user.name ? ' como ' + user.name.split(' ')[0] : '') + (methodLabel ? ' (' + methodLabel + ')' : ''));
+}
+function handleCredentialResponse(response){
+  const payload = parseJwt(response.credential);
+  loginSuccess({ name: payload.name, email: payload.email, picture: payload.picture, provider: 'google' }, 'Google');
+}
+function handleFacebookLogin(){
+  if (!FACEBOOK_APP_ID) {
+    showToast('El inicio con Facebook aún se está configurando — usa Google o crea una cuenta');
+    return;
+  }
+  FB.login(function(response){
+    if (response.authResponse) {
+      FB.api('/me', {fields: 'name,email,picture'}, function(fbUser){
+        loginSuccess({ name: fbUser.name, email: fbUser.email, picture: fbUser.picture ? fbUser.picture.data.url : null, provider: 'facebook' }, 'Facebook');
+      });
+    }
+  }, {scope: 'public_profile,email'});
 }
 function handleLogout(){
   isLoggedIn = false;
@@ -712,16 +800,26 @@ function handleLogout(){
   renderOffers();
   renderCart();
 }
+function initials(name){
+  if(!name) return '?';
+  return name.trim().split(/\s+/).slice(0,2).map(w => w[0].toUpperCase()).join('');
+}
 function updateAuthUI(){
-  const wrap = document.getElementById('googleSignInWrap');
+  const triggerBtn = document.getElementById('loginTriggerBtn');
   const chip = document.getElementById('userChip');
   if (isLoggedIn && currentUser) {
-    wrap.style.display = 'none';
+    triggerBtn.style.display = 'none';
     chip.style.display = 'flex';
-    document.getElementById('userAvatar').src = currentUser.picture;
+    const img = document.getElementById('userAvatar');
+    const initEl = document.getElementById('userInitials');
+    if (currentUser.picture) {
+      img.src = currentUser.picture; img.style.display = 'block'; initEl.style.display = 'none';
+    } else {
+      initEl.textContent = initials(currentUser.name); initEl.style.display = 'flex'; img.style.display = 'none';
+    }
     document.getElementById('userName').textContent = currentUser.name;
   } else {
-    wrap.style.display = 'flex';
+    triggerBtn.style.display = 'inline-block';
     chip.style.display = 'none';
   }
 }
@@ -734,10 +832,15 @@ function initGoogleSignIn(){
     client_id: GOOGLE_CLIENT_ID,
     callback: handleCredentialResponse,
   });
-  google.accounts.id.renderButton(
-    document.getElementById('googleSignInBtn'),
-    { theme: 'filled_black', size: 'medium', shape: 'pill', text: 'signin', locale: 'es-419' }
-  );
+}
+function renderGoogleButtonInModal(){
+  const el = document.getElementById('googleSignInModalBtn');
+  if (el && window.google && google.accounts && google.accounts.id) {
+    el.innerHTML = '';
+    google.accounts.id.renderButton(el, { theme: 'outline', size: 'large', shape: 'pill', text: 'continue_with', locale: 'es-419', width: 320 });
+  } else {
+    setTimeout(renderGoogleButtonInModal, 300);
+  }
 }
 function priceOrLock(priceHtml){
   if (isLoggedIn) return priceHtml;
@@ -745,8 +848,111 @@ function priceOrLock(priceHtml){
 }
 function promptLogin(e){
   if (e) e.stopPropagation();
-  showToast('Inicia sesión con Google para ver los precios');
-  document.getElementById('googleSignInBtn').scrollIntoView({behavior:'smooth', block:'center'});
+  openAuthModal();
+}
+
+/* ---------- AUTH MODAL ---------- */
+function openAuthModal(){
+  renderAuthModal('options');
+  document.getElementById('authModalOverlay').classList.add('open');
+}
+function closeAuthModal(){
+  document.getElementById('authModalOverlay').classList.remove('open');
+}
+function renderAuthModal(view){
+  const modal = document.getElementById('authModal');
+
+  if (view === 'options') {
+    modal.innerHTML = `
+      <button class="modal-close" onclick="closeAuthModal()">✕</button>
+      <div class="auth-modal-head">
+        <h3>Inicia sesión o crea tu cuenta</h3>
+        <p>Los precios de Crescen Inc son exclusivos para clientes registrados.</p>
+      </div>
+      <div id="googleSignInModalBtn"></div>
+      <button class="social-login-btn fb" onclick="handleFacebookLogin()">
+        <svg class="icon" viewBox="0 0 24 24" fill="#fff"><path d="M22 12a10 10 0 1 0-11.5 9.9v-7H7.9V12h2.6V9.8c0-2.6 1.5-4 3.9-4 1.1 0 2.3.2 2.3.2v2.5h-1.3c-1.3 0-1.7.8-1.7 1.6V12h2.9l-.5 2.9h-2.4v7A10 10 0 0 0 22 12z"/></svg>
+        Continuar con Facebook
+      </button>
+      <div class="auth-divider">o</div>
+      <button class="auth-option-btn" onclick="renderAuthModal('login')">Iniciar sesión con correo</button>
+      <button class="auth-option-btn" onclick="renderAuthModal('register')">Crear una cuenta nueva</button>
+    `;
+    setTimeout(renderGoogleButtonInModal, 50);
+
+  } else if (view === 'login') {
+    modal.innerHTML = `
+      <button class="modal-close" onclick="closeAuthModal()">✕</button>
+      <button class="auth-back-btn" onclick="renderAuthModal('options')">← Volver</button>
+      <div class="auth-modal-head">
+        <h3>Iniciar sesión</h3>
+        <p>Entra con tu correo y contraseña.</p>
+      </div>
+      <form class="auth-form" onsubmit="handleLocalLogin(event)">
+        <label>Correo electrónico</label>
+        <input type="email" id="loginEmail" required placeholder="tucorreo@ejemplo.com">
+        <label>Contraseña</label>
+        <input type="password" id="loginPassword" required placeholder="••••••••">
+        <div class="auth-error" id="loginError"></div>
+        <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; margin-top:18px;">Iniciar sesión</button>
+      </form>
+      <div class="auth-switch">¿No tienes cuenta? <button onclick="renderAuthModal('register')">Créala aquí</button></div>
+    `;
+
+  } else if (view === 'register') {
+    modal.innerHTML = `
+      <button class="modal-close" onclick="closeAuthModal()">✕</button>
+      <button class="auth-back-btn" onclick="renderAuthModal('options')">← Volver</button>
+      <div class="auth-modal-head">
+        <h3>Crear tu cuenta</h3>
+        <p>Regístrate para ver precios y comprar. <em style="font-style:normal; color:var(--gold-dark);">(Demo: tu cuenta dura mientras esta pestaña esté abierta)</em></p>
+      </div>
+      <form class="auth-form" onsubmit="handleLocalRegister(event)">
+        <label>Nombre completo</label>
+        <input type="text" id="regName" required placeholder="Tu nombre">
+        <label>Teléfono</label>
+        <input type="tel" id="regPhone" required placeholder="55 1234 5678">
+        <label>Correo electrónico</label>
+        <input type="email" id="regEmail" required placeholder="tucorreo@ejemplo.com">
+        <label>Dirección de envío</label>
+        <input type="text" id="regAddress" required placeholder="Calle, número, colonia, CDMX">
+        <label>Contraseña</label>
+        <input type="password" id="regPassword" required placeholder="Mínimo 6 caracteres" minlength="6">
+        <div class="auth-error" id="registerError"></div>
+        <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; margin-top:18px;">Crear cuenta</button>
+      </form>
+      <div class="auth-switch">¿Ya tienes cuenta? <button onclick="renderAuthModal('login')">Inicia sesión</button></div>
+    `;
+  }
+}
+function handleLocalLogin(e){
+  e.preventDefault();
+  const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+  const password = document.getElementById('loginPassword').value;
+  const account = localAccounts.find(a => a.email.toLowerCase() === email && a.password === password);
+  const errEl = document.getElementById('loginError');
+  if (!account) {
+    errEl.textContent = 'Correo o contraseña incorrectos, o esta cuenta se creó en una sesión anterior y ya no está guardada (ver nota abajo).';
+    errEl.classList.add('show');
+    return;
+  }
+  loginSuccess({ name: account.name, email: account.email, picture: null, provider: 'local' }, 'cuenta Crescen');
+}
+function handleLocalRegister(e){
+  e.preventDefault();
+  const name = document.getElementById('regName').value.trim();
+  const phone = document.getElementById('regPhone').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const address = document.getElementById('regAddress').value.trim();
+  const password = document.getElementById('regPassword').value;
+  const errEl = document.getElementById('registerError');
+  if (localAccounts.some(a => a.email.toLowerCase() === email.toLowerCase())) {
+    errEl.textContent = 'Ya existe una cuenta con ese correo. Intenta iniciar sesión.';
+    errEl.classList.add('show');
+    return;
+  }
+  localAccounts.push({ name, phone, email, address, password });
+  loginSuccess({ name, email, picture: null, provider: 'local' }, 'cuenta Crescen');
 }
 let searchQuery = '';
 let cart = []; // {id, qty}
@@ -887,7 +1093,15 @@ function handleSearch(e){
 document.addEventListener('click', function(e){
   const combo = document.getElementById('searchCombo');
   if(combo && !combo.contains(e.target)) closeCatMenu();
+  const waWrap = document.getElementById('waMenuWrap');
+  if(waWrap && !waWrap.contains(e.target)) closeWaMenu();
 });
+function toggleWaMenu(){
+  document.getElementById('waMenuPanel').classList.toggle('open');
+}
+function closeWaMenu(){
+  document.getElementById('waMenuPanel').classList.remove('open');
+}
 
 /* ---------- OFFERS CAROUSEL ---------- */
 function renderOffers(){
