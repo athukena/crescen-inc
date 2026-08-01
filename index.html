@@ -53,6 +53,17 @@
   nav.main-nav a{font-size:14px; font-weight:500; color:#C7C0A6; transition:color .15s;}
   nav.main-nav a:hover{color:var(--gold-light);}
   .header-actions{display:flex; align-items:center; gap:18px;}
+  #authArea{display:flex; align-items:center;}
+  #googleSignInWrap{display:flex; align-items:center;}
+  .user-chip{display:flex; align-items:center; gap:8px; background:#221F15; padding:5px 10px 5px 5px; border-radius:999px; border:1px solid #3A3628;}
+  .user-chip img{width:26px; height:26px; border-radius:50%; display:block;}
+  .user-chip .user-name{font-size:12.5px; color:#fff; font-weight:600; max-width:110px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .user-chip button{font-size:11px; color:var(--gold-light); font-weight:600; border-left:1px solid #3A3628; padding-left:8px; white-space:nowrap;}
+  .user-chip button:hover{color:#fff;}
+  .price-locked{display:flex; align-items:center; gap:5px; font-size:11.5px; color:var(--ink-soft); font-weight:600; font-family:var(--font-body);}
+  .price-locked-cart{font-size:12px; color:var(--ink-soft); font-weight:600;}
+  .login-hint-banner{background:var(--paper-2); border:1px dashed var(--line); border-radius:8px; padding:12px 16px; font-size:12.5px; color:var(--ink-soft); text-align:center; margin-bottom:16px;}
+  .login-hint-banner button{color:var(--gold-dark); font-weight:700; text-decoration:underline;}
   .cart-btn{display:flex; align-items:center; gap:8px; background:var(--gold); color:var(--charcoal); padding:9px 16px; border-radius:6px; font-weight:600; font-size:13.5px; font-family:var(--font-mono);}
   .cart-btn:hover{background:var(--gold-light);}
   .top-bar{background:var(--gold); color:var(--charcoal); text-align:center; font-size:12.5px; padding:7px; letter-spacing:.02em; font-weight:600;}
@@ -98,22 +109,26 @@
   .brand-list span{font-family:var(--font-display); font-weight:600; font-size:15px; color:var(--ink-soft); letter-spacing:-.01em;}
   .brand-list .katun-badge{font-family:var(--font-mono); font-size:12px; font-weight:600; background:var(--gold); color:var(--charcoal); padding:4px 10px; border-radius:5px;}
 
-  /* BANNER CAROUSEL */
+  /* BANNER CAROUSEL - estilo amazon.mx: borde a borde, marca de agua del logo, flechas grandes */
   .banner-carousel{position:relative; overflow:hidden; background:var(--charcoal);}
   .banner-track{display:flex; transition:transform .5s cubic-bezier(.2,.8,.2,1);}
-  .banner-slide{min-width:100%; padding:52px 0; display:flex; align-items:center;}
-  .banner-slide .wrap{display:flex; align-items:center; justify-content:space-between; gap:32px; flex-wrap:wrap;}
+  .banner-slide{min-width:100%; padding:64px 0; display:flex; align-items:center; position:relative; overflow:hidden;}
+  .banner-slide .watermark{position:absolute; right:-40px; top:50%; transform:translateY(-50%); width:340px; height:340px; opacity:.07; pointer-events:none; filter:grayscale(1) brightness(4);}
+  .banner-slide .wrap{display:flex; align-items:center; justify-content:space-between; gap:32px; flex-wrap:wrap; position:relative; z-index:2;}
   .banner-slide .txt{max-width:560px;}
   .banner-slide .tag{font-family:var(--font-mono); font-size:11.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--gold-light); margin-bottom:10px;}
-  .banner-slide h3{font-family:var(--font-display); font-size:clamp(24px,3.2vw,34px); font-weight:600; color:#fff; line-height:1.15; margin-bottom:10px;}
-  .banner-slide p{font-size:14.5px; color:#C7C0A6; margin-bottom:18px;}
-  .banner-visual{width:150px; height:150px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-weight:700; font-size:15px; text-align:center; flex-shrink:0; color:var(--charcoal); padding:10px;}
-  .banner-arrow{position:absolute; top:50%; transform:translateY(-50%); width:42px; height:42px; border-radius:50%; background:rgba(255,255,255,.12); color:#fff; font-size:20px; display:flex; align-items:center; justify-content:center; z-index:5; transition:background .15s;}
-  .banner-arrow:hover{background:rgba(255,255,255,.25);}
-  .banner-arrow.prev{left:16px;} .banner-arrow.next{right:16px;}
-  .banner-dots{position:absolute; bottom:16px; left:0; right:0; display:flex; justify-content:center; gap:8px; z-index:5;}
-  .banner-dots button{width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,.35); transition:background .15s, width .15s;}
-  .banner-dots button.active{background:var(--gold); width:22px; border-radius:4px;}
+  .banner-slide h3{font-family:var(--font-display); font-size:clamp(26px,3.6vw,40px); font-weight:600; color:#fff; line-height:1.12; margin-bottom:12px;}
+  .banner-slide p{font-size:15px; color:#C7C0A6; margin-bottom:20px;}
+  .banner-visual{width:180px; height:180px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-weight:700; font-size:16px; text-align:center; flex-shrink:0; color:var(--charcoal); padding:12px; box-shadow:0 18px 40px rgba(0,0,0,.35);}
+  .banner-visual.has-logo{background:#fff; padding:20px;}
+  .banner-visual.has-logo img{width:100%; height:100%; object-fit:contain;}
+  .banner-arrow{position:absolute; top:50%; transform:translateY(-50%); width:52px; height:52px; border-radius:50%; background:rgba(255,255,255,.9); color:var(--charcoal); font-size:24px; display:flex; align-items:center; justify-content:center; z-index:6; transition:background .15s, transform .15s; box-shadow:0 6px 18px rgba(0,0,0,.25);}
+  .banner-arrow:hover{background:#fff; transform:translateY(-50%) scale(1.06);}
+  .banner-arrow.prev{left:20px;} .banner-arrow.next{right:20px;}
+  .banner-dots{position:absolute; bottom:18px; left:0; right:0; display:flex; justify-content:center; gap:8px; z-index:5;}
+  .banner-dots button{width:9px; height:9px; border-radius:50%; background:rgba(255,255,255,.4); transition:background .15s, width .15s;}
+  .banner-dots button.active{background:var(--gold); width:26px; border-radius:4px;}
+  @media (max-width:640px){ .banner-arrow{width:38px; height:38px; font-size:18px;} .banner-visual{width:120px; height:120px;} .banner-slide .watermark{width:220px; height:220px;} }
 
   /* PRODUCT CAROUSEL (horizontal scroll) */
   .carousel-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;}
@@ -311,6 +326,7 @@
     .hero{padding:44px 0 36px;}
   }
 </style>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
 
@@ -328,6 +344,14 @@
       <a href="#footer">Contacto</a>
     </nav>
     <div class="header-actions">
+      <div id="authArea">
+        <div id="googleSignInWrap"><div id="googleSignInBtn"></div></div>
+        <div class="user-chip" id="userChip" style="display:none;">
+          <img id="userAvatar" src="" alt="">
+          <span class="user-name" id="userName"></span>
+          <button onclick="handleLogout()">Salir</button>
+        </div>
+      </div>
       <button class="cart-btn" onclick="openCart()" aria-label="Abrir carrito">
         🛒 <span id="cartCount">0</span> · <span id="cartMini">$0</span>
       </button>
@@ -369,6 +393,7 @@
     <button class="banner-arrow next" onclick="moveBanner(1)" aria-label="Siguiente">›</button>
     <div class="banner-track" id="bannerTrack">
       <div class="banner-slide">
+        <img class="watermark" src="crescen-logo.png" alt="">
         <div class="wrap">
           <div class="txt">
             <div class="tag">Distribuidor autorizado</div>
@@ -376,10 +401,11 @@
             <p>Producto original Katun, con la garantía de +30 años de experiencia en el mercado.</p>
             <button class="btn btn-primary" onclick="filterCat('cartucho'); document.getElementById('catalog').scrollIntoView({behavior:'smooth'})">Ver cartuchos Katun →</button>
           </div>
-          <div class="banner-visual" style="background:linear-gradient(135deg,var(--gold-light),var(--gold-dark));">KATUN<br>SELECT</div>
+          <div class="banner-visual has-logo"><img src="crescen-logo.png" alt="Crescen Inc"></div>
         </div>
       </div>
       <div class="banner-slide">
+        <img class="watermark" src="crescen-logo.png" alt="">
         <div class="wrap">
           <div class="txt">
             <div class="tag">Oferta de la semana</div>
@@ -391,6 +417,7 @@
         </div>
       </div>
       <div class="banner-slide">
+        <img class="watermark" src="crescen-logo.png" alt="">
         <div class="wrap">
           <div class="txt">
             <div class="tag">Envíos</div>
@@ -402,6 +429,7 @@
         </div>
       </div>
       <div class="banner-slide">
+        <img class="watermark" src="crescen-logo.png" alt="">
         <div class="wrap">
           <div class="txt">
             <div class="tag">Garantía</div>
@@ -652,6 +680,74 @@ const PRODUCTS = [
 ];
 
 let currentCat = 'all';
+let isLoggedIn = false;
+let currentUser = null;
+
+const GOOGLE_CLIENT_ID = '240721962065-t6uhe074f2an5m98rio046a5e571j7bq.apps.googleusercontent.com';
+
+function parseJwt(token){
+  const base64Url = token.split('.')[1];
+  const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+  const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+  return JSON.parse(jsonPayload);
+}
+function handleCredentialResponse(response){
+  const payload = parseJwt(response.credential);
+  currentUser = { name: payload.name, email: payload.email, picture: payload.picture };
+  isLoggedIn = true;
+  updateAuthUI();
+  renderGrid();
+  renderOffers();
+  renderCart();
+  showToast('Sesión iniciada como ' + payload.given_name);
+}
+function handleLogout(){
+  isLoggedIn = false;
+  currentUser = null;
+  if (window.google && google.accounts && google.accounts.id) {
+    google.accounts.id.disableAutoSelect();
+  }
+  updateAuthUI();
+  renderGrid();
+  renderOffers();
+  renderCart();
+}
+function updateAuthUI(){
+  const wrap = document.getElementById('googleSignInWrap');
+  const chip = document.getElementById('userChip');
+  if (isLoggedIn && currentUser) {
+    wrap.style.display = 'none';
+    chip.style.display = 'flex';
+    document.getElementById('userAvatar').src = currentUser.picture;
+    document.getElementById('userName').textContent = currentUser.name;
+  } else {
+    wrap.style.display = 'flex';
+    chip.style.display = 'none';
+  }
+}
+function initGoogleSignIn(){
+  if (!window.google || !google.accounts || !google.accounts.id) {
+    setTimeout(initGoogleSignIn, 300);
+    return;
+  }
+  google.accounts.id.initialize({
+    client_id: GOOGLE_CLIENT_ID,
+    callback: handleCredentialResponse,
+  });
+  google.accounts.id.renderButton(
+    document.getElementById('googleSignInBtn'),
+    { theme: 'filled_black', size: 'medium', shape: 'pill', text: 'signin', locale: 'es-419' }
+  );
+}
+function priceOrLock(priceHtml){
+  if (isLoggedIn) return priceHtml;
+  return `<span class="price-locked" onclick="promptLogin(event)">🔒 Inicia sesión para ver precio</span>`;
+}
+function promptLogin(e){
+  if (e) e.stopPropagation();
+  showToast('Inicia sesión con Google para ver los precios');
+  document.getElementById('googleSignInBtn').scrollIntoView({behavior:'smooth', block:'center'});
+}
 let searchQuery = '';
 let cart = []; // {id, qty}
 
@@ -741,7 +837,7 @@ function renderGrid(){
         <div class="product-compat">${p.compat}</div>
         <div class="product-stars">${stars(p.rating)}</div>
         <div class="product-foot">
-          <div class="product-price">${money(p.price)}<small>${p.yield_}</small></div>
+          <div class="product-price">${priceOrLock(money(p.price))}<small>${p.yield_}</small></div>
           <button class="add-btn" aria-label="Agregar al carrito" onclick="addToCart('${p.id}',1); event.stopPropagation();">+</button>
         </div>
       </div>
@@ -810,7 +906,7 @@ function renderOffers(){
         <div class="product-name" onclick="showProduct('${p.id}')">${p.name}</div>
         <div class="product-stars">${stars(p.rating)}</div>
         <div class="product-foot">
-          <div class="product-price"><span class="old-price">${money(p.price)}</span>${money(newPrice)}</div>
+          <div class="product-price">${isLoggedIn ? `<span class="old-price">${money(p.price)}</span>${money(newPrice)}` : priceOrLock('')}</div>
           <button class="add-btn" aria-label="Agregar al carrito" onclick="addToCart('${p.id}',1); event.stopPropagation();">+</button>
         </div>
       </div>
@@ -876,8 +972,9 @@ function showProduct(id){
           <div class="detail-cat">${catLabel(p.cat)}${p.katun ? ' · Distribuido por Katun' : ' · Compatible'}</div>
           <h1 class="detail-title">${p.name}</h1>
           <div class="detail-compat">Compatible con: ${p.compat}</div>
-          <div class="detail-price">${money(p.price)}</div>
+          <div class="detail-price">${priceOrLock(money(p.price))}</div>
           <div class="detail-price-note">IVA incluido · Envío en Ciudad de México y área metropolitana</div>
+          ${!isLoggedIn ? `<div class="login-hint-banner">Los precios son exclusivos para clientes registrados. <button onclick="promptLogin()">Inicia sesión con Google</button> para verlos.</div>` : ''}
           <table class="spec-table">
             <tr><td>Presentación</td><td>${p.yield_}</td></tr>
             <tr><td>Distribuidor</td><td>${p.katun ? 'Katun (autorizado)' : 'Crescen Inc'}</td></tr>
@@ -942,15 +1039,16 @@ function cartTotal(){
 function renderCart(){
   const count = cart.reduce((s,c) => s + c.qty, 0);
   document.getElementById('cartCount').textContent = count;
-  document.getElementById('cartMini').textContent = money(cartTotal());
-  document.getElementById('cartSubtotal').textContent = money(cartTotal());
-  document.getElementById('checkoutBtn').disabled = cart.length === 0;
+  document.getElementById('cartMini').textContent = isLoggedIn ? money(cartTotal()) : '🔒';
+  document.getElementById('cartSubtotal').textContent = isLoggedIn ? money(cartTotal()) : 'Inicia sesión';
+  document.getElementById('checkoutBtn').disabled = cart.length === 0 || !isLoggedIn;
+  document.getElementById('checkoutBtn').textContent = isLoggedIn ? 'Ir a pagar' : 'Inicia sesión para pagar';
 
   const wrap = document.getElementById('cartItemsWrap');
   if(cart.length === 0){
     wrap.innerHTML = `<div class="cart-empty">Tu carrito está vacío.<br>Agrega productos desde el catálogo.</div>`;
   } else {
-    wrap.innerHTML = cart.map(c => {
+    wrap.innerHTML = (!isLoggedIn ? `<div class="login-hint-banner">Inicia sesión con Google para ver precios y pagar. <button onclick="promptLogin()">Iniciar sesión</button></div>` : '') + cart.map(c => {
       const p = PRODUCTS.find(x => x.id === c.id);
       if(!p) return '';
       return `
@@ -958,7 +1056,7 @@ function renderCart(){
         <div class="cart-item-media">${iconFor(p,34)}</div>
         <div class="cart-item-info">
           <div class="cart-item-name">${p.name}</div>
-          <div class="cart-item-price">${money(p.price)} c/u</div>
+          <div class="cart-item-price">${isLoggedIn ? money(p.price) + ' c/u' : '<span class="price-locked-cart">🔒 precio oculto</span>'}</div>
           <div class="cart-item-controls">
             <button onclick="changeCartQty('${p.id}',-1)">−</button>
             <span style="font-family:var(--font-mono); font-size:12.5px; min-width:16px; text-align:center;">${c.qty}</span>
@@ -993,6 +1091,7 @@ function closeCart(){
 let selectedPayment = null;
 function openCheckout(){
   if(cart.length === 0) return;
+  if(!isLoggedIn){ promptLogin(); return; }
   selectedPayment = null;
   const modal = document.getElementById('checkoutModal');
   modal.innerHTML = `
@@ -1074,6 +1173,7 @@ renderOffers();
 renderBannerDots();
 resetBannerTimer();
 syncSearchCatLabel('all');
+initGoogleSignIn();
 </script>
 
 </body>
