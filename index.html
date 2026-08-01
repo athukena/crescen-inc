@@ -145,26 +145,33 @@
   .brand-list span{font-family:var(--font-display); font-weight:600; font-size:15px; color:var(--ink-soft); letter-spacing:-.01em;}
   .brand-list .katun-badge{font-family:var(--font-mono); font-size:12px; font-weight:600; background:var(--gold); color:var(--charcoal); padding:4px 10px; border-radius:5px;}
 
-  /* BANNER CAROUSEL - estilo amazon.mx: borde a borde, marca de agua del logo, flechas grandes */
-  .banner-carousel{position:relative; overflow:hidden; background:var(--charcoal);}
+  /* BANNER CAROUSEL - fondo dorado con franja blanca diagonal, estilo folleto de supermercado */
+  .banner-carousel{position:relative; overflow:hidden; background:linear-gradient(100deg, var(--gold-dark) 0%, var(--gold) 55%, var(--gold-light) 100%);}
   .banner-track{display:flex; transition:transform .5s cubic-bezier(.2,.8,.2,1);}
-  .banner-slide{min-width:100%; padding:64px 0; display:flex; align-items:center; position:relative; overflow:hidden;}
-  .banner-slide .watermark{position:absolute; right:-40px; top:50%; transform:translateY(-50%); width:340px; height:340px; opacity:.07; pointer-events:none; filter:grayscale(1) brightness(4);}
+  .banner-slide{min-width:100%; padding:64px 0; display:flex; align-items:center; position:relative; overflow:hidden; background:linear-gradient(100deg, var(--gold-dark) 0%, var(--gold) 55%, var(--gold-light) 100%);}
+  .banner-slide::before{content:''; position:absolute; top:0; bottom:0; left:64%; width:9%; background:rgba(255,255,255,.22); transform:skewX(-14deg); z-index:1; pointer-events:none;}
+  .banner-slide::after{content:''; position:absolute; top:0; bottom:0; left:73%; width:3%; background:rgba(255,255,255,.14); transform:skewX(-14deg); z-index:1; pointer-events:none;}
+  .banner-slide .watermark{position:absolute; right:-40px; top:50%; transform:translateY(-50%); width:340px; height:340px; opacity:.06; pointer-events:none; filter:brightness(0);}
   .banner-slide .wrap{display:flex; align-items:center; justify-content:space-between; gap:32px; flex-wrap:wrap; position:relative; z-index:2;}
   .banner-slide .txt{max-width:560px;}
-  .banner-slide .tag{font-family:var(--font-mono); font-size:11.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--gold-light); margin-bottom:10px;}
-  .banner-slide h3{font-family:var(--font-display); font-size:clamp(26px,3.6vw,40px); font-weight:600; color:#fff; line-height:1.12; margin-bottom:12px;}
-  .banner-slide p{font-size:15px; color:#C7C0A6; margin-bottom:20px;}
-  .banner-visual{width:180px; height:180px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-weight:700; font-size:16px; text-align:center; flex-shrink:0; color:var(--charcoal); padding:12px; box-shadow:0 18px 40px rgba(0,0,0,.35);}
-  .banner-visual.has-logo{background:#fff; padding:20px;}
+  .banner-slide .tag{font-family:var(--font-mono); font-size:11.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--charcoal); background:rgba(255,255,255,.85); display:inline-block; padding:4px 10px; border-radius:999px; margin-bottom:10px; font-weight:700;}
+  .banner-slide h3{font-family:var(--font-display); font-size:clamp(26px,3.6vw,40px); font-weight:700; color:#fff; line-height:1.12; margin-bottom:12px; text-shadow:0 3px 14px rgba(0,0,0,.35);}
+  .banner-slide p{font-size:15px; color:#3A2E10; margin-bottom:20px; font-weight:500;}
+  .banner-visual{width:230px; height:230px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-weight:700; font-size:17px; text-align:center; flex-shrink:0; color:#fff; overflow:hidden; background:rgba(255,255,255,.16); border:3px solid rgba(255,255,255,.5); text-shadow:0 2px 10px rgba(0,0,0,.35); box-shadow:0 18px 40px rgba(0,0,0,.25);}
+  .banner-visual.has-logo{background:#fff; padding:20px; border-radius:50%; border:none;}
   .banner-visual.has-logo img{width:100%; height:100%; object-fit:contain;}
-  .banner-arrow{position:absolute; top:50%; transform:translateY(-50%); width:52px; height:52px; border-radius:50%; background:rgba(255,255,255,.9); color:var(--charcoal); font-size:24px; display:flex; align-items:center; justify-content:center; z-index:6; transition:background .15s, transform .15s; box-shadow:0 6px 18px rgba(0,0,0,.25);}
-  .banner-arrow:hover{background:#fff; transform:translateY(-50%) scale(1.06);}
-  .banner-arrow.prev{left:20px;} .banner-arrow.next{right:20px;}
-  .banner-dots{position:absolute; bottom:18px; left:0; right:0; display:flex; justify-content:center; gap:8px; z-index:5;}
-  .banner-dots button{width:9px; height:9px; border-radius:50%; background:rgba(255,255,255,.4); transition:background .15s, width .15s;}
-  .banner-dots button.active{background:var(--gold); width:26px; border-radius:4px;}
-  @media (max-width:640px){ .banner-arrow{width:38px; height:38px; font-size:18px;} .banner-visual{width:120px; height:120px;} .banner-slide .watermark{width:220px; height:220px;} }
+  .banner-visual.has-photo{background:#fff; border:none;}
+  .banner-visual.has-photo img{width:100%; height:100%; object-fit:cover; display:block;}
+  .banner-arrow{position:absolute; top:50%; transform:translateY(-50%); width:36px; height:36px; background:none; color:#fff; font-size:34px; font-weight:300; display:flex; align-items:center; justify-content:center; z-index:6; transition:opacity .15s, transform .15s; opacity:.8; text-shadow:0 2px 8px rgba(0,0,0,.4);}
+  .banner-arrow:hover{opacity:1; transform:translateY(-50%) scale(1.1);}
+  .banner-arrow.prev{left:14px;} .banner-arrow.next{right:14px;}
+  .banner-dots{position:absolute; bottom:16px; left:0; right:0; display:flex; justify-content:center; gap:8px; z-index:5;}
+  .banner-dots button{width:9px; height:9px; border-radius:50%; background:transparent; border:1.5px solid #fff; opacity:.85; transition:background .15s, transform .15s; box-shadow:0 1px 4px rgba(0,0,0,.25);}
+  .banner-dots button:hover{transform:scale(1.15);}
+  .banner-dots button.active{background:#fff;}
+  .banner-slide .txt .btn-primary{background:var(--charcoal); color:var(--gold-light); box-shadow:0 8px 20px rgba(0,0,0,.25);}
+  .banner-slide .txt .btn-primary:hover{background:#000;}
+  @media (max-width:640px){ .banner-arrow{width:28px; height:28px; font-size:26px;} .banner-visual{width:150px; height:150px;} .banner-slide .watermark{width:220px; height:220px;} }
 
   /* PRODUCT CAROUSEL (horizontal scroll) */
   .carousel-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;}
@@ -462,35 +469,35 @@
         <div class="wrap">
           <div class="txt">
             <div class="tag">Oferta de la semana</div>
-            <h3>Hasta 20% de descuento en insumos para recarga</h3>
-            <p>Polvo para tóner, chips de reconocimiento y cilindros con precio especial por tiempo limitado.</p>
+            <h3>Tintas de litro base agua — 20% de descuento</h3>
+            <p>Promoción por litro, compatibles con impresoras Epson. Por tiempo limitado.</p>
             <button class="btn btn-primary" onclick="document.getElementById('offersCarousel').scrollIntoView({behavior:'smooth'})">Ver ofertas →</button>
           </div>
-          <div class="banner-visual" style="background:linear-gradient(135deg,#E9CB6B,#A3402C); color:#fff;">−20%<br>OFERTA</div>
+          <div class="banner-visual" style="border-radius:50%; background:linear-gradient(135deg,#E9CB6B,#A3402C); color:#fff;">−20%<br>TINTAS</div>
         </div>
       </div>
       <div class="banner-slide">
         <img class="watermark" src="crescen-logo.png" alt="">
         <div class="wrap">
           <div class="txt">
-            <div class="tag">Envíos</div>
-            <h3>Envío gratis desde $999 MXN en Ciudad de México</h3>
-            <p>Entregas en 24–48 horas en CDMX y área metropolitana.</p>
+            <div class="tag">Envíos en CDMX</div>
+            <h3>Manda tu pedido por Uber y monitorea tu envío</h3>
+            <p>Compra en línea y da seguimiento a tu paquete en tiempo real hasta que llegue a tu puerta.</p>
             <button class="btn btn-primary" onclick="document.getElementById('catalog').scrollIntoView({behavior:'smooth'})">Ir al catálogo →</button>
           </div>
-          <div class="banner-visual" style="background:linear-gradient(135deg,var(--gold-light),var(--gold-dark));">ENVÍO<br>GRATIS</div>
+          <div class="banner-visual" style="border-radius:50%; background:linear-gradient(135deg,var(--gold-light),var(--gold-dark));">ENVÍO<br>UBER</div>
         </div>
       </div>
       <div class="banner-slide">
         <img class="watermark" src="crescen-logo.png" alt="">
         <div class="wrap">
           <div class="txt">
-            <div class="tag">Garantía</div>
-            <h3>Cartuchos nuevos compatibles con 2 años de garantía</h3>
-            <p>Multimarca: HP, Epson, Canon, Brother, Samsung y Xerox.</p>
+            <div class="tag">Katun Performance</div>
+            <h3>Katun: lo mejor en cartuchos compatibles</h3>
+            <p>Alto rendimiento, impresión nítida y 100% compatible con tu equipo.</p>
             <button class="btn btn-primary" onclick="filterCat('all'); document.getElementById('catalog').scrollIntoView({behavior:'smooth'})">Ver catálogo →</button>
           </div>
-          <div class="banner-visual" style="background:linear-gradient(135deg,var(--gold-light),var(--gold-dark));">2 AÑOS<br>GARANTÍA</div>
+          <div class="banner-visual" style="border-radius:50%; background:linear-gradient(135deg,var(--gold-light),var(--gold-dark));">KATUN<br>PERFORMANCE</div>
         </div>
       </div>
     </div>
