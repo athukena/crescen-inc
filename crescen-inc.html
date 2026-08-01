@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crescen Inc — Distribuidor Autorizado Katun · Ciudad de México</title>
+<link rel="icon" type="image/png" href="crescen-logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --gold:#C9A227;
+    --gold-light:#E9CB6B;
+    --gold-dark:#8F721B;
+    --charcoal:#17160F;
+    --charcoal-2:#221F15;
+    --paper:#F8F6EF;
+    --paper-2:#EFEADA;
+    --ink:#1B1A14;
+    --ink-soft:#635E4C;
+    --line:#E2DBC4;
+    --white:#FFFFFF;
+    --font-display:'Fraunces', serif;
+    --font-body:'Work Sans', sans-serif;
+    --font-mono:'JetBrains Mono', monospace;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{font-family:var(--font-body); background:var(--paper); color:var(--ink); line-height:1.55; -webkit-font-smoothing:antialiased;}
+  a{color:inherit; text-decoration:none;}
+  ul{list-style:none;}
+  button{font-family:inherit; cursor:pointer; border:none; background:none;}
+  img,svg{display:block; max-width:100%;}
+  :focus-visible{outline:3px solid var(--gold); outline-offset:2px;}
+  @media (prefers-reduced-motion: reduce){ *{animation-duration:0.001ms !important; transition-duration:0.001ms !important;} }
+
+  .wrap{max-width:1180px; margin:0 auto; padding:0 24px;}
+
+  .growth-mark{display:inline-flex; align-items:flex-end; gap:3px; height:16px;}
+  .growth-mark span{width:4px; background:var(--gold); border-radius:1px;}
+  .growth-mark span:nth-child(1){height:6px;}
+  .growth-mark span:nth-child(2){height:10px;}
+  .growth-mark span:nth-child(3){height:14px;}
+  .growth-mark span:nth-child(4){height:16px; background:var(--gold-light);}
+
+  /* HEADER */
+  .site-header{position:sticky; top:0; z-index:40; background:var(--charcoal); color:var(--white);}
+  .header-inner{display:flex; align-items:center; justify-content:space-between; padding:16px 24px; gap:24px;}
+  .logo{display:flex; align-items:center; gap:10px; font-family:var(--font-display); font-weight:600; font-size:21px; letter-spacing:-0.01em; color:var(--gold-light);}
+  .logo img{height:42px; width:auto; display:block;}
+  .footer-logo img{height:48px; width:auto; display:block;}
+  nav.main-nav{display:flex; gap:28px;}
+  nav.main-nav a{font-size:14px; font-weight:500; color:#C7C0A6; transition:color .15s;}
+  nav.main-nav a:hover{color:var(--gold-light);}
+  .header-actions{display:flex; align-items:center; gap:18px;}
+  .cart-btn{display:flex; align-items:center; gap:8px; background:var(--gold); color:var(--charcoal); padding:9px 16px; border-radius:6px; font-weight:600; font-size:13.5px; font-family:var(--font-mono);}
+  .cart-btn:hover{background:var(--gold-light);}
+  .top-bar{background:var(--gold); color:var(--charcoal); text-align:center; font-size:12.5px; padding:7px; letter-spacing:.02em; font-weight:600;}
+
+  /* KATUN STRIP */
+  .katun-strip{background:var(--charcoal-2); color:var(--gold-light); padding:10px 0;}
+  .katun-strip .wrap{display:flex; align-items:center; justify-content:center; gap:10px; font-family:var(--font-mono); font-size:12px; letter-spacing:.03em; text-align:center; flex-wrap:wrap;}
+  .katun-strip b{color:#fff;}
+
+  /* HERO */
+  .hero{padding:76px 0 60px; background:var(--charcoal); color:#fff;}
+  .hero-inner{display:grid; grid-template-columns:1.15fr .85fr; gap:52px; align-items:center;}
+  .eyebrow{font-family:var(--font-mono); font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--gold-light); display:flex; align-items:center; gap:9px; margin-bottom:18px;}
+  .hero h1{font-family:var(--font-display); font-size:clamp(38px,5vw,54px); line-height:1.08; letter-spacing:-0.01em; font-weight:600; margin-bottom:20px;}
+  .hero h1 .accent{color:var(--gold-light); font-style:italic; font-weight:500;}
+  .hero p.lead{font-size:17px; color:#C7C0A6; max-width:480px; margin-bottom:30px;}
+  .hero-ctas{display:flex; gap:14px; flex-wrap:wrap; margin-bottom:30px;}
+  .btn{display:inline-flex; align-items:center; gap:8px; padding:14px 26px; border-radius:6px; font-weight:600; font-size:14px; transition:transform .15s, background .15s;}
+  .btn:active{transform:scale(.97);}
+  .btn-primary{background:var(--gold); color:var(--charcoal);}
+  .btn-primary:hover{background:var(--gold-light);}
+  .btn-ghost{border:1.5px solid #55503E; color:#fff;}
+  .btn-ghost:hover{background:#fff; color:var(--charcoal); border-color:#fff;}
+  .trust-chips{display:flex; gap:10px; flex-wrap:wrap;}
+  .chip-pill{font-family:var(--font-mono); font-size:11.5px; border:1px solid #3A3628; background:#211F16; padding:6px 12px; border-radius:6px; color:#C7C0A6;}
+
+  .growth-card{background:var(--white); border:1px solid var(--line); border-radius:14px; padding:28px; color:var(--ink);}
+  .growth-card-head{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:22px;}
+  .growth-card-head span{font-family:var(--font-mono); font-size:11.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-soft);}
+  .growth-total{font-family:var(--font-display); font-size:15px; font-weight:600; color:var(--gold-dark);}
+  .bar-chart{display:flex; align-items:flex-end; gap:10px; height:140px; margin-bottom:14px; border-bottom:1px solid var(--line); padding-bottom:2px;}
+  .bar-chart .bar{flex:1; background:linear-gradient(180deg, var(--gold-light), var(--gold-dark)); border-radius:4px 4px 0 0; height:0%; transition:height 1s cubic-bezier(.2,.8,.2,1);}
+  .bar-chart-labels{display:flex; gap:10px; margin-bottom:20px;}
+  .bar-chart-labels span{flex:1; text-align:center; font-family:var(--font-mono); font-size:10px; color:var(--ink-soft);}
+  .growth-foot{font-size:13px; color:var(--ink-soft); border-top:1px dashed var(--line); padding-top:16px;}
+  .growth-foot b{color:var(--ink); font-family:var(--font-mono);}
+
+  /* BRAND STRIP */
+  .brand-strip{background:var(--paper-2); padding:22px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line);}
+  .brand-strip .wrap{display:flex; align-items:center; gap:28px; flex-wrap:wrap; justify-content:space-between;}
+  .brand-strip .label{font-family:var(--font-mono); font-size:11.5px; color:var(--ink-soft); white-space:nowrap;}
+  .brand-list{display:flex; gap:22px; flex-wrap:wrap; align-items:center;}
+  .brand-list span{font-family:var(--font-display); font-weight:600; font-size:15px; color:var(--ink-soft); letter-spacing:-.01em;}
+  .brand-list .katun-badge{font-family:var(--font-mono); font-size:12px; font-weight:600; background:var(--gold); color:var(--charcoal); padding:4px 10px; border-radius:5px;}
+
+  /* BANNER CAROUSEL */
+  .banner-carousel{position:relative; overflow:hidden; background:var(--charcoal);}
+  .banner-track{display:flex; transition:transform .5s cubic-bezier(.2,.8,.2,1);}
+  .banner-slide{min-width:100%; padding:52px 0; display:flex; align-items:center;}
+  .banner-slide .wrap{display:flex; align-items:center; justify-content:space-between; gap:32px; flex-wrap:wrap;}
+  .banner-slide .txt{max-width:560px;}
+  .banner-slide .tag{font-family:var(--font-mono); font-size:11.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--gold-light); margin-bottom:10px;}
+  .banner-slide h3{font-family:var(--font-display); font-size:clamp(24px,3.2vw,34px); font-weight:600; color:#fff; line-height:1.15; margin-bottom:10px;}
+  .banner-slide p{font-size:14.5px; color:#C7C0A6; margin-bottom:18px;}
+  .banner-visual{width:150px; height:150px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-weight:700; font-size:15px; text-align:center; flex-shrink:0; color:var(--charcoal); padding:10px;}
+  .banner-arrow{position:absolute; top:50%; transform:translateY(-50%); width:42px; height:42px; border-radius:50%; background:rgba(255,255,255,.12); color:#fff; font-size:20px; display:flex; align-items:center; justify-content:center; z-index:5; transition:background .15s;}
+  .banner-arrow:hover{background:rgba(255,255,255,.25);}
+  .banner-arrow.prev{left:16px;} .banner-arrow.next{right:16px;}
+  .banner-dots{position:absolute; bottom:16px; left:0; right:0; display:flex; justify-content:center; gap:8px; z-index:5;}
+  .banner-dots button{width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,.35); transition:background .15s, width .15s;}
+  .banner-dots button.active{background:var(--gold); width:22px; border-radius:4px;}
+
+  /* PRODUCT CAROUSEL (horizontal scroll) */
+  .carousel-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;}
+  .carousel-head h2{font-family:var(--font-display); font-size:26px; font-weight:600;}
+  .carousel-nav{display:flex; gap:8px;}
+  .carousel-nav button{width:36px; height:36px; border-radius:50%; border:1px solid var(--line); background:var(--white); font-size:16px; display:flex; align-items:center; justify-content:center; transition:background .15s;}
+  .carousel-nav button:hover{background:var(--paper-2);}
+  .carousel-wrap{position:relative;}
+  .carousel-track{display:flex; gap:16px; overflow-x:auto; scroll-snap-type:x mandatory; scroll-behavior:smooth; padding-bottom:6px; -ms-overflow-style:none; scrollbar-width:none;}
+  .carousel-track::-webkit-scrollbar{display:none;}
+  .carousel-card{scroll-snap-align:start; flex:0 0 220px; background:var(--white); border:1px solid var(--line); border-radius:10px; overflow:hidden; display:flex; flex-direction:column; position:relative;}
+  .offer-badge{position:absolute; top:8px; right:8px; background:#A3402C; color:#fff; font-family:var(--font-mono); font-size:10.5px; font-weight:700; padding:3px 8px; border-radius:5px; z-index:2;}
+  .carousel-card .product-media{aspect-ratio:1/0.85;}
+  .carousel-card .old-price{font-family:var(--font-mono); font-size:11.5px; color:var(--ink-soft); text-decoration:line-through; margin-right:6px;}
+
+  /* SECTION HEADERS */
+  .section{padding:66px 0;}
+  .section-head{display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:32px; gap:20px; flex-wrap:wrap;}
+  .section-head h2{font-family:var(--font-display); font-size:30px; letter-spacing:-.01em; font-weight:600;}
+  .section-head p{color:var(--ink-soft); font-size:14px; max-width:400px;}
+
+  /* CATEGORY CARDS */
+  .cat-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:16px;}
+  .cat-card{background:var(--white); border:1px solid var(--line); border-radius:10px; padding:22px; transition:border-color .15s, transform .15s;}
+  .cat-card:hover{border-color:var(--gold-dark); transform:translateY(-2px);}
+  .cat-card .growth-mark{margin-bottom:14px;}
+  .cat-card h3{font-family:var(--font-display); font-size:17px; margin-bottom:6px; font-weight:600;}
+  .cat-card p{font-size:13px; color:var(--ink-soft);}
+
+  /* FILTER TABS */
+  .filter-tabs{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:28px;}
+  .tab-btn{padding:9px 16px; border-radius:6px; border:1px solid var(--line); font-size:13px; font-weight:600; background:var(--white); color:var(--ink-soft);}
+  .tab-btn.active{background:var(--charcoal); border-color:var(--charcoal); color:var(--gold-light);}
+
+  /* PRODUCT GRID */
+  .product-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:18px;}
+  .product-card{background:var(--white); border:1px solid var(--line); border-radius:10px; overflow:hidden; display:flex; flex-direction:column; transition:box-shadow .15s, transform .15s;}
+  .product-card:hover{box-shadow:0 12px 28px rgba(30,25,10,.1); transform:translateY(-3px);}
+  .product-media{background:var(--paper-2); padding:22px; display:flex; align-items:center; justify-content:center; cursor:pointer; aspect-ratio:1/0.85; position:relative;}
+  .katun-tag{position:absolute; top:8px; left:8px; background:var(--gold); color:var(--charcoal); font-family:var(--font-mono); font-size:9.5px; font-weight:700; padding:3px 7px; border-radius:4px;}
+  .product-body{padding:16px; display:flex; flex-direction:column; gap:8px; flex:1;}
+  .product-cat{font-family:var(--font-mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-soft);}
+  .product-name{font-weight:600; font-size:14.5px; cursor:pointer; line-height:1.3;}
+  .product-name:hover{color:var(--gold-dark);}
+  .product-compat{font-size:12px; color:var(--ink-soft);}
+  .product-stars{font-size:12px; color:var(--gold); letter-spacing:2px;}
+  .product-foot{display:flex; align-items:center; justify-content:space-between; margin-top:auto; padding-top:8px;}
+  .product-price{font-family:var(--font-mono); font-weight:600; font-size:16px;}
+  .product-price small{display:block; font-weight:400; font-size:10.5px; color:var(--ink-soft);}
+  .add-btn{background:var(--charcoal); color:var(--gold-light); width:36px; height:36px; border-radius:50%; font-size:18px; display:flex; align-items:center; justify-content:center; transition:background .15s;}
+  .add-btn:hover{background:var(--gold); color:var(--charcoal);}
+
+  /* TRUST BAND */
+  .trust-band{background:var(--charcoal); color:#fff; padding:48px 0;}
+  .trust-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:24px; text-align:center;}
+  .trust-item .num{font-family:var(--font-display); font-size:30px; font-weight:600; color:var(--gold-light);}
+  .trust-item .lbl{font-size:12.5px; color:#A79F84; margin-top:4px;}
+
+  /* SEARCH ROW - estilo Amazon */
+  .search-row{background:var(--charcoal-2); padding:14px 0;}
+  .search-combo{display:flex; align-items:stretch; max-width:640px; margin:0 auto; position:relative; border-radius:8px; overflow:visible; box-shadow:0 2px 8px rgba(0,0,0,.25);}
+  .search-cat-btn{background:#2C2919; color:#C7C0A6; padding:0 14px; font-size:12.5px; font-weight:600; display:flex; align-items:center; gap:6px; white-space:nowrap; border-radius:8px 0 0 8px; border-right:1px solid #3A3628; transition:background .15s;}
+  .search-cat-btn:hover{background:#38341F;}
+  .search-combo input{flex:1; border:none; padding:0 14px; font-size:14px; font-family:var(--font-body); background:#fff; color:var(--ink); min-width:0;}
+  .search-combo input:focus{outline:none;}
+  .search-combo input, .search-cat-btn{height:44px;}
+  .search-submit-btn{background:var(--gold); color:var(--charcoal); width:50px; border-radius:0 8px 8px 0; font-size:17px; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:background .15s;}
+  .search-submit-btn:hover{background:var(--gold-light);}
+  .cat-menu-panel{position:absolute; top:calc(100% + 6px); left:0; background:#fff; border:1px solid var(--line); border-radius:10px; box-shadow:0 14px 32px rgba(0,0,0,.18); min-width:240px; padding:8px; z-index:60; display:none;}
+  .cat-menu-panel.open{display:block;}
+  .cat-menu-panel button{display:flex; align-items:center; gap:10px; width:100%; text-align:left; padding:10px 12px; border-radius:6px; font-size:13.5px; font-weight:500; color:var(--ink);}
+  .cat-menu-panel button:hover{background:var(--paper-2);}
+  .cat-menu-panel button.active{color:var(--gold-dark); font-weight:700;}
+  .cat-menu-panel .cm-icon{width:18px; height:18px; flex-shrink:0;}
+  .no-results{grid-column:1/-1; text-align:center; padding:50px 20px; color:var(--ink-soft); font-size:14.5px;}
+  .no-results b{display:block; font-family:var(--font-display); font-size:19px; color:var(--ink); margin-bottom:6px; font-weight:600;}
+  @media (max-width:640px){ .search-cat-btn span.cm-label{display:none;} }
+
+  /* MASCOT SECTION */
+  .mascot-section{background:var(--white); border:1px solid var(--line); border-radius:16px; padding:0; display:grid; grid-template-columns:.85fr 1.15fr; overflow:hidden; align-items:stretch;}
+  .mascot-media{background:var(--paper-2); display:flex; align-items:flex-end; justify-content:center; overflow:hidden; min-height:280px;}
+  .mascot-media img{width:100%; height:100%; object-fit:cover; object-position:top center;}
+  .mascot-text{padding:40px; display:flex; flex-direction:column; justify-content:center;}
+  .mascot-text .eyebrow{margin-bottom:14px;}
+  .mascot-text h3{font-family:var(--font-display); font-size:26px; font-weight:600; margin-bottom:14px; letter-spacing:-.01em;}
+  .mascot-text p{font-size:14.5px; color:var(--ink-soft); max-width:440px; margin-bottom:20px;}
+  @media (max-width:900px){ .mascot-section{grid-template-columns:1fr;} .mascot-media{min-height:220px;} }
+
+  /* CTA BANNER */
+  .cta-banner{background:linear-gradient(120deg, var(--gold-dark) 0%, var(--charcoal) 100%); border-radius:14px; padding:44px 40px; display:flex; justify-content:space-between; align-items:center; gap:24px; flex-wrap:wrap; color:#fff; margin:64px auto 0;}
+  .cta-banner h3{font-family:var(--font-display); font-size:25px; max-width:440px; font-weight:600;}
+  .cta-banner .btn-primary{background:var(--gold-light); color:var(--charcoal);}
+  .cta-banner .btn-primary:hover{background:#fff;}
+
+  /* FOOTER */
+  footer{background:var(--charcoal); color:#A79F84; padding:56px 0 28px; margin-top:60px;}
+  .footer-grid{display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr; gap:32px; margin-bottom:36px;}
+  .footer-grid h4{font-family:var(--font-display); color:#fff; font-size:14px; margin-bottom:14px; font-weight:600;}
+  .footer-grid ul li{margin-bottom:9px; font-size:13.5px;}
+  .footer-grid ul li a:hover{color:var(--gold-light);}
+  .footer-logo{display:flex; align-items:center; gap:9px; font-family:var(--font-display); font-weight:600; color:var(--gold-light); font-size:19px; margin-bottom:12px;}
+  .footer-grid p{font-size:13px; max-width:280px; margin-bottom:14px;}
+  .footer-bottom{border-top:1px solid #33301F; padding-top:20px; font-size:12px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;}
+
+  /* PRODUCT DETAIL VIEW */
+  #view-product{padding:40px 0 80px;}
+  .breadcrumb{font-size:13px; color:var(--ink-soft); margin-bottom:24px;}
+  .breadcrumb button{color:var(--gold-dark); font-weight:600;}
+  .product-detail{display:grid; grid-template-columns:.9fr 1.1fr; gap:48px;}
+  .detail-media{background:var(--paper-2); border-radius:14px; padding:50px; display:flex; align-items:center; justify-content:center; position:relative;}
+  .detail-media svg{width:220px; height:220px;}
+  .detail-cat{font-family:var(--font-mono); font-size:12px; text-transform:uppercase; color:var(--ink-soft); letter-spacing:.06em; margin-bottom:10px;}
+  .detail-title{font-family:var(--font-display); font-size:30px; margin-bottom:10px; letter-spacing:-.01em; font-weight:600;}
+  .detail-compat{color:var(--ink-soft); font-size:14px; margin-bottom:18px;}
+  .detail-price{font-family:var(--font-mono); font-size:30px; font-weight:600; margin-bottom:4px;}
+  .detail-price-note{font-size:12.5px; color:var(--ink-soft); margin-bottom:24px;}
+  .spec-table{width:100%; border-collapse:collapse; margin-bottom:26px; font-size:13.5px;}
+  .spec-table tr{border-bottom:1px solid var(--line);}
+  .spec-table td{padding:10px 0; }
+  .spec-table td:first-child{color:var(--ink-soft); width:180px;}
+  .spec-table td:last-child{font-weight:500; font-family:var(--font-mono);}
+  .qty-row{display:flex; align-items:center; gap:16px; margin-bottom:22px;}
+  .qty-selector{display:flex; align-items:center; border:1px solid var(--line); border-radius:6px; overflow:hidden;}
+  .qty-selector button{width:38px; height:38px; font-size:18px;}
+  .qty-selector button:hover{background:var(--paper-2);}
+  .qty-selector span{width:36px; text-align:center; font-family:var(--font-mono); font-weight:600;}
+  .detail-badges{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;}
+
+  /* CART DRAWER */
+  .cart-overlay{position:fixed; inset:0; background:rgba(23,22,15,.55); opacity:0; pointer-events:none; transition:opacity .2s; z-index:50;}
+  .cart-overlay.open{opacity:1; pointer-events:auto;}
+  .cart-drawer{position:fixed; top:0; right:0; height:100%; width:min(420px,92vw); background:#fff; z-index:60; transform:translateX(100%); transition:transform .25s ease; display:flex; flex-direction:column;}
+  .cart-drawer.open{transform:translateX(0);}
+  .cart-head{display:flex; justify-content:space-between; align-items:center; padding:20px 22px; border-bottom:1px solid var(--line);}
+  .cart-head h3{font-family:var(--font-display); font-size:18px; font-weight:600;}
+  .cart-close{font-size:22px; width:34px; height:34px; border-radius:50%;}
+  .cart-close:hover{background:var(--paper-2);}
+  .cart-ship-progress{padding:16px 22px; border-bottom:1px solid var(--line);}
+  .cart-ship-progress .msg{font-size:12.5px; margin-bottom:8px; color:var(--ink-soft);}
+  .cart-ship-progress .msg b{color:var(--ink); font-family:var(--font-mono);}
+  .ship-track{height:8px; background:var(--paper-2); border-radius:999px; overflow:hidden;}
+  .ship-fill{height:100%; background:linear-gradient(90deg, var(--gold-light), var(--gold-dark)); border-radius:999px; transition:width .5s;}
+  .cart-items{flex:1; overflow-y:auto; padding:14px 22px;}
+  .cart-item{display:flex; gap:12px; padding:14px 0; border-bottom:1px solid var(--line);}
+  .cart-item-media{width:56px; height:56px; background:var(--paper-2); border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .cart-item-media svg{width:34px; height:34px;}
+  .cart-item-info{flex:1; min-width:0;}
+  .cart-item-name{font-size:13.5px; font-weight:600; margin-bottom:2px;}
+  .cart-item-price{font-family:var(--font-mono); font-size:12.5px; color:var(--ink-soft);}
+  .cart-item-controls{display:flex; align-items:center; gap:8px; margin-top:8px;}
+  .cart-item-controls button{width:24px; height:24px; border:1px solid var(--line); border-radius:6px; font-size:14px;}
+  .cart-item-remove{font-size:11.5px; color:#A3402C; font-weight:600; margin-left:auto;}
+  .cart-empty{text-align:center; padding:60px 20px; color:var(--ink-soft); font-size:14px;}
+  .cart-foot{padding:20px 22px; border-top:1px solid var(--line);}
+  .cart-subtotal{display:flex; justify-content:space-between; font-family:var(--font-mono); font-weight:600; font-size:16px; margin-bottom:14px;}
+  .checkout-btn{width:100%; background:var(--charcoal); color:var(--gold-light); padding:15px; border-radius:6px; font-weight:600; font-size:14.5px;}
+  .checkout-btn:hover{background:#000;}
+  .checkout-btn:disabled{background:var(--line); color:var(--ink-soft); cursor:not-allowed;}
+
+  /* MODAL */
+  .modal-overlay{position:fixed; inset:0; background:rgba(23,22,15,.6); z-index:70; display:none; align-items:center; justify-content:center; padding:20px;}
+  .modal-overlay.open{display:flex;}
+  .modal{background:#fff; border-radius:14px; max-width:440px; width:100%; padding:32px; position:relative; max-height:90vh; overflow-y:auto;}
+  .modal-close{position:absolute; top:18px; right:18px; font-size:20px; width:32px; height:32px; border-radius:50%;}
+  .modal-close:hover{background:var(--paper-2);}
+  .modal h3{font-family:var(--font-display); font-size:22px; margin-bottom:6px; font-weight:600;}
+  .modal .sub{font-size:13.5px; color:var(--ink-soft); margin-bottom:22px;}
+  .pay-option{display:flex; align-items:center; gap:12px; border:1.5px solid var(--line); border-radius:8px; padding:14px 16px; margin-bottom:10px; transition:border-color .15s;}
+  .pay-option input{accent-color:var(--gold-dark);}
+  .pay-option label{flex:1; font-size:14px; font-weight:600; cursor:pointer;}
+  .pay-option .sub-lbl{display:block; font-weight:400; font-size:12px; color:var(--ink-soft); margin-top:2px;}
+  .pay-option.selected{border-color:var(--gold-dark); background:var(--paper-2);}
+  .modal .btn-primary{width:100%; justify-content:center; margin-top:16px; background:var(--charcoal); color:var(--gold-light);}
+  .modal .btn-primary:hover{background:#000;}
+  .confirm-box{text-align:center; padding:10px 0;}
+  .confirm-icon{width:64px; height:64px; border-radius:50%; background:linear-gradient(120deg,var(--gold-light),var(--gold-dark)); display:flex; align-items:center; justify-content:center; margin:0 auto 18px; color:#fff; font-size:30px;}
+  .confirm-order{font-family:var(--font-mono); background:var(--paper-2); border-radius:8px; padding:14px; margin:18px 0; font-size:13.5px;}
+
+  .toast{position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--charcoal); color:var(--gold-light); padding:13px 22px; border-radius:8px; font-size:13.5px; font-weight:500; z-index:80; opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; display:flex; align-items:center; gap:8px;}
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+  @media (max-width: 900px){
+    .hero-inner{grid-template-columns:1fr;}
+    nav.main-nav{display:none;}
+    .cat-grid{grid-template-columns:1fr;}
+    .product-grid{grid-template-columns:repeat(2,1fr);}
+    .product-detail{grid-template-columns:1fr;}
+    .footer-grid{grid-template-columns:1fr 1fr;}
+    .trust-grid{grid-template-columns:1fr 1fr;}
+    .cta-banner{flex-direction:column; text-align:center; align-items:center;}
+  }
+  @media (max-width: 520px){
+    .product-grid{grid-template-columns:1fr 1fr;}
+    .header-inner{padding:14px 16px;}
+    .hero{padding:44px 0 36px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="top-bar">★ DISTRIBUIDOR AUTORIZADO KATUN EN CIUDAD DE MÉXICO ★</div>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a href="#" class="logo" onclick="showHome();return false;">
+      <img src="crescen-logo.png" alt="Crescen Inc Technology S.A de C.V">
+    </a>
+    <nav class="main-nav">
+      <a href="#" onclick="showHome();return false;">Inicio</a>
+      <a href="#catalog" onclick="showHome();">Catálogo</a>
+      <a href="#trust">Nosotros</a>
+      <a href="#footer">Contacto</a>
+    </nav>
+    <div class="header-actions">
+      <button class="cart-btn" onclick="openCart()" aria-label="Abrir carrito">
+        🛒 <span id="cartCount">0</span> · <span id="cartMini">$0</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="search-row">
+  <div class="wrap" style="display:flex; justify-content:center;">
+    <div class="search-combo" id="searchCombo">
+      <button type="button" class="search-cat-btn" id="searchCatBtn" onclick="toggleCatMenu()">
+        <span class="cm-label">Todas</span> ▾
+      </button>
+      <div class="cat-menu-panel" id="catMenuPanel">
+        <button data-cat="all" onclick="selectSearchCategory('all')">Todas las categorías</button>
+        <button data-cat="cartucho" onclick="selectSearchCategory('cartucho')">Cartuchos Nuevos</button>
+        <button data-cat="polvo" onclick="selectSearchCategory('polvo')">Polvo para Tóner</button>
+        <button data-cat="chip" onclick="selectSearchCategory('chip')">Chips de Reconocimiento</button>
+        <button data-cat="revelador" onclick="selectSearchCategory('revelador')">Reveladores</button>
+        <button data-cat="cilindro" onclick="selectSearchCategory('cilindro')">Cilindros</button>
+        <button data-cat="cuchilla" onclick="selectSearchCategory('cuchilla')">Cuchillas</button>
+      </div>
+      <form onsubmit="handleSearch(event)" style="display:contents;">
+        <input type="text" id="searchInput" placeholder="Buscar tóner, chip, cilindro, modelo de impresora...">
+        <button type="submit" class="search-submit-btn" aria-label="Buscar">🔍</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="katun-strip">
+  <div class="wrap">+30 años en el mercado mexicano · <b>Distribuidor Autorizado Katun</b> · Cartuchos nuevos compatibles multimarca · Insumos para recarga</div>
+</div>
+
+<main id="view-home">
+
+  <section class="banner-carousel" id="bannerCarousel" aria-label="Ofertas destacadas">
+    <button class="banner-arrow prev" onclick="moveBanner(-1)" aria-label="Anterior">‹</button>
+    <button class="banner-arrow next" onclick="moveBanner(1)" aria-label="Siguiente">›</button>
+    <div class="banner-track" id="bannerTrack">
+      <div class="banner-slide">
+        <div class="wrap">
+          <div class="txt">
+            <div class="tag">Distribuidor autorizado</div>
+            <h3>Distribuidor Autorizado Katun en Ciudad de México</h3>
+            <p>Producto original Katun, con la garantía de +30 años de experiencia en el mercado.</p>
+            <button class="btn btn-primary" onclick="filterCat('cartucho'); document.getElementById('catalog').scrollIntoView({behavior:'smooth'})">Ver cartuchos Katun →</button>
+          </div>
+          <div class="banner-visual" style="background:linear-gradient(135deg,var(--gold-light),var(--gold-dark));">KATUN<br>SELECT</div>
+        </div>
+      </div>
+      <div class="banner-slide">
+        <div class="wrap">
+          <div class="txt">
+            <div class="tag">Oferta de la semana</div>
+            <h3>Hasta 20% de descuento en insumos para recarga</h3>
+            <p>Polvo para tóner, chips de reconocimiento y cilindros con precio especial por tiempo limitado.</p>
+            <button class="btn btn-primary" onclick="document.getElementById('offersCarousel').scrollIntoView({behavior:'smooth'})">Ver ofertas →</button>
+          </div>
+          <div class="banner-visual" style="background:linear-gradient(135deg,#E9CB6B,#A3402C); color:#fff;">−20%<br>OFERTA</div>
+        </div>
+      </div>
+      <div class="banner-slide">
+        <div class="wrap">
+          <div class="txt">
+            <div class="tag">Envíos</div>
+            <h3>Envío gratis desde $999 MXN en Ciudad de México</h3>
+            <p>Entregas en 24–48 horas en CDMX y área metropolitana.</p>
+            <button class="btn btn-primary" onclick="document.getElementById('catalog').scrollIntoView({behavior:'smooth'})">Ir al catálogo →</button>
+          </div>
+          <div class="banner-visual" style="background:linear-gradient(135deg,var(--gold-light),var(--gold-dark));">ENVÍO<br>GRATIS</div>
+        </div>
+      </div>
+      <div class="banner-slide">
+        <div class="wrap">
+          <div class="txt">
+            <div class="tag">Garantía</div>
+            <h3>Cartuchos nuevos compatibles con 2 años de garantía</h3>
+            <p>Multimarca: HP, Epson, Canon, Brother, Samsung y Xerox.</p>
+            <button class="btn btn-primary" onclick="filterCat('all'); document.getElementById('catalog').scrollIntoView({behavior:'smooth'})">Ver catálogo →</button>
+          </div>
+          <div class="banner-visual" style="background:linear-gradient(135deg,var(--gold-light),var(--gold-dark));">2 AÑOS<br>GARANTÍA</div>
+        </div>
+      </div>
+    </div>
+    <div class="banner-dots" id="bannerDots"></div>
+  </section>
+
+  <section class="hero">
+    <div class="wrap hero-inner">
+      <div>
+        <div class="eyebrow"><span class="growth-mark"><span></span><span></span><span></span><span></span></span> +30 años de experiencia en Ciudad de México</div>
+        <h1>Cartuchos nuevos e <span class="accent">insumos para recarga</span>, de la mano de Katun.</h1>
+        <p class="lead">Somos distribuidores autorizados de Katun en Ciudad de México. Vendemos cartuchos nuevos compatibles multimarca y todo el insumo para que tú mismo recargues: polvo para tóner, chips de reconocimiento, reveladores, cilindros y cuchillas.</p>
+        <div class="hero-ctas">
+          <button class="btn btn-primary" onclick="document.getElementById('catalog').scrollIntoView({behavior:'smooth'})">Ver catálogo →</button>
+          <button class="btn btn-ghost" onclick="alert('Cotizador de ejemplo — en un sitio real esto abriría un formulario para pedidos por volumen.')">Cotizar para mi negocio</button>
+        </div>
+        <div class="trust-chips">
+          <span class="chip-pill">Distribuidor Autorizado Katun</span>
+          <span class="chip-pill">+30 años en el mercado</span>
+          <span class="chip-pill">Multimarca</span>
+        </div>
+      </div>
+      <div class="growth-card">
+        <div class="growth-card-head">
+          <span>Trayectoria en el mercado</span>
+          <span class="growth-total">Desde 1994</span>
+        </div>
+        <div class="bar-chart">
+          <div class="bar" data-h="20"></div>
+          <div class="bar" data-h="35"></div>
+          <div class="bar" data-h="50"></div>
+          <div class="bar" data-h="68"></div>
+          <div class="bar" data-h="85"></div>
+          <div class="bar" data-h="100"></div>
+        </div>
+        <div class="bar-chart-labels">
+          <span>90s</span><span>00s</span><span>10s</span><span>Hoy</span><span>Katun</span><span>+30 años</span>
+        </div>
+        <div class="growth-foot">Más de tres décadas surtiendo a talleres de recarga y negocios de impresión en toda la Ciudad de México.</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="brand-strip">
+    <div class="wrap">
+      <span class="label">MARCAS Y COMPATIBILIDAD:</span>
+      <div class="brand-list">
+        <span class="katun-badge">KATUN · Distribuidor Autorizado</span>
+        <span>HP</span><span>Epson</span><span>Canon</span><span>Brother</span><span>Samsung</span><span>Xerox</span>
+      </div>
+    </div>
+  </div>
+
+  <section class="section wrap">
+    <div class="section-head">
+      <h2>Explora por categoría</h2>
+      <p>Cartuchos nuevos listos para usar, o el insumo exacto que necesita tu taller de recarga.</p>
+    </div>
+    <div class="cat-grid">
+      <button class="cat-card" onclick="filterCat('cartucho')" style="text-align:left">
+        <div class="growth-mark"><span></span><span></span><span></span><span></span></div>
+        <h3>Cartuchos Nuevos</h3>
+        <p>Tóner y tinta compatibles multimarca, listos para instalar.</p>
+      </button>
+      <button class="cat-card" onclick="filterCat('polvo')" style="text-align:left">
+        <div class="growth-mark"><span></span><span></span><span></span><span></span></div>
+        <h3>Polvo para Tóner</h3>
+        <p>Polvo Katun para recarga de cartuchos láser, por kilo.</p>
+      </button>
+      <button class="cat-card" onclick="filterCat('chip')" style="text-align:left">
+        <div class="growth-mark"><span></span><span></span><span></span><span></span></div>
+        <h3>Chips de Reconocimiento</h3>
+        <p>Chips para que el cartucho recargado sea reconocido por la impresora.</p>
+      </button>
+      <button class="cat-card" onclick="filterCat('revelador')" style="text-align:left">
+        <div class="growth-mark"><span></span><span></span><span></span><span></span></div>
+        <h3>Reveladores</h3>
+        <p>Reveladores Katun para complementar la recarga de tóner.</p>
+      </button>
+      <button class="cat-card" onclick="filterCat('cilindro')" style="text-align:left">
+        <div class="growth-mark"><span></span><span></span><span></span><span></span></div>
+        <h3>Cilindros</h3>
+        <p>Unidades de imagen (drums) de repuesto para recarga.</p>
+      </button>
+      <button class="cat-card" onclick="filterCat('cuchilla')" style="text-align:left">
+        <div class="growth-mark"><span></span><span></span><span></span><span></span></div>
+        <h3>Cuchillas</h3>
+        <p>Cuchillas de limpieza (wiper blades) para el cartucho.</p>
+      </button>
+    </div>
+  </section>
+
+  <section class="section wrap" id="offersCarousel" style="padding-top:0;">
+    <div class="carousel-head">
+      <h2>Ofertas destacadas</h2>
+      <div class="carousel-nav">
+        <button onclick="scrollCarousel(-1)" aria-label="Ver anteriores">‹</button>
+        <button onclick="scrollCarousel(1)" aria-label="Ver siguientes">›</button>
+      </div>
+    </div>
+    <div class="carousel-wrap">
+      <div class="carousel-track" id="offersTrack"></div>
+    </div>
+  </section>
+
+  <section class="section wrap" id="catalog">
+    <div class="section-head">
+      <h2>Catálogo</h2>
+      <p>Precios en MXN, IVA incluido.</p>
+    </div>
+    <div class="filter-tabs" id="filterTabs">
+      <button class="tab-btn active" data-cat="all" onclick="filterCat('all')">Todos</button>
+      <button class="tab-btn" data-cat="cartucho" onclick="filterCat('cartucho')">Cartuchos Nuevos</button>
+      <button class="tab-btn" data-cat="polvo" onclick="filterCat('polvo')">Polvo</button>
+      <button class="tab-btn" data-cat="chip" onclick="filterCat('chip')">Chips</button>
+      <button class="tab-btn" data-cat="revelador" onclick="filterCat('revelador')">Reveladores</button>
+      <button class="tab-btn" data-cat="cilindro" onclick="filterCat('cilindro')">Cilindros</button>
+      <button class="tab-btn" data-cat="cuchilla" onclick="filterCat('cuchilla')">Cuchillas</button>
+    </div>
+    <div class="product-grid" id="productGrid"></div>
+  </section>
+
+  <section class="trust-band" id="trust">
+    <div class="wrap trust-grid">
+      <div class="trust-item"><div class="num">+30 años</div><div class="lbl">en el mercado mexicano</div></div>
+      <div class="trust-item"><div class="num">Katun</div><div class="lbl">distribuidor autorizado en CDMX</div></div>
+      <div class="trust-item"><div class="num">6</div><div class="lbl">líneas de producto e insumos</div></div>
+      <div class="trust-item"><div class="num">Multimarca</div><div class="lbl">HP · Epson · Canon · Brother · Samsung · Xerox</div></div>
+    </div>
+  </section>
+
+  <section class="section wrap" style="padding-bottom:0;">
+    <div class="mascot-section">
+      <div class="mascot-media">
+        <img src="crescen-mascota.jpg" alt="Mascota de Crescen Inc con cartucho, polvo para tóner y caja Katun">
+      </div>
+      <div class="mascot-text">
+        <div class="eyebrow"><span class="growth-mark"><span></span><span></span><span></span><span></span></span> El equipo de Crescen</div>
+        <h3>Hasta nuestra mascota sabe distinguir un cartucho Katun.</h3>
+        <p>Detrás de cada pedido hay 30 años de experiencia surtiendo talleres de recarga en Ciudad de México — y sí, también un poco de personalidad. Si tienes dudas sobre qué insumo necesitas para tu equipo, con gusto te asesoramos.</p>
+        <div class="trust-chips">
+          <span class="chip-pill" style="color:var(--ink-soft); border-color:var(--line); background:var(--paper-2);">Asesoría personalizada</span>
+          <span class="chip-pill" style="color:var(--ink-soft); border-color:var(--line); background:var(--paper-2);">Atención a talleres de recarga</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap">
+    <div class="cta-banner">
+      <h3>¿Tienes un taller de recarga? Precios especiales por volumen en insumos.</h3>
+      <button class="btn btn-primary" onclick="alert('Formulario de cotización de ejemplo.')">Cotizar ahora →</button>
+    </div>
+  </section>
+
+</main>
+
+<main id="view-product" style="display:none"></main>
+
+<div class="cart-overlay" id="cartOverlay" onclick="closeCart()"></div>
+<aside class="cart-drawer" id="cartDrawer" aria-label="Carrito de compras">
+  <div class="cart-head">
+    <h3>Tu carrito</h3>
+    <button class="cart-close" onclick="closeCart()" aria-label="Cerrar carrito">✕</button>
+  </div>
+  <div class="cart-ship-progress" id="shipProgress"></div>
+  <div class="cart-items" id="cartItemsWrap"></div>
+  <div class="cart-foot">
+    <div class="cart-subtotal"><span>Subtotal</span><span id="cartSubtotal">$0 MXN</span></div>
+    <button class="checkout-btn" id="checkoutBtn" onclick="openCheckout()">Ir a pagar</button>
+  </div>
+</aside>
+
+<div class="modal-overlay" id="checkoutOverlay">
+  <div class="modal" id="checkoutModal"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<footer id="footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-logo">
+          <img src="crescen-logo.png" alt="Crescen Inc Technology S.A de C.V">
+        </div>
+        <p>Empresa mexicana con más de 30 años en el mercado. Distribuidor autorizado de Katun en Ciudad de México. Cartuchos nuevos compatibles e insumos para recarga.</p>
+      </div>
+      <div>
+        <h4>Tienda</h4>
+        <ul>
+          <li><a href="#catalog" onclick="showHome()">Catálogo</a></li>
+          <li><a href="#" onclick="filterCat('cartucho');showHome();return false;">Cartuchos Nuevos</a></li>
+          <li><a href="#" onclick="filterCat('polvo');showHome();return false;">Polvo para Tóner</a></li>
+          <li><a href="#" onclick="filterCat('chip');showHome();return false;">Chips</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Empresa</h4>
+        <ul>
+          <li><a href="#">Nosotros</a></li>
+          <li><a href="#">Distribuidor Katun</a></li>
+          <li><a href="#">Envíos</a></li>
+          <li><a href="#">Facturación</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Contacto</h4>
+        <ul>
+          <li>hola@crescen.demo</li>
+          <li>55 0000 0000</li>
+          <li>Ciudad de México, MX</li>
+          <li>Lun–Vie: 9:00–19:00</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Crescen Inc — Sitio de demostración, no es una tienda real.</span>
+      <span>Precios en MXN, solo para fines ilustrativos.</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ---------- DATA ---------- */
+const PRODUCTS = [
+  {id:'ca-hp12a', cat:'cartucho', name:'Cartucho Tóner Nuevo Compatible HP 12A Negro', compat:'HP LaserJet 1010 / 1020 / 3050', price:349, yield_:'2,000 páginas', rating:5, katun:true},
+  {id:'ca-tn660', cat:'cartucho', name:'Cartucho Tóner Nuevo Compatible Brother TN-660', compat:'Brother HL-L2320 / L2380', price:389, yield_:'2,600 páginas', rating:5, katun:true},
+  {id:'ca-sam111', cat:'cartucho', name:'Cartucho Tóner Nuevo Compatible Samsung MLT-D111S', compat:'Samsung Xpress M2020 / M2070', price:299, yield_:'1,000 páginas', rating:4, katun:false},
+  {id:'ca-t664k', cat:'cartucho', name:'Botella Tinta Nueva Compatible Epson T664 Negro', compat:'Epson EcoTank L200 / L380 / L3110', price:179, yield_:'Botella 100ml', rating:5, katun:false},
+  {id:'po-univ1', cat:'polvo', name:'Polvo para Tóner Katun Universal HP/Canon/Brother 1kg', compat:'Recarga de cartuchos láser HP, Canon, Brother', price:459, yield_:'Bolsa de 1kg', rating:5, katun:true, discount:15},
+  {id:'po-univ2', cat:'polvo', name:'Polvo para Tóner Katun Xerox/Samsung 1kg', compat:'Recarga de cartuchos láser Xerox, Samsung', price:479, yield_:'Bolsa de 1kg', rating:4, katun:true},
+  {id:'ch-hp12a', cat:'chip', name:'Chip de Reconocimiento HP 12A', compat:'HP LaserJet 1010 / 1020 / 3050', price:69, yield_:'Pieza individual', rating:5, katun:true, discount:20},
+  {id:'ch-tn660', cat:'chip', name:'Chip de Reconocimiento Brother TN-660', compat:'Brother HL-L2320 / L2380', price:75, yield_:'Pieza individual', rating:4, katun:true},
+  {id:'ch-sam111', cat:'chip', name:'Chip Katun Universal Samsung MLT-D111', compat:'Samsung Xpress M2020 / M2070', price:79, yield_:'Pieza individual', rating:5, katun:true},
+  {id:'re-katun1', cat:'revelador', name:'Revelador Katun para Tóner HP/Canon', compat:'Compatible con línea HP y Canon láser', price:329, yield_:'Frasco 80g', rating:4, katun:true, discount:10},
+  {id:'ci-dr630', cat:'cilindro', name:'Cilindro (Drum) Katun Compatible Brother DR-630', compat:'Brother HL-L2320 / L2380 / MFC-L2700', price:459, yield_:'12,000 páginas', rating:5, katun:true, discount:18},
+  {id:'ci-mltr111', cat:'cilindro', name:'Cilindro Katun Compatible Samsung MLT-R111', compat:'Samsung Xpress M2020 / M2070', price:399, yield_:'9,000 páginas', rating:4, katun:true},
+  {id:'cu-univ', cat:'cuchilla', name:'Cuchilla de Limpieza (Wiper Blade) Katun Universal', compat:'Uso general en recarga de tóner láser', price:59, yield_:'Pieza individual', rating:5, katun:true, discount:12},
+];
+
+let currentCat = 'all';
+let searchQuery = '';
+let cart = []; // {id, qty}
+
+/* ---------- ICONS ---------- */
+function iconFor(p, size){
+  size = size || 90;
+  const gold = '#C9A227';
+  const ink = '#1B1A14';
+  if(p.cat === 'cartucho'){
+    return `<svg viewBox="0 0 100 100" width="${size}" height="${size}">
+      <rect x="18" y="30" width="64" height="42" rx="6" fill="#fff" stroke="${ink}" stroke-width="2.5"/>
+      <rect x="18" y="30" width="64" height="10" rx="4" fill="${gold}"/>
+      <rect x="30" y="20" width="40" height="12" rx="3" fill="${ink}"/>
+      <circle cx="70" cy="78" r="8" fill="none" stroke="${ink}" stroke-width="2.5"/>
+      <circle cx="70" cy="78" r="2.5" fill="${ink}"/>
+    </svg>`;
+  }
+  if(p.cat === 'polvo'){
+    return `<svg viewBox="0 0 100 100" width="${size}" height="${size}">
+      <path d="M35 25 h30 l8 10 v45 a6 6 0 0 1 -6 6 h-34 a6 6 0 0 1 -6 -6 v-45 z" fill="#fff" stroke="${ink}" stroke-width="2.5"/>
+      <path d="M35 25 l5 -12 h20 l5 12" fill="none" stroke="${ink}" stroke-width="2.5" stroke-linejoin="round"/>
+      <rect x="38" y="46" width="24" height="24" fill="${gold}" opacity="0.85"/>
+    </svg>`;
+  }
+  if(p.cat === 'chip'){
+    return `<svg viewBox="0 0 100 100" width="${size}" height="${size}">
+      <rect x="30" y="30" width="40" height="40" rx="4" fill="#fff" stroke="${ink}" stroke-width="2.5"/>
+      <rect x="39" y="39" width="22" height="22" fill="${gold}"/>
+      <line x1="18" y1="38" x2="30" y2="38" stroke="${ink}" stroke-width="2.5"/>
+      <line x1="18" y1="50" x2="30" y2="50" stroke="${ink}" stroke-width="2.5"/>
+      <line x1="18" y1="62" x2="30" y2="62" stroke="${ink}" stroke-width="2.5"/>
+      <line x1="70" y1="38" x2="82" y2="38" stroke="${ink}" stroke-width="2.5"/>
+      <line x1="70" y1="50" x2="82" y2="50" stroke="${ink}" stroke-width="2.5"/>
+      <line x1="70" y1="62" x2="82" y2="62" stroke="${ink}" stroke-width="2.5"/>
+    </svg>`;
+  }
+  if(p.cat === 'revelador'){
+    return `<svg viewBox="0 0 100 100" width="${size}" height="${size}">
+      <rect x="32" y="30" width="36" height="44" rx="6" fill="#fff" stroke="${ink}" stroke-width="2.5"/>
+      <rect x="40" y="18" width="20" height="14" rx="3" fill="${ink}"/>
+      <rect x="32" y="50" width="36" height="24" fill="${gold}" opacity="0.85"/>
+    </svg>`;
+  }
+  if(p.cat === 'cilindro'){
+    return `<svg viewBox="0 0 100 100" width="${size}" height="${size}">
+      <rect x="15" y="38" width="70" height="30" rx="15" fill="#fff" stroke="${ink}" stroke-width="2.5"/>
+      <circle cx="50" cy="53" r="11" fill="${gold}" opacity="0.85"/>
+      <rect x="10" y="48" width="10" height="10" rx="2" fill="${ink}"/>
+      <rect x="80" y="48" width="10" height="10" rx="2" fill="${ink}"/>
+    </svg>`;
+  }
+  return `<svg viewBox="0 0 100 100" width="${size}" height="${size}">
+    <rect x="15" y="45" width="60" height="10" rx="2" fill="#fff" stroke="${ink}" stroke-width="2.5"/>
+    <path d="M75 44 l12 6 -12 6 z" fill="${gold}"/>
+    <rect x="22" y="55" width="8" height="16" fill="${ink}"/>
+    <rect x="55" y="55" width="8" height="16" fill="${ink}"/>
+  </svg>`;
+}
+function stars(n){ return '★★★★★'.slice(0,n) + '☆☆☆☆☆'.slice(0, 5-n); }
+function catLabel(c){ return {cartucho:'Cartucho Nuevo', polvo:'Polvo para Tóner', chip:'Chip de Reconocimiento', revelador:'Revelador', cilindro:'Cilindro', cuchilla:'Cuchilla'}[c] || c; }
+function money(n){ return '$' + n.toLocaleString('es-MX') + ' MXN'; }
+
+/* ---------- RENDER CATALOG ---------- */
+function normalizeText(s){
+  return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+}
+function renderGrid(){
+  const grid = document.getElementById('productGrid');
+  let list = currentCat === 'all' ? PRODUCTS : PRODUCTS.filter(p => p.cat === currentCat);
+  if(searchQuery.trim() !== ''){
+    const q = normalizeText(searchQuery.trim());
+    list = list.filter(p => normalizeText(p.name).includes(q) || normalizeText(p.compat).includes(q) || normalizeText(catLabel(p.cat)).includes(q));
+  }
+  if(list.length === 0){
+    grid.innerHTML = `<div class="no-results"><b>Sin resultados</b>No encontramos productos para "${searchQuery}". Intenta con otro término o quita el filtro de categoría.</div>`;
+    return;
+  }
+  grid.innerHTML = list.map(p => `
+    <div class="product-card">
+      <div class="product-media" onclick="showProduct('${p.id}')">
+        ${p.katun ? '<span class="katun-tag">KATUN</span>' : ''}
+        ${iconFor(p,100)}
+      </div>
+      <div class="product-body">
+        <div class="product-cat">${catLabel(p.cat)}</div>
+        <div class="product-name" onclick="showProduct('${p.id}')">${p.name}</div>
+        <div class="product-compat">${p.compat}</div>
+        <div class="product-stars">${stars(p.rating)}</div>
+        <div class="product-foot">
+          <div class="product-price">${money(p.price)}<small>${p.yield_}</small></div>
+          <button class="add-btn" aria-label="Agregar al carrito" onclick="addToCart('${p.id}',1); event.stopPropagation();">+</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+function filterCat(cat){
+  currentCat = cat;
+  searchQuery = '';
+  const input = document.getElementById('searchInput');
+  if(input) input.value = '';
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.cat === cat));
+  syncSearchCatLabel(cat);
+  renderGrid();
+}
+
+/* ---------- SEARCH BAR ---------- */
+const CAT_LABELS_ALL = {all:'Todas', cartucho:'Cartuchos', polvo:'Polvo', chip:'Chips', revelador:'Reveladores', cilindro:'Cilindros', cuchilla:'Cuchillas'};
+function toggleCatMenu(){
+  document.getElementById('catMenuPanel').classList.toggle('open');
+}
+function closeCatMenu(){
+  document.getElementById('catMenuPanel').classList.remove('open');
+}
+function syncSearchCatLabel(cat){
+  const label = document.querySelector('#searchCatBtn .cm-label');
+  if(label) label.textContent = CAT_LABELS_ALL[cat] || 'Todas';
+  document.querySelectorAll('#catMenuPanel button').forEach(b => b.classList.toggle('active', b.dataset.cat === cat));
+}
+function selectSearchCategory(cat){
+  currentCat = cat;
+  syncSearchCatLabel(cat);
+  closeCatMenu();
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.cat === cat));
+  renderGrid();
+  showHome();
+  document.getElementById('catalog').scrollIntoView({behavior:'smooth'});
+}
+function handleSearch(e){
+  if(e) e.preventDefault();
+  searchQuery = document.getElementById('searchInput').value;
+  closeCatMenu();
+  renderGrid();
+  showHome();
+  document.getElementById('catalog').scrollIntoView({behavior:'smooth'});
+}
+document.addEventListener('click', function(e){
+  const combo = document.getElementById('searchCombo');
+  if(combo && !combo.contains(e.target)) closeCatMenu();
+});
+
+/* ---------- OFFERS CAROUSEL ---------- */
+function renderOffers(){
+  const track = document.getElementById('offersTrack');
+  const offers = PRODUCTS.filter(p => p.discount);
+  track.innerHTML = offers.map(p => {
+    const newPrice = Math.round(p.price * (1 - p.discount/100));
+    return `
+    <div class="carousel-card">
+      <div class="product-media" onclick="showProduct('${p.id}')">
+        <span class="offer-badge">−${p.discount}%</span>
+        ${iconFor(p,90)}
+      </div>
+      <div class="product-body">
+        <div class="product-cat">${catLabel(p.cat)}</div>
+        <div class="product-name" onclick="showProduct('${p.id}')">${p.name}</div>
+        <div class="product-stars">${stars(p.rating)}</div>
+        <div class="product-foot">
+          <div class="product-price"><span class="old-price">${money(p.price)}</span>${money(newPrice)}</div>
+          <button class="add-btn" aria-label="Agregar al carrito" onclick="addToCart('${p.id}',1); event.stopPropagation();">+</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function scrollCarousel(dir){
+  const track = document.getElementById('offersTrack');
+  track.scrollBy({left: dir * 240, behavior:'smooth'});
+}
+
+/* ---------- BANNER CAROUSEL ---------- */
+let bannerIndex = 0;
+let bannerTimer;
+function renderBannerDots(){
+  const slides = document.querySelectorAll('#bannerTrack .banner-slide');
+  const dotsWrap = document.getElementById('bannerDots');
+  dotsWrap.innerHTML = Array.from(slides).map((_,i) => `<button onclick="goToBanner(${i})" aria-label="Ir al banner ${i+1}"></button>`).join('');
+  updateBannerDots();
+}
+function updateBannerDots(){
+  document.querySelectorAll('#bannerDots button').forEach((b,i) => b.classList.toggle('active', i === bannerIndex));
+}
+function updateBannerTrack(){
+  const track = document.getElementById('bannerTrack');
+  track.style.transform = `translateX(-${bannerIndex * 100}%)`;
+  updateBannerDots();
+}
+function moveBanner(dir){
+  const total = document.querySelectorAll('#bannerTrack .banner-slide').length;
+  bannerIndex = (bannerIndex + dir + total) % total;
+  updateBannerTrack();
+  resetBannerTimer();
+}
+function goToBanner(i){
+  bannerIndex = i;
+  updateBannerTrack();
+  resetBannerTimer();
+}
+function resetBannerTimer(){
+  clearInterval(bannerTimer);
+  bannerTimer = setInterval(() => moveBanner(1), 5000);
+}
+
+/* ---------- PRODUCT DETAIL ---------- */
+let detailQty = 1;
+function showProduct(id){
+  const p = PRODUCTS.find(x => x.id === id);
+  if(!p) return;
+  detailQty = 1;
+  document.getElementById('view-home').style.display = 'none';
+  const view = document.getElementById('view-product');
+  view.style.display = 'block';
+  view.innerHTML = `
+    <div class="wrap">
+      <div class="breadcrumb"><button onclick="showHome()">← Volver al catálogo</button></div>
+      <div class="product-detail">
+        <div class="detail-media">
+          ${p.katun ? '<span class="katun-tag">KATUN</span>' : ''}
+          ${iconFor(p,220)}
+        </div>
+        <div>
+          <div class="detail-cat">${catLabel(p.cat)}${p.katun ? ' · Distribuido por Katun' : ' · Compatible'}</div>
+          <h1 class="detail-title">${p.name}</h1>
+          <div class="detail-compat">Compatible con: ${p.compat}</div>
+          <div class="detail-price">${money(p.price)}</div>
+          <div class="detail-price-note">IVA incluido · Envío en Ciudad de México y área metropolitana</div>
+          <table class="spec-table">
+            <tr><td>Presentación</td><td>${p.yield_}</td></tr>
+            <tr><td>Distribuidor</td><td>${p.katun ? 'Katun (autorizado)' : 'Crescen Inc'}</td></tr>
+            <tr><td>Garantía</td><td>24 meses</td></tr>
+            <tr><td>SKU</td><td>${p.id.toUpperCase()}</td></tr>
+          </table>
+          <div class="qty-row">
+            <div class="qty-selector">
+              <button onclick="changeDetailQty(-1)" aria-label="Restar">−</button>
+              <span id="detailQtyVal">1</span>
+              <button onclick="changeDetailQty(1)" aria-label="Sumar">+</button>
+            </div>
+            <button class="btn btn-primary" onclick="addToCart('${p.id}', detailQty); showToast('Agregado al carrito')">Agregar al carrito</button>
+          </div>
+          <div class="detail-badges">
+            <span class="chip-pill" style="color:var(--ink-soft); border-color:var(--line); background:var(--white);">📦 Envío CDMX 24–48h</span>
+            <span class="chip-pill" style="color:var(--ink-soft); border-color:var(--line); background:var(--white);">🛡️ 2 años de garantía</span>
+            <span class="chip-pill" style="color:var(--ink-soft); border-color:var(--line); background:var(--white);">🧾 Factura CFDI disponible</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+function changeDetailQty(delta){
+  detailQty = Math.max(1, detailQty + delta);
+  document.getElementById('detailQtyVal').textContent = detailQty;
+}
+function showHome(){
+  document.getElementById('view-product').style.display = 'none';
+  document.getElementById('view-home').style.display = 'block';
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+/* ---------- CART ---------- */
+function addToCart(id, qty){
+  const existing = cart.find(c => c.id === id);
+  if(existing) existing.qty += qty;
+  else cart.push({id, qty});
+  renderCart();
+  showToast('Agregado al carrito');
+  openCart();
+}
+function changeCartQty(id, delta){
+  const item = cart.find(c => c.id === id);
+  if(!item) return;
+  item.qty += delta;
+  if(item.qty <= 0) cart = cart.filter(c => c.id !== id);
+  renderCart();
+}
+function removeFromCart(id){
+  cart = cart.filter(c => c.id !== id);
+  renderCart();
+}
+function cartTotal(){
+  return cart.reduce((sum, c) => {
+    const p = PRODUCTS.find(x => x.id === c.id);
+    return sum + (p ? p.price * c.qty : 0);
+  }, 0);
+}
+function renderCart(){
+  const count = cart.reduce((s,c) => s + c.qty, 0);
+  document.getElementById('cartCount').textContent = count;
+  document.getElementById('cartMini').textContent = money(cartTotal());
+  document.getElementById('cartSubtotal').textContent = money(cartTotal());
+  document.getElementById('checkoutBtn').disabled = cart.length === 0;
+
+  const wrap = document.getElementById('cartItemsWrap');
+  if(cart.length === 0){
+    wrap.innerHTML = `<div class="cart-empty">Tu carrito está vacío.<br>Agrega productos desde el catálogo.</div>`;
+  } else {
+    wrap.innerHTML = cart.map(c => {
+      const p = PRODUCTS.find(x => x.id === c.id);
+      if(!p) return '';
+      return `
+      <div class="cart-item">
+        <div class="cart-item-media">${iconFor(p,34)}</div>
+        <div class="cart-item-info">
+          <div class="cart-item-name">${p.name}</div>
+          <div class="cart-item-price">${money(p.price)} c/u</div>
+          <div class="cart-item-controls">
+            <button onclick="changeCartQty('${p.id}',-1)">−</button>
+            <span style="font-family:var(--font-mono); font-size:12.5px; min-width:16px; text-align:center;">${c.qty}</span>
+            <button onclick="changeCartQty('${p.id}',1)">+</button>
+            <button class="cart-item-remove" onclick="removeFromCart('${p.id}')">Quitar</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  const threshold = 999;
+  const total = cartTotal();
+  const pct = Math.min(100, Math.round((total/threshold)*100));
+  const progWrap = document.getElementById('shipProgress');
+  if(total >= threshold){
+    progWrap.innerHTML = `<div class="msg">🎉 Tu pedido ya tiene <b>envío gratis</b></div><div class="ship-track"><div class="ship-fill" style="width:100%"></div></div>`;
+  } else {
+    progWrap.innerHTML = `<div class="msg">Te faltan <b>${money(threshold-total)}</b> para envío gratis</div><div class="ship-track"><div class="ship-fill" style="width:${pct}%"></div></div>`;
+  }
+}
+function openCart(){
+  document.getElementById('cartDrawer').classList.add('open');
+  document.getElementById('cartOverlay').classList.add('open');
+}
+function closeCart(){
+  document.getElementById('cartDrawer').classList.remove('open');
+  document.getElementById('cartOverlay').classList.remove('open');
+}
+
+/* ---------- CHECKOUT ---------- */
+let selectedPayment = null;
+function openCheckout(){
+  if(cart.length === 0) return;
+  selectedPayment = null;
+  const modal = document.getElementById('checkoutModal');
+  modal.innerHTML = `
+    <button class="modal-close" onclick="closeCheckout()">✕</button>
+    <h3>Método de pago</h3>
+    <p class="sub">Total a pagar: <strong style="font-family:var(--font-mono)">${money(cartTotal())}</strong></p>
+    <div class="pay-option" data-pay="tarjeta" onclick="selectPayment('tarjeta')">
+      <input type="radio" name="pay" id="pay-tarjeta">
+      <label for="pay-tarjeta">Tarjeta de crédito/débito<span class="sub-lbl">Visa, Mastercard, Amex</span></label>
+    </div>
+    <div class="pay-option" data-pay="oxxo" onclick="selectPayment('oxxo')">
+      <input type="radio" name="pay" id="pay-oxxo">
+      <label for="pay-oxxo">Pago en OXXO<span class="sub-lbl">Genera una ficha, paga en efectivo</span></label>
+    </div>
+    <div class="pay-option" data-pay="transferencia" onclick="selectPayment('transferencia')">
+      <input type="radio" name="pay" id="pay-transferencia">
+      <label for="pay-transferencia">Transferencia SPEI<span class="sub-lbl">Confirmación en 24h hábiles</span></label>
+    </div>
+    <button class="btn btn-primary" id="confirmPayBtn" onclick="confirmOrder()" disabled>Confirmar pedido</button>
+  `;
+  document.getElementById('checkoutOverlay').classList.add('open');
+}
+function selectPayment(method){
+  selectedPayment = method;
+  document.querySelectorAll('.pay-option').forEach(el => el.classList.toggle('selected', el.dataset.pay === method));
+  document.getElementById(`pay-${method}`).checked = true;
+  document.getElementById('confirmPayBtn').disabled = false;
+}
+function confirmOrder(){
+  const orderNum = 'CRN-' + Math.floor(100000 + Math.random()*899999);
+  const modal = document.getElementById('checkoutModal');
+  const payLabel = {tarjeta:'Tarjeta', oxxo:'OXXO', transferencia:'Transferencia SPEI'}[selectedPayment];
+  modal.innerHTML = `
+    <button class="modal-close" onclick="closeCheckout()">✕</button>
+    <div class="confirm-box">
+      <div class="confirm-icon">✓</div>
+      <h3>¡Pedido confirmado!</h3>
+      <p class="sub">Este es un sitio de demostración — no se procesó ningún pago real.</p>
+      <div class="confirm-order">
+        <div>Número de pedido: <strong>${orderNum}</strong></div>
+        <div>Método: <strong>${payLabel}</strong></div>
+        <div>Total: <strong>${money(cartTotal())}</strong></div>
+      </div>
+      <button class="btn btn-primary" style="width:100%; justify-content:center;" onclick="finishOrder()">Volver a la tienda</button>
+    </div>
+  `;
+}
+function finishOrder(){
+  cart = [];
+  renderCart();
+  closeCheckout();
+  closeCart();
+  showHome();
+}
+function closeCheckout(){
+  document.getElementById('checkoutOverlay').classList.remove('open');
+}
+
+/* ---------- TOAST ---------- */
+let toastTimer;
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = '✓ ' + msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+/* ---------- INIT ---------- */
+function animateBars(){
+  document.querySelectorAll('.bar-chart .bar').forEach((el,i) => {
+    setTimeout(() => { el.style.height = el.dataset.h + '%'; }, i*90);
+  });
+}
+renderGrid();
+renderCart();
+animateBars();
+renderOffers();
+renderBannerDots();
+resetBannerTimer();
+syncSearchCatLabel('all');
+</script>
+
+</body>
+</html>
