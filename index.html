@@ -467,7 +467,7 @@
           <div class="txt">
             <div class="tag">Distribuidor autorizado</div>
             <h3>Distribuidor Autorizado Katun en Ciudad de México</h3>
-            <p>Producto original Katun, con la garantía de +30 años de experiencia en el mercado.</p>
+            <p>Producto original Katun, respaldado por +30 años de experiencia en el mercado.</p>
             <button class="btn btn-primary" onclick="filterCat('cartucho'); document.getElementById('catalog').scrollIntoView({behavior:'smooth'})">Ver cartuchos Katun →</button>
           </div>
           <div class="banner-visual has-logo"><img src="crescen-logo.png" alt="Crescen Inc"></div>
@@ -489,12 +489,12 @@
         <img class="watermark" src="crescen-logo.png" alt="">
         <div class="wrap">
           <div class="txt">
-            <div class="tag">Envíos en CDMX</div>
-            <h3>Manda tu pedido por Uber y monitorea tu envío</h3>
-            <p>Compra en línea y da seguimiento a tu paquete en tiempo real hasta que llegue a tu puerta.</p>
+            <div class="tag">Envíos a todo México</div>
+            <h3>Recibe hoy mismo, o en cualquier parte de la república</h3>
+            <p>En CDMX: manda tu Uber, Didi o compañía de delivery preferida y monitorea tu envío en tiempo real — recibe el mismo día. A toda la república: envío por paquetería con costo adicional.</p>
             <button class="btn btn-primary" onclick="document.getElementById('catalog').scrollIntoView({behavior:'smooth'})">Ir al catálogo →</button>
           </div>
-          <div class="banner-visual" style="border-radius:50%; background:linear-gradient(135deg,var(--gold-light),var(--gold-dark));">ENVÍO<br>UBER</div>
+          <div class="banner-visual" style="border-radius:50%; background:linear-gradient(135deg,var(--gold-light),var(--gold-dark));">ENVÍO<br>MISMO DÍA</div>
         </div>
       </div>
       <div class="banner-slide">
@@ -1335,12 +1335,11 @@ function showProduct(id){
           <h1 class="detail-title">${p.name}</h1>
           <div class="detail-compat">Compatible con: ${p.compat}</div>
           <div class="detail-price">${priceOrLock(money(p.price))}</div>
-          <div class="detail-price-note">IVA incluido · Envío en Ciudad de México y área metropolitana</div>
+          <div class="detail-price-note">IVA incluido · Mismo día en CDMX · Envíos a toda la república con costo adicional</div>
           ${!isLoggedIn ? `<div class="login-hint-banner">Los precios son exclusivos para clientes registrados. <button onclick="promptLogin()">Inicia sesión con Google</button> para verlos.</div>` : ''}
           <table class="spec-table">
             <tr><td>Presentación</td><td>${p.yield_}</td></tr>
             <tr><td>Marca de compatible</td><td>${COMPAT_BRAND_LABELS[p.compatBrand] || p.compatBrand}${p.compatBrand === 'katun' ? ' (autorizado)' : ''}</td></tr>
-            <tr><td>Garantía</td><td>24 meses</td></tr>
             <tr><td>SKU</td><td>${p.id.toUpperCase()}</td></tr>
           </table>
           <div class="qty-row">
@@ -1352,8 +1351,7 @@ function showProduct(id){
             <button class="btn btn-primary" onclick="addToCart('${p.id}', detailQty); showToast('Agregado al carrito')">Agregar al carrito</button>
           </div>
           <div class="detail-badges">
-            <span class="chip-pill" style="color:var(--ink-soft); border-color:var(--line); background:var(--white);">📦 Envío CDMX 24–48h</span>
-            <span class="chip-pill" style="color:var(--ink-soft); border-color:var(--line); background:var(--white);">🛡️ 2 años de garantía</span>
+            <span class="chip-pill" style="color:var(--ink-soft); border-color:var(--line); background:var(--white);">📦 Mismo día en CDMX · Envíos a toda la república</span>
             <span class="chip-pill" style="color:var(--ink-soft); border-color:var(--line); background:var(--white);">🧾 Factura CFDI disponible</span>
           </div>
         </div>
