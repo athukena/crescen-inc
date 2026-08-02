@@ -150,9 +150,9 @@
   .brand-list .katun-badge{font-family:var(--font-mono); font-size:12px; font-weight:600; background:var(--gold); color:var(--charcoal); padding:4px 10px; border-radius:5px;}
 
   /* BANNER CAROUSEL - fondo dorado con franja blanca diagonal, estilo folleto de supermercado */
-  .banner-carousel{position:relative; overflow:hidden; background:linear-gradient(100deg, var(--gold-dark) 0%, var(--gold) 55%, var(--gold-light) 100%);}
+  .banner-carousel{position:relative; overflow:hidden; background:var(--gold-metallic);}
   .banner-track{display:flex; transition:transform .5s cubic-bezier(.2,.8,.2,1);}
-  .banner-slide{min-width:100%; padding:64px 0; display:flex; align-items:center; position:relative; overflow:hidden; background:linear-gradient(100deg, var(--gold-dark) 0%, var(--gold) 55%, var(--gold-light) 100%);}
+  .banner-slide{min-width:100%; padding:64px 0; display:flex; align-items:center; position:relative; overflow:hidden; background:var(--gold-metallic);}
   .banner-slide::before{content:''; position:absolute; top:0; bottom:0; left:64%; width:9%; background:rgba(255,255,255,.22); transform:skewX(-14deg); z-index:1; pointer-events:none;}
   .banner-slide::after{content:''; position:absolute; top:0; bottom:0; left:73%; width:3%; background:rgba(255,255,255,.14); transform:skewX(-14deg); z-index:1; pointer-events:none;}
   .banner-slide .watermark{position:absolute; right:-40px; top:50%; transform:translateY(-50%); width:340px; height:340px; opacity:.06; pointer-events:none; filter:brightness(0);}
