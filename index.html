@@ -207,6 +207,7 @@
 
   /* FILTER TABS */
   .filter-tabs{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:28px;}
+  .filter-label{font-family:var(--font-mono); font-size:11.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-soft); margin-bottom:10px; margin-top:-14px;}
   .tab-btn{padding:9px 16px; border-radius:6px; border:1px solid var(--line); font-size:13px; font-weight:600; background:var(--white); color:var(--ink-soft);}
   .tab-btn.active{background:var(--charcoal); border-color:var(--charcoal); color:var(--gold-light);}
 
@@ -216,6 +217,7 @@
   .product-card:hover{box-shadow:0 12px 28px rgba(30,25,10,.1); transform:translateY(-3px);}
   .product-media{background:var(--paper-2); padding:22px; display:flex; align-items:center; justify-content:center; cursor:pointer; aspect-ratio:1/0.85; position:relative;}
   .katun-tag{position:absolute; top:8px; left:8px; background:var(--gold-metallic); color:var(--charcoal); font-family:var(--font-mono); font-size:9.5px; font-weight:700; padding:3px 7px; border-radius:4px; box-shadow:0 2px 6px rgba(155,124,3,.4);}
+  .compat-tag{position:absolute; top:8px; left:8px; background:var(--charcoal); color:#fff; font-family:var(--font-mono); font-size:9.5px; font-weight:700; padding:3px 7px; border-radius:4px; box-shadow:0 2px 6px rgba(0,0,0,.3);}
   .product-body{padding:16px; display:flex; flex-direction:column; gap:8px; flex:1;}
   .product-cat{font-family:var(--font-mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-soft);}
   .product-name{font-weight:600; font-size:14.5px; cursor:pointer; line-height:1.3;}
@@ -224,6 +226,8 @@
   .product-stars{font-size:12px; color:var(--gold); letter-spacing:2px;}
   .product-foot{display:flex; align-items:center; justify-content:space-between; margin-top:auto; padding-top:8px;}
   .product-price{font-family:var(--font-mono); font-weight:600; font-size:16px;}
+  .see-detail-hint{display:block; font-family:var(--font-body); font-weight:700; font-size:11.5px; color:var(--gold-dark); cursor:pointer;}
+  .see-detail-hint:hover{text-decoration:underline;}
   .product-price small{display:block; font-weight:400; font-size:10.5px; color:var(--ink-soft);}
   .add-btn{background:var(--charcoal); color:var(--gold-light); width:36px; height:36px; border-radius:50%; font-size:18px; display:flex; align-items:center; justify-content:center; transition:background .15s, box-shadow .15s;}
   .add-btn:hover{background:var(--gold-metallic); color:var(--charcoal); box-shadow:0 4px 14px rgba(155,124,3,.5);}
@@ -373,6 +377,7 @@
     .hero{padding:44px 0 36px;}
   }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
@@ -528,12 +533,45 @@
     </div>
     <div class="filter-tabs" id="filterTabs">
       <button class="tab-btn active" data-cat="all" onclick="filterCat('all')">Todos</button>
-      <button class="tab-btn" data-cat="cartucho" onclick="filterCat('cartucho')">Cartuchos Nuevos</button>
+      <button class="tab-btn" data-cat="cartucho" onclick="filterCat('cartucho')">Cartuchos de Tóner</button>
       <button class="tab-btn" data-cat="polvo" onclick="filterCat('polvo')">Polvo</button>
       <button class="tab-btn" data-cat="chip" onclick="filterCat('chip')">Chips</button>
       <button class="tab-btn" data-cat="revelador" onclick="filterCat('revelador')">Reveladores</button>
-      <button class="tab-btn" data-cat="cilindro" onclick="filterCat('cilindro')">Cilindros</button>
+      <button class="tab-btn" data-cat="cilindro" onclick="filterCat('cilindro')">Unidad de Drum</button>
       <button class="tab-btn" data-cat="cuchilla" onclick="filterCat('cuchilla')">Cuchillas</button>
+      <button class="tab-btn" data-cat="banda" onclick="filterCat('banda')">Bandas de Transferencia</button>
+      <button class="tab-btn" data-cat="goma" onclick="filterCat('goma')">Gomas</button>
+      <button class="tab-btn" data-cat="fusor" onclick="filterCat('fusor')">Fusores</button>
+      <button class="tab-btn" data-cat="engrane" onclick="filterCat('engrane')">Engranes</button>
+      <button class="tab-btn" data-cat="una" onclick="filterCat('una')">Uñas</button>
+      <button class="tab-btn" data-cat="pad" onclick="filterCat('pad')">Pad</button>
+      <button class="tab-btn" data-cat="grasa" onclick="filterCat('grasa')">Grasa</button>
+      <button class="tab-btn" data-cat="filmina" onclick="filterCat('filmina')">Filmina</button>
+    </div>
+    <div class="filter-label">Marca de impresora:</div>
+    <div class="filter-tabs" id="brandTabs">
+      <button class="tab-btn brand-tab active" data-brand="all" onclick="filterBrand('all')">Todas</button>
+      <button class="tab-btn brand-tab" data-brand="hp" onclick="filterBrand('hp')">HP</button>
+      <button class="tab-btn brand-tab" data-brand="epson" onclick="filterBrand('epson')">Epson</button>
+      <button class="tab-btn brand-tab" data-brand="canon" onclick="filterBrand('canon')">Canon</button>
+      <button class="tab-btn brand-tab" data-brand="brother" onclick="filterBrand('brother')">Brother</button>
+      <button class="tab-btn brand-tab" data-brand="samsung" onclick="filterBrand('samsung')">Samsung</button>
+      <button class="tab-btn brand-tab" data-brand="xerox" onclick="filterBrand('xerox')">Xerox</button>
+      <button class="tab-btn brand-tab" data-brand="ricoh" onclick="filterBrand('ricoh')">Ricoh</button>
+      <button class="tab-btn brand-tab" data-brand="sharp" onclick="filterBrand('sharp')">Sharp</button>
+      <button class="tab-btn brand-tab" data-brand="lexmark" onclick="filterBrand('lexmark')">Lexmark</button>
+      <button class="tab-btn brand-tab" data-brand="kyocera" onclick="filterBrand('kyocera')">Kyocera Mita</button>
+      <button class="tab-btn brand-tab" data-brand="konica" onclick="filterBrand('konica')">Konica Minolta</button>
+    </div>
+    <div class="filter-label">Marca de compatible:</div>
+    <div class="filter-tabs" id="compatBrandTabs">
+      <button class="tab-btn compat-tab active" data-compat="all" onclick="filterCompatBrand('all')">Todas</button>
+      <button class="tab-btn compat-tab" data-compat="original" onclick="filterCompatBrand('original')">Original</button>
+      <button class="tab-btn compat-tab" data-compat="katun" onclick="filterCompatBrand('katun')">Katun</button>
+      <button class="tab-btn compat-tab" data-compat="premium" onclick="filterCompatBrand('premium')">Premium</button>
+      <button class="tab-btn compat-tab" data-compat="ikon" onclick="filterCompatBrand('ikon')">Ikon</button>
+      <button class="tab-btn compat-tab" data-compat="cit" onclick="filterCompatBrand('cit')">CIT</button>
+      <button class="tab-btn compat-tab" data-compat="technology" onclick="filterCompatBrand('technology')">Technology</button>
     </div>
     <div class="product-grid" id="productGrid"></div>
   </section>
@@ -729,24 +767,47 @@
 </footer>
 
 <script>
-/* ---------- DATA ---------- */
-const PRODUCTS = [
-  {id:'ca-hp12a', cat:'cartucho', name:'Cartucho Tóner Nuevo Compatible HP 12A Negro', compat:'HP LaserJet 1010 / 1020 / 3050', price:349, yield_:'2,000 páginas', rating:5, katun:true},
-  {id:'ca-tn660', cat:'cartucho', name:'Cartucho Tóner Nuevo Compatible Brother TN-660', compat:'Brother HL-L2320 / L2380', price:389, yield_:'2,600 páginas', rating:5, katun:true},
-  {id:'ca-sam111', cat:'cartucho', name:'Cartucho Tóner Nuevo Compatible Samsung MLT-D111S', compat:'Samsung Xpress M2020 / M2070', price:299, yield_:'1,000 páginas', rating:4, katun:false},
-  {id:'ca-t664k', cat:'cartucho', name:'Botella Tinta Nueva Compatible Epson T664 Negro', compat:'Epson EcoTank L200 / L380 / L3110', price:179, yield_:'Botella 100ml', rating:5, katun:false},
-  {id:'po-univ1', cat:'polvo', name:'Polvo para Tóner Katun Universal HP/Canon/Brother 1kg', compat:'Recarga de cartuchos láser HP, Canon, Brother', price:459, yield_:'Bolsa de 1kg', rating:5, katun:true, discount:15},
-  {id:'po-univ2', cat:'polvo', name:'Polvo para Tóner Katun Xerox/Samsung 1kg', compat:'Recarga de cartuchos láser Xerox, Samsung', price:479, yield_:'Bolsa de 1kg', rating:4, katun:true},
-  {id:'ch-hp12a', cat:'chip', name:'Chip de Reconocimiento HP 12A', compat:'HP LaserJet 1010 / 1020 / 3050', price:69, yield_:'Pieza individual', rating:5, katun:true, discount:20},
-  {id:'ch-tn660', cat:'chip', name:'Chip de Reconocimiento Brother TN-660', compat:'Brother HL-L2320 / L2380', price:75, yield_:'Pieza individual', rating:4, katun:true},
-  {id:'ch-sam111', cat:'chip', name:'Chip Katun Universal Samsung MLT-D111', compat:'Samsung Xpress M2020 / M2070', price:79, yield_:'Pieza individual', rating:5, katun:true},
-  {id:'re-katun1', cat:'revelador', name:'Revelador Katun para Tóner HP/Canon', compat:'Compatible con línea HP y Canon láser', price:329, yield_:'Frasco 80g', rating:4, katun:true, discount:10},
-  {id:'ci-dr630', cat:'cilindro', name:'Cilindro (Drum) Katun Compatible Brother DR-630', compat:'Brother HL-L2320 / L2380 / MFC-L2700', price:459, yield_:'12,000 páginas', rating:5, katun:true, discount:18},
-  {id:'ci-mltr111', cat:'cilindro', name:'Cilindro Katun Compatible Samsung MLT-R111', compat:'Samsung Xpress M2020 / M2070', price:399, yield_:'9,000 páginas', rating:4, katun:true},
-  {id:'cu-univ', cat:'cuchilla', name:'Cuchilla de Limpieza (Wiper Blade) Katun Universal', compat:'Uso general en recarga de tóner láser', price:59, yield_:'Pieza individual', rating:5, katun:true, discount:12},
-];
+/* ---------- DATA (desde Supabase) ---------- */
+const SUPABASE_URL = 'https://ngjlkatxypqvyvngrzof.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_JcPBR-kmxmfVIgoadCGc7Q_WxDz3Iym';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let PRODUCTS = [];
+
+async function loadProducts(){
+  const grid = document.getElementById('productGrid');
+  if(grid) grid.innerHTML = `<div class="no-results"><b>Cargando catálogo...</b>Un momento, estamos trayendo los productos.</div>`;
+
+  const { data, error } = await sb.from('products').select('*');
+
+  if(error){
+    console.error('Error cargando productos de Supabase:', error);
+    if(grid) grid.innerHTML = `<div class="no-results"><b>No se pudo cargar el catálogo</b>Intenta recargar la página en un momento.</div>`;
+    return;
+  }
+
+  PRODUCTS = data.map(p => ({
+    id: p.id,
+    cat: p.cat,
+    name: p.name,
+    compat: p.compat,
+    price: Number(p.price),
+    yield_: p.yield_text,
+    rating: p.rating,
+    compatBrand: p.compat_brand,
+    brand: p.brand || [],
+    discount: p.discount ? Number(p.discount) : undefined,
+  }));
+
+  renderGrid();
+  renderOffers();
+  renderCart();
+}
+
 
 let currentCat = 'all';
+let currentBrand = 'all';
+let currentCompatBrand = 'all';
 let isLoggedIn = false;
 let currentUser = null;
 let localAccounts = []; // {name, phone, email, address, password} — solo en memoria, se pierde al recargar
@@ -1004,6 +1065,72 @@ function iconFor(p, size){
       <rect x="80" y="48" width="10" height="10" rx="2" fill="${ink}"/>
     </svg>`;
   }
+  if(p.cat === 'banda'){
+    return `<svg viewBox="0 0 100 100" width="${size}" height="${size}">
+      <rect x="12" y="40" width="76" height="20" rx="10" fill="#fff" stroke="${ink}" stroke-width="2.5"/>
+      <rect x="18" y="46" width="64" height="8" rx="4" fill="${gold}" opacity="0.85"/>
+      <circle cx="22" cy="50" r="9" fill="none" stroke="${ink}" stroke-width="2.5"/>
+      <circle cx="78" cy="50" r="9" fill="none" stroke="${ink}" stroke-width="2.5"/>
+    </svg>`;
+  }
+  if(p.cat === 'goma'){
+    return `<svg viewBox="0 0 100 100" width="${size}" height="${size}">
+      <rect x="35" y="20" width="30" height="60" rx="15" fill="#fff" stroke="${ink}" stroke-width="2.5"/>
+      <rect x="40" y="28" width="20" height="44" rx="10" fill="${gold}" opacity="0.85"/>
+      <line x1="50" y1="15" x2="50" y2="85" stroke="${ink}" stroke-width="2.5" stroke-dasharray="3,3"/>
+    </svg>`;
+  }
+  if(p.cat === 'fusor'){
+    return `<svg viewBox="0 0 100 100" width="${size}" height="${size}">
+      <rect x="18" y="32" width="64" height="36" rx="8" fill="#fff" stroke="${ink}" stroke-width="2.5"/>
+      <circle cx="38" cy="50" r="10" fill="none" stroke="${ink}" stroke-width="2.5"/>
+      <circle cx="62" cy="50" r="10" fill="${gold}" opacity="0.85"/>
+      <rect x="30" y="20" width="40" height="10" rx="3" fill="${ink}"/>
+    </svg>`;
+  }
+  if(p.cat === 'engrane'){
+    return `<svg viewBox="0 0 100 100" width="${size}" height="${size}">
+      <circle cx="50" cy="50" r="20" fill="${gold}" opacity="0.85" stroke="${ink}" stroke-width="2.5"/>
+      <circle cx="50" cy="50" r="7" fill="#fff" stroke="${ink}" stroke-width="2"/>
+      <rect x="47" y="18" width="6" height="12" fill="${ink}"/>
+      <rect x="47" y="70" width="6" height="12" fill="${ink}"/>
+      <rect x="18" y="47" width="12" height="6" fill="${ink}"/>
+      <rect x="70" y="47" width="12" height="6" fill="${ink}"/>
+      <rect x="26" y="26" width="10" height="6" fill="${ink}" transform="rotate(45 31 29)"/>
+      <rect x="64" y="68" width="10" height="6" fill="${ink}" transform="rotate(45 69 71)"/>
+      <rect x="26" y="68" width="10" height="6" fill="${ink}" transform="rotate(-45 31 71)"/>
+      <rect x="64" y="26" width="10" height="6" fill="${ink}" transform="rotate(-45 69 29)"/>
+    </svg>`;
+  }
+  if(p.cat === 'una'){
+    return `<svg viewBox="0 0 100 100" width="${size}" height="${size}">
+      <path d="M35 20 q-8 30 5 55 q4 8 12 8 q8 0 8 -8 v-45 a8 8 0 0 0 -8 -8 z" fill="${gold}" opacity="0.85" stroke="${ink}" stroke-width="2.5"/>
+      <path d="M35 20 q-8 30 5 55" fill="none" stroke="${ink}" stroke-width="2"/>
+    </svg>`;
+  }
+  if(p.cat === 'pad'){
+    return `<svg viewBox="0 0 100 100" width="${size}" height="${size}">
+      <rect x="20" y="35" width="60" height="30" rx="6" fill="${gold}" opacity="0.85" stroke="${ink}" stroke-width="2.5"/>
+      <rect x="28" y="42" width="44" height="4" fill="${ink}" opacity="0.5"/>
+      <rect x="28" y="50" width="44" height="4" fill="${ink}" opacity="0.5"/>
+      <rect x="28" y="58" width="30" height="4" fill="${ink}" opacity="0.5"/>
+    </svg>`;
+  }
+  if(p.cat === 'grasa'){
+    return `<svg viewBox="0 0 100 100" width="${size}" height="${size}">
+      <path d="M38 20 h24 v12 l6 6 v34 a8 8 0 0 1 -8 8 h-20 a8 8 0 0 1 -8 -8 v-34 l6 -6 z" fill="#fff" stroke="${ink}" stroke-width="2.5"/>
+      <rect x="34" y="44" width="32" height="26" fill="${gold}" opacity="0.85"/>
+      <rect x="36" y="16" width="28" height="8" rx="2" fill="${ink}"/>
+    </svg>`;
+  }
+  if(p.cat === 'filmina'){
+    return `<svg viewBox="0 0 100 100" width="${size}" height="${size}">
+      <rect x="20" y="25" width="60" height="50" rx="4" fill="#fff" stroke="${ink}" stroke-width="2.5"/>
+      <line x1="20" y1="38" x2="80" y2="38" stroke="${ink}" stroke-width="1.5"/>
+      <line x1="20" y1="50" x2="80" y2="50" stroke="${gold}" stroke-width="3" opacity="0.85"/>
+      <line x1="20" y1="62" x2="80" y2="62" stroke="${ink}" stroke-width="1.5"/>
+    </svg>`;
+  }
   return `<svg viewBox="0 0 100 100" width="${size}" height="${size}">
     <rect x="15" y="45" width="60" height="10" rx="2" fill="#fff" stroke="${ink}" stroke-width="2.5"/>
     <path d="M75 44 l12 6 -12 6 z" fill="${gold}"/>
@@ -1012,7 +1139,13 @@ function iconFor(p, size){
   </svg>`;
 }
 function stars(n){ return '★★★★★'.slice(0,n) + '☆☆☆☆☆'.slice(0, 5-n); }
-function catLabel(c){ return {cartucho:'Cartucho Nuevo', polvo:'Polvo para Tóner', chip:'Chip de Reconocimiento', revelador:'Revelador', cilindro:'Cilindro', cuchilla:'Cuchilla'}[c] || c; }
+function catLabel(c){ return {cartucho:'Cartucho de Tóner', polvo:'Polvo para Tóner', chip:'Chip de Reconocimiento', revelador:'Revelador', cilindro:'Unidad de Drum', cuchilla:'Cuchilla', banda:'Banda de Transferencia', goma:'Goma', fusor:'Fusor', engrane:'Engrane', una:'Uña', pad:'Pad', grasa:'Grasa', filmina:'Filmina'}[c] || c; }
+const COMPAT_BRAND_LABELS = {original:'Original', katun:'Katun', premium:'Premium', ikon:'Ikon', cit:'CIT', technology:'Technology'};
+function compatBrandTag(p){
+  const label = COMPAT_BRAND_LABELS[p.compatBrand] || p.compatBrand;
+  const cls = p.compatBrand === 'katun' ? 'katun-tag' : 'compat-tag';
+  return `<span class="${cls}">${label.toUpperCase()}</span>`;
+}
 function money(n){ return '$' + n.toLocaleString('es-MX') + ' MXN'; }
 
 /* ---------- RENDER CATALOG ---------- */
@@ -1022,18 +1155,24 @@ function normalizeText(s){
 function renderGrid(){
   const grid = document.getElementById('productGrid');
   let list = currentCat === 'all' ? PRODUCTS : PRODUCTS.filter(p => p.cat === currentCat);
+  if(currentBrand !== 'all'){
+    list = list.filter(p => p.brand && p.brand.includes(currentBrand));
+  }
+  if(currentCompatBrand !== 'all'){
+    list = list.filter(p => p.compatBrand === currentCompatBrand);
+  }
   if(searchQuery.trim() !== ''){
     const q = normalizeText(searchQuery.trim());
     list = list.filter(p => normalizeText(p.name).includes(q) || normalizeText(p.compat).includes(q) || normalizeText(catLabel(p.cat)).includes(q));
   }
   if(list.length === 0){
-    grid.innerHTML = `<div class="no-results"><b>Sin resultados</b>No encontramos productos para "${searchQuery}". Intenta con otro término o quita el filtro de categoría.</div>`;
+    grid.innerHTML = `<div class="no-results"><b>Sin resultados</b>No encontramos productos para "${searchQuery}". Intenta con otro término o quita algún filtro.</div>`;
     return;
   }
   grid.innerHTML = list.map(p => `
     <div class="product-card">
       <div class="product-media" onclick="showProduct('${p.id}')">
-        ${p.katun ? '<span class="katun-tag">KATUN</span>' : ''}
+        ${compatBrandTag(p)}
         ${iconFor(p,100)}
       </div>
       <div class="product-body">
@@ -1042,7 +1181,7 @@ function renderGrid(){
         <div class="product-compat">${p.compat}</div>
         <div class="product-stars">${stars(p.rating)}</div>
         <div class="product-foot">
-          <div class="product-price">${priceOrLock(money(p.price))}<small>${p.yield_}</small></div>
+          <div class="product-price"><span class="see-detail-hint" onclick="showProduct('${p.id}')">Ver precio en la ficha →</span><small>${p.yield_}</small></div>
           <button class="add-btn" aria-label="Agregar al carrito" onclick="addToCart('${p.id}',1); event.stopPropagation();">+</button>
         </div>
       </div>
@@ -1054,8 +1193,18 @@ function filterCat(cat){
   searchQuery = '';
   const input = document.getElementById('searchInput');
   if(input) input.value = '';
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.cat === cat));
+  document.querySelectorAll('#filterTabs .tab-btn').forEach(b => b.classList.toggle('active', b.dataset.cat === cat));
   syncSearchCatLabel(cat);
+  renderGrid();
+}
+function filterBrand(brand){
+  currentBrand = brand;
+  document.querySelectorAll('#brandTabs .tab-btn').forEach(b => b.classList.toggle('active', b.dataset.brand === brand));
+  renderGrid();
+}
+function filterCompatBrand(compat){
+  currentCompatBrand = compat;
+  document.querySelectorAll('#compatBrandTabs .tab-btn').forEach(b => b.classList.toggle('active', b.dataset.compat === compat));
   renderGrid();
 }
 
@@ -1076,7 +1225,7 @@ function selectSearchCategory(cat){
   currentCat = cat;
   syncSearchCatLabel(cat);
   closeCatMenu();
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.cat === cat));
+  document.querySelectorAll('#filterTabs .tab-btn').forEach(b => b.classList.toggle('active', b.dataset.cat === cat));
   renderGrid();
   showHome();
   document.getElementById('catalog').scrollIntoView({behavior:'smooth'});
@@ -1178,11 +1327,11 @@ function showProduct(id){
       <div class="breadcrumb"><button onclick="showHome()">← Volver al catálogo</button></div>
       <div class="product-detail">
         <div class="detail-media">
-          ${p.katun ? '<span class="katun-tag">KATUN</span>' : ''}
+          ${compatBrandTag(p)}
           ${iconFor(p,220)}
         </div>
         <div>
-          <div class="detail-cat">${catLabel(p.cat)}${p.katun ? ' · Distribuido por Katun' : ' · Compatible'}</div>
+          <div class="detail-cat">${catLabel(p.cat)} · Marca compatible: ${COMPAT_BRAND_LABELS[p.compatBrand] || p.compatBrand}</div>
           <h1 class="detail-title">${p.name}</h1>
           <div class="detail-compat">Compatible con: ${p.compat}</div>
           <div class="detail-price">${priceOrLock(money(p.price))}</div>
@@ -1190,7 +1339,7 @@ function showProduct(id){
           ${!isLoggedIn ? `<div class="login-hint-banner">Los precios son exclusivos para clientes registrados. <button onclick="promptLogin()">Inicia sesión con Google</button> para verlos.</div>` : ''}
           <table class="spec-table">
             <tr><td>Presentación</td><td>${p.yield_}</td></tr>
-            <tr><td>Distribuidor</td><td>${p.katun ? 'Katun (autorizado)' : 'Crescen Inc'}</td></tr>
+            <tr><td>Marca de compatible</td><td>${COMPAT_BRAND_LABELS[p.compatBrand] || p.compatBrand}${p.compatBrand === 'katun' ? ' (autorizado)' : ''}</td></tr>
             <tr><td>Garantía</td><td>24 meses</td></tr>
             <tr><td>SKU</td><td>${p.id.toUpperCase()}</td></tr>
           </table>
@@ -1379,14 +1528,13 @@ function animateBars(){
     setTimeout(() => { el.style.height = el.dataset.h + '%'; }, i*90);
   });
 }
-renderGrid();
 renderCart();
 animateBars();
-renderOffers();
 renderBannerDots();
 resetBannerTimer();
 syncSearchCatLabel('all');
 initGoogleSignIn();
+loadProducts();
 </script>
 
 </body>
