@@ -508,7 +508,37 @@
     <div class="banner-dots" id="bannerDots"></div>
   </section>
 
-  <section class="hero">
+  <section class="section wrap" id="offersCarousel" style="padding-top:48px;">
+    <div class="carousel-head">
+      <h2>Ofertas destacadas</h2>
+      <div class="carousel-nav">
+        <button onclick="scrollCarousel(-1)" aria-label="Ver anteriores">‹</button>
+        <button onclick="scrollCarousel(1)" aria-label="Ver siguientes">›</button>
+      </div>
+    </div>
+    <div class="carousel-wrap">
+      <div class="carousel-track" id="offersTrack"></div>
+    </div>
+  </section>
+
+  <section class="section wrap" id="catalog">
+    <div class="section-head">
+      <h2>Catálogo</h2>
+      <p>Precios en MXN, IVA incluido.</p>
+    </div>
+    <div class="filter-tabs" id="filterTabs">
+      <button class="tab-btn active" data-cat="all" onclick="filterCat('all')">Todos</button>
+      <button class="tab-btn" data-cat="cartucho" onclick="filterCat('cartucho')">Cartuchos Nuevos</button>
+      <button class="tab-btn" data-cat="polvo" onclick="filterCat('polvo')">Polvo</button>
+      <button class="tab-btn" data-cat="chip" onclick="filterCat('chip')">Chips</button>
+      <button class="tab-btn" data-cat="revelador" onclick="filterCat('revelador')">Reveladores</button>
+      <button class="tab-btn" data-cat="cilindro" onclick="filterCat('cilindro')">Cilindros</button>
+      <button class="tab-btn" data-cat="cuchilla" onclick="filterCat('cuchilla')">Cuchillas</button>
+    </div>
+    <div class="product-grid" id="productGrid"></div>
+  </section>
+
+  <section class="hero" style="padding-top:56px;">
     <div class="wrap hero-inner">
       <div>
         <div class="eyebrow"><span class="growth-mark"><span></span><span></span><span></span><span></span></span> +30 años de experiencia en Ciudad de México</div>
@@ -580,36 +610,6 @@
         <p>Cuchillas de limpieza (wiper blades) para el cartucho.</p>
       </button>
     </div>
-  </section>
-
-  <section class="section wrap" id="offersCarousel" style="padding-top:0;">
-    <div class="carousel-head">
-      <h2>Ofertas destacadas</h2>
-      <div class="carousel-nav">
-        <button onclick="scrollCarousel(-1)" aria-label="Ver anteriores">‹</button>
-        <button onclick="scrollCarousel(1)" aria-label="Ver siguientes">›</button>
-      </div>
-    </div>
-    <div class="carousel-wrap">
-      <div class="carousel-track" id="offersTrack"></div>
-    </div>
-  </section>
-
-  <section class="section wrap" id="catalog">
-    <div class="section-head">
-      <h2>Catálogo</h2>
-      <p>Precios en MXN, IVA incluido.</p>
-    </div>
-    <div class="filter-tabs" id="filterTabs">
-      <button class="tab-btn active" data-cat="all" onclick="filterCat('all')">Todos</button>
-      <button class="tab-btn" data-cat="cartucho" onclick="filterCat('cartucho')">Cartuchos Nuevos</button>
-      <button class="tab-btn" data-cat="polvo" onclick="filterCat('polvo')">Polvo</button>
-      <button class="tab-btn" data-cat="chip" onclick="filterCat('chip')">Chips</button>
-      <button class="tab-btn" data-cat="revelador" onclick="filterCat('revelador')">Reveladores</button>
-      <button class="tab-btn" data-cat="cilindro" onclick="filterCat('cilindro')">Cilindros</button>
-      <button class="tab-btn" data-cat="cuchilla" onclick="filterCat('cuchilla')">Cuchillas</button>
-    </div>
-    <div class="product-grid" id="productGrid"></div>
   </section>
 
   <section class="trust-band" id="trust">
