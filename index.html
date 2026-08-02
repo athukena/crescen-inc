@@ -236,7 +236,7 @@
 
   /* SEARCH ROW - estilo Amazon */
   .search-row{background:var(--charcoal-2); padding:14px 0;}
-  .search-combo{display:flex; align-items:stretch; max-width:640px; margin:0 auto; position:relative; border-radius:8px; overflow:visible; box-shadow:0 2px 8px rgba(0,0,0,.25);}
+  .search-combo{display:flex; align-items:stretch; width:100%; max-width:900px; margin:0 auto; position:relative; border-radius:8px; overflow:visible; box-shadow:0 0 0 2px var(--gold), 0 2px 10px rgba(0,0,0,.3);}
   .search-cat-btn{background:#2C2919; color:#C7C0A6; padding:0 14px; font-size:12.5px; font-weight:600; display:flex; align-items:center; gap:6px; white-space:nowrap; border-radius:8px 0 0 8px; border-right:1px solid #3A3628; transition:background .15s;}
   .search-cat-btn:hover{background:#38341F;}
   .search-combo input{flex:1; border:none; padding:0 14px; font-size:14px; font-family:var(--font-body); background:#fff; color:var(--ink); min-width:0;}
@@ -439,7 +439,7 @@
         <button data-cat="cuchilla" onclick="selectSearchCategory('cuchilla')">Cuchillas</button>
       </div>
       <form onsubmit="handleSearch(event)" style="display:contents;">
-        <input type="text" id="searchInput" placeholder="Buscar tóner, chip, cilindro, modelo de impresora...">
+        <input type="text" id="searchInput" placeholder="Buscar en Crescen Inc...">
         <button type="submit" class="search-submit-btn" aria-label="Buscar">🔍</button>
       </form>
     </div>
