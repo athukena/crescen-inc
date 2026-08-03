@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crescen Inc — Panel de administrador</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Work+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --gold: #D4AF37;
+    --gold-light: #E8CE7A;
+    --gold-dim: #8A7530;
+    --carbon: #17160F;
+    --carbon-2: #211F16;
+    --carbon-3: #2C2A1D;
+    --line: #3A3826;
+    --text: #F1EEDF;
+    --text-dim: #ABA791;
+    --danger: #C1543B;
+    --success: #6F9E5C;
+    --font-display: 'Fraunces', serif;
+    --font-body: 'Work Sans', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background: var(--carbon);
+    color: var(--text);
+    font-family: var(--font-body);
+    min-height:100vh;
+  }
+  .wrap{max-width:1100px; margin:0 auto; padding:32px 20px 80px;}
+
+  /* ---------- header ---------- */
+  header{
+    display:flex; align-items:center; justify-content:space-between;
+    padding-bottom:24px; margin-bottom:28px; border-bottom:1px solid var(--line);
+    flex-wrap:wrap; gap:16px;
+  }
+  .brand{display:flex; align-items:baseline; gap:10px;}
+  .brand h1{font-family:var(--font-display); font-weight:600; font-size:26px; color:var(--gold-light);}
+  .brand span{font-size:13px; color:var(--text-dim); font-family:var(--font-mono);}
+  .who{display:flex; align-items:center; gap:12px; font-size:14px; color:var(--text-dim);}
+  .who b{color:var(--text); font-weight:500;}
+  button{font-family:var(--font-body); cursor:pointer; border:none;}
+  .btn{
+    background:var(--gold); color:var(--carbon); font-weight:600;
+    padding:10px 18px; border-radius:6px; font-size:14px;
+    transition:background .15s;
+  }
+  .btn:hover{background:var(--gold-light);}
+  .btn-ghost{
+    background:transparent; color:var(--text-dim); border:1px solid var(--line);
+    padding:9px 16px; border-radius:6px; font-size:13px;
+  }
+  .btn-ghost:hover{color:var(--text); border-color:var(--gold-dim);}
+
+  /* ---------- login ---------- */
+  #login-screen{
+    min-height:80vh; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:20px; text-align:center;
+  }
+  #login-screen h1{font-family:var(--font-display); font-size:34px; color:var(--gold-light); font-weight:600;}
+  #login-screen p{color:var(--text-dim); max-width:380px; line-height:1.6; font-size:15px;}
+  #google-btn{
+    display:flex; align-items:center; gap:10px; background:var(--text); color:var(--carbon);
+    padding:12px 24px; border-radius:6px; font-weight:600; font-size:14px;
+  }
+  #google-btn:hover{background:var(--gold-light);}
+  #denied-msg{color:var(--danger); font-size:14px; display:none; max-width:360px;}
+
+  /* ---------- tabs ---------- */
+  .tabs{display:flex; gap:6px; margin-bottom:24px;}
+  .tab{
+    padding:9px 18px; border-radius:6px; font-size:14px; color:var(--text-dim);
+    background:transparent;
+  }
+  .tab.active{background:var(--carbon-3); color:var(--gold-light); font-weight:500;}
+
+  /* ---------- toolbar ---------- */
+  .toolbar{display:flex; gap:12px; margin-bottom:20px; flex-wrap:wrap; align-items:center;}
+  input[type=text], input[type=number], select, textarea{
+    background:var(--carbon-2); border:1px solid var(--line); color:var(--text);
+    padding:9px 12px; border-radius:6px; font-family:var(--font-body); font-size:14px;
+  }
+  input:focus, select:focus, textarea:focus{outline:none; border-color:var(--gold-dim);}
+  #search{flex:1; min-width:200px;}
+  .count{color:var(--text-dim); font-size:13px; font-family:var(--font-mono);}
+
+  /* ---------- table ---------- */
+  .table-wrap{border:1px solid var(--line); border-radius:8px; overflow:hidden;}
+  table{width:100%; border-collapse:collapse;}
+  th{
+    text-align:left; font-size:12px; text-transform:uppercase; letter-spacing:.04em;
+    color:var(--text-dim); padding:12px 14px; background:var(--carbon-2); font-weight:500;
+    border-bottom:1px solid var(--line);
+  }
+  td{padding:12px 14px; border-bottom:1px solid var(--line); font-size:14px; vertical-align:middle;}
+  tr:last-child td{border-bottom:none;}
+  tr:hover td{background:rgba(212,175,55,0.04);}
+  .name-cell{max-width:340px;}
+  .name-cell .id{display:block; font-family:var(--font-mono); font-size:11px; color:var(--text-dim); margin-top:2px;}
+  .price-input{width:100px; font-family:var(--font-mono); text-align:right;}
+  .stock-input{width:70px; font-family:var(--font-mono); text-align:right;}
+  .row-save{
+    background:var(--carbon-3); color:var(--gold-light); padding:6px 12px; border-radius:5px; font-size:12px;
+    opacity:0; pointer-events:none; transition:opacity .15s;
+  }
+  tr.dirty .row-save{opacity:1; pointer-events:auto;}
+  .row-save:hover{background:var(--gold-dim); color:var(--carbon);}
+  .saved-flash{color:var(--success); font-size:12px; font-family:var(--font-mono);}
+  .stock-low{color:var(--danger); font-weight:600;}
+
+  /* ---------- empty / orders placeholder ---------- */
+  .empty{
+    text-align:center; padding:60px 20px; color:var(--text-dim);
+  }
+  .empty h3{font-family:var(--font-display); color:var(--gold-light); font-size:20px; margin-bottom:8px; font-weight:600;}
+
+  /* ---------- modal (add product) ---------- */
+  .modal-overlay{
+    position:fixed; inset:0; background:rgba(0,0,0,.6); display:none;
+    align-items:flex-start; justify-content:center; padding:40px 20px; overflow-y:auto; z-index:50;
+  }
+  .modal-overlay.open{display:flex;}
+  .modal{
+    background:var(--carbon-2); border:1px solid var(--line); border-radius:10px;
+    padding:28px; max-width:560px; width:100%;
+  }
+  .modal h2{font-family:var(--font-display); color:var(--gold-light); font-size:20px; margin-bottom:18px; font-weight:600;}
+  .field{margin-bottom:14px;}
+  .field label{display:block; font-size:12px; color:var(--text-dim); margin-bottom:5px;}
+  .field input, .field select, .field textarea{width:100%;}
+  .field-row{display:flex; gap:12px;}
+  .field-row .field{flex:1;}
+  .modal-actions{display:flex; justify-content:flex-end; gap:10px; margin-top:20px;}
+</style>
+</head>
+<body>
+
+<div id="login-screen">
+  <h1>Panel Crescen Inc</h1>
+  <p>Acceso solo para el equipo de Crescen. Inicia sesión con el correo de Google que fue autorizado.</p>
+  <button id="google-btn" onclick="signIn()">
+    Continuar con Google
+  </button>
+  <p id="denied-msg"></p>
+</div>
+
+<div id="app" style="display:none">
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <h1>Crescen</h1>
+        <span>panel de administrador</span>
+      </div>
+      <div class="who">
+        <span><b id="who-name"></b></span>
+        <button class="btn-ghost" onclick="signOut()">Cerrar sesión</button>
+      </div>
+    </header>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="productos" onclick="switchTab('productos')">Productos</button>
+      <button class="tab" data-tab="pedidos" onclick="switchTab('pedidos')">Pedidos</button>
+    </div>
+
+    <div id="tab-productos">
+      <div class="toolbar">
+        <input type="text" id="search" placeholder="Buscar por nombre, referencia o categoría..." oninput="renderTable()">
+        <span class="count" id="count-label"></span>
+        <button class="btn" onclick="openAddModal()">+ Agregar producto</button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th>Categoría</th>
+              <th>Marca</th>
+              <th style="text-align:right">Precio (MXN)</th>
+              <th style="text-align:right">Existencias</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="tab-pedidos" style="display:none">
+      <div class="empty">
+        <h3>Pedidos — próximamente</h3>
+        <p>Cuando la página empiece a recibir pedidos en línea, aquí vas a poder verlos y darles seguimiento.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="add-modal-overlay">
+  <div class="modal">
+    <h2>Agregar producto nuevo</h2>
+    <div class="field">
+      <label>Nombre del producto</label>
+      <input type="text" id="new-name" placeholder="Ej. Cartucho de Tóner Negro - Katun 33207">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Categoría</label>
+        <input type="text" id="new-cat" placeholder="Ej. Cartucho">
+      </div>
+      <div class="field">
+        <label>Marca de impresora (compat_brand)</label>
+        <input type="text" id="new-compat-brand" placeholder="Ej. HP">
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Precio final (MXN)</label>
+        <input type="number" id="new-price" step="0.01" placeholder="0.00">
+      </div>
+      <div class="field">
+        <label>Existencias</label>
+        <input type="number" id="new-stock" step="1" placeholder="0">
+      </div>
+    </div>
+    <div class="field">
+      <label>Nuestra(s) marca(s) (separadas por coma — ej. Katun, Performance)</label>
+      <input type="text" id="new-brand" placeholder="Katun, Select">
+    </div>
+    <div class="field">
+      <label>Compatible con (modelos)</label>
+      <textarea id="new-compat" rows="2" placeholder="Ej. LJ P 1005, LJ P 1006"></textarea>
+    </div>
+    <div class="field">
+      <label>Rendimiento (opcional)</label>
+      <input type="text" id="new-yield" placeholder="Ej. 1,500 páginas">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeAddModal()">Cancelar</button>
+      <button class="btn" onclick="createProduct()">Guardar producto</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://ngjlkatxypqvyvngrzof.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_JcPBR-kmxmfVIgoadCGc7Q_WxDz3Iym';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let currentUser = null;
+let allProducts = [];
+
+async function init() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    await handleSignedIn(session.user);
+  }
+  sb.auth.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_IN' && session) handleSignedIn(session.user);
+    if (event === 'SIGNED_OUT') showLogin();
+  });
+}
+
+async function signIn() {
+  await sb.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.href }
+  });
+}
+
+async function signOut() {
+  await sb.auth.signOut();
+}
+
+async function handleSignedIn(user) {
+  currentUser = user;
+  // Verificar que el correo esté en la tabla staff (protegido también por RLS)
+  const { data, error } = await sb.from('staff').select('email, name').eq('email', user.email).maybeSingle();
+
+  if (error || !data) {
+    document.getElementById('denied-msg').style.display = 'block';
+    document.getElementById('denied-msg').textContent =
+      `El correo ${user.email} no está autorizado para entrar a este panel. Pide que lo agreguen a la lista de staff.`;
+    await sb.auth.signOut();
+    return;
+  }
+
+  document.getElementById('who-name').textContent = data.name || user.email;
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  await loadProducts();
+}
+
+function showLogin() {
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+}
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+  document.getElementById('tab-productos').style.display = name === 'productos' ? 'block' : 'none';
+  document.getElementById('tab-pedidos').style.display = name === 'pedidos' ? 'block' : 'none';
+}
+
+async function loadProducts() {
+  const { data, error } = await sb.from('products').select('*').order('name');
+  if (error) {
+    alert('Error cargando productos: ' + error.message);
+    return;
+  }
+  allProducts = data || [];
+  renderTable();
+}
+
+function renderTable() {
+  const q = document.getElementById('search').value.trim().toLowerCase();
+  const filtered = !q ? allProducts : allProducts.filter(p =>
+    (p.name || '').toLowerCase().includes(q) ||
+    (p.id || '').toLowerCase().includes(q) ||
+    (p.cat || '').toLowerCase().includes(q)
+  );
+
+  document.getElementById('count-label').textContent = `${filtered.length} de ${allProducts.length} productos`;
+
+  const tbody = document.getElementById('table-body');
+  tbody.innerHTML = '';
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6"><div class="empty">Sin resultados</div></td></tr>`;
+    return;
+  }
+
+  filtered.forEach(p => {
+    const tr = document.createElement('tr');
+    tr.dataset.id = p.id;
+    const brandStr = Array.isArray(p.brand) ? p.brand.join(', ') : (p.brand || '');
+    tr.innerHTML = `
+      <td class="name-cell">${escapeHtml(p.name || '')}<span class="id">${escapeHtml(p.id)}</span></td>
+      <td>${escapeHtml(p.cat || '')}</td>
+      <td>${escapeHtml(brandStr)}</td>
+      <td style="text-align:right">
+        <input type="number" class="price-input" step="0.01" value="${p.price ?? 0}" oninput="markDirty('${p.id}')">
+      </td>
+      <td style="text-align:right">
+        <input type="number" class="stock-input" step="1" value="${p.stock ?? 0}" oninput="markDirty('${p.id}')">
+      </td>
+      <td style="text-align:right; white-space:nowrap;">
+        <button class="row-save" onclick="saveRow('${p.id}')">Guardar</button>
+        <span class="saved-flash" id="flash-${cssEscape(p.id)}"></span>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function markDirty(id) {
+  const tr = document.querySelector(`tr[data-id="${cssEscape(id)}"]`);
+  if (tr) tr.classList.add('dirty');
+}
+
+async function saveRow(id) {
+  const tr = document.querySelector(`tr[data-id="${cssEscape(id)}"]`);
+  const price = parseFloat(tr.querySelector('.price-input').value);
+  const stock = parseFloat(tr.querySelector('.stock-input').value);
+
+  const { error } = await sb.from('products').update({ price, stock }).eq('id', id);
+  const flash = document.getElementById(`flash-${cssEscape(id)}`);
+
+  if (error) {
+    flash.style.color = 'var(--danger)';
+    flash.textContent = 'Error al guardar';
+    return;
+  }
+
+  tr.classList.remove('dirty');
+  flash.style.color = 'var(--success)';
+  flash.textContent = 'Guardado ✓';
+  setTimeout(() => { flash.textContent = ''; }, 2000);
+
+  const prod = allProducts.find(p => p.id === id);
+  if (prod) { prod.price = price; prod.stock = stock; }
+}
+
+function openAddModal() {
+  document.getElementById('add-modal-overlay').classList.add('open');
+}
+function closeAddModal() {
+  document.getElementById('add-modal-overlay').classList.remove('open');
+  ['new-name','new-cat','new-compat-brand','new-price','new-stock','new-brand','new-compat','new-yield']
+    .forEach(id => document.getElementById(id).value = '');
+}
+
+async function createProduct() {
+  const name = document.getElementById('new-name').value.trim();
+  const cat = document.getElementById('new-cat').value.trim();
+  const compat_brand = document.getElementById('new-compat-brand').value.trim();
+  const price = parseFloat(document.getElementById('new-price').value) || 0;
+  const stock = parseFloat(document.getElementById('new-stock').value) || 0;
+  const brandRaw = document.getElementById('new-brand').value.trim();
+  const compat = document.getElementById('new-compat').value.trim();
+  const yield_text = document.getElementById('new-yield').value.trim() || null;
+
+  if (!name) { alert('El producto necesita un nombre.'); return; }
+
+  const brand = brandRaw ? brandRaw.split(',').map(s => s.trim()).filter(Boolean) : [];
+  const id = `${slugify(name)}-${Date.now().toString(36)}`;
+
+  const { error } = await sb.from('products').insert({
+    id, name, cat, compat_brand, price, stock, brand, compat, yield_text
+  });
+
+  if (error) {
+    alert('Error al crear el producto: ' + error.message);
+    return;
+  }
+
+  closeAddModal();
+  await loadProducts();
+}
+
+function slugify(s) {
+  return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '').slice(0, 40);
+}
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function cssEscape(s) {
+  return String(s).replace(/"/g, '\\"');
+}
+
+init();
+</script>
+</body>
+</html>
