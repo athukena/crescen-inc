@@ -305,6 +305,9 @@
   /* PRODUCT DETAIL VIEW */
   #view-product{padding:40px 0 80px;}
   .breadcrumb{font-size:13px; color:var(--ink-soft); margin-bottom:24px;}
+  .search-results-wrap{padding:32px 0 60px;}
+  .breadcrumb-back{font-size:13.5px; font-weight:600; color:var(--gold-dark); margin-bottom:22px; display:inline-flex; align-items:center; gap:6px;}
+  .breadcrumb-back:hover{text-decoration:underline;}
   .breadcrumb button{color:var(--gold-dark); font-weight:600;}
   .product-detail{display:grid; grid-template-columns:.9fr 1.1fr; gap:48px;}
   .detail-media{background:var(--paper-2); border-radius:14px; padding:50px; display:flex; align-items:center; justify-content:center; position:relative;}
@@ -717,6 +720,17 @@
 </main>
 
 <main id="view-product" style="display:none"></main>
+
+<main id="view-search" style="display:none">
+  <div class="wrap search-results-wrap">
+    <button class="breadcrumb-back" onclick="showHome()">← Volver al inicio</button>
+    <div class="section-head">
+      <h2 id="searchResultsTitle">Resultados de búsqueda</h2>
+      <p id="searchResultsSubtitle"></p>
+    </div>
+    <div class="product-grid" id="searchResultsGrid"></div>
+  </div>
+</main>
 
 <div class="cart-overlay" id="cartOverlay" onclick="closeCart()"></div>
 <aside class="cart-drawer" id="cartDrawer" aria-label="Carrito de compras">
@@ -1183,8 +1197,7 @@ function money(n){ return '$' + n.toLocaleString('es-MX') + ' MXN'; }
 function normalizeText(s){
   return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 }
-function renderGrid(){
-  const grid = document.getElementById('productGrid');
+function getFilteredProducts(){
   let list = currentCat === 'all' ? PRODUCTS : PRODUCTS.filter(p => p.cat === currentCat);
   if(currentBrand !== 'all'){
     list = list.filter(p => p.brand && p.brand.includes(currentBrand));
@@ -1196,11 +1209,10 @@ function renderGrid(){
     const q = normalizeText(searchQuery.trim());
     list = list.filter(p => normalizeText(p.name).includes(q) || normalizeText(p.compat).includes(q) || normalizeText(catLabel(p.cat)).includes(q));
   }
-  if(list.length === 0){
-    grid.innerHTML = `<div class="no-results"><b>Sin resultados</b>No encontramos productos para "${searchQuery}". Intenta con otro término o quita algún filtro.</div>`;
-    return;
-  }
-  grid.innerHTML = list.map(p => `
+  return list;
+}
+function productCardHTML(p){
+  return `
     <div class="product-card">
       <div class="product-media" onclick="showProduct('${p.id}')">
         ${compatBrandTag(p)}
@@ -1217,7 +1229,16 @@ function renderGrid(){
         </div>
       </div>
     </div>
-  `).join('');
+  `;
+}
+function renderGrid(){
+  const grid = document.getElementById('productGrid');
+  const list = getFilteredProducts();
+  if(list.length === 0){
+    grid.innerHTML = `<div class="no-results"><b>Sin resultados</b>No encontramos productos para "${searchQuery}". Intenta con otro término o quita algún filtro.</div>`;
+    return;
+  }
+  grid.innerHTML = list.map(productCardHTML).join('');
 }
 function filterCat(cat){
   currentCat = cat;
@@ -1252,22 +1273,43 @@ function syncSearchCatLabel(cat){
   if(label) label.textContent = CAT_LABELS_ALL[cat] || 'Todas';
   document.querySelectorAll('#catMenuPanel button').forEach(b => b.classList.toggle('active', b.dataset.cat === cat));
 }
+function openSearchResults(){
+  document.getElementById('view-home').style.display = 'none';
+  document.getElementById('view-product').style.display = 'none';
+  document.getElementById('view-search').style.display = 'block';
+
+  const list = getFilteredProducts();
+  const grid = document.getElementById('searchResultsGrid');
+  const subtitle = document.getElementById('searchResultsSubtitle');
+
+  const parts = [];
+  if(searchQuery.trim() !== '') parts.push(`"${searchQuery.trim()}"`);
+  if(currentCat !== 'all') parts.push(catLabel(currentCat));
+  if(currentBrand !== 'all') parts.push(currentBrand.toUpperCase());
+  if(currentCompatBrand !== 'all') parts.push(COMPAT_BRAND_LABELS[currentCompatBrand] || currentCompatBrand);
+  subtitle.textContent = parts.length ? `${list.length} resultado(s) para ${parts.join(' · ')}` : `${list.length} producto(s)`;
+
+  if(list.length === 0){
+    grid.innerHTML = `<div class="no-results"><b>Sin resultados</b>No encontramos productos para "${searchQuery}". Intenta con otro término o quita algún filtro.</div>`;
+  } else {
+    grid.innerHTML = list.map(productCardHTML).join('');
+  }
+  window.scrollTo({top:0, behavior:'smooth'});
+}
 function selectSearchCategory(cat){
   currentCat = cat;
   syncSearchCatLabel(cat);
   closeCatMenu();
   document.querySelectorAll('#filterTabs .tab-btn').forEach(b => b.classList.toggle('active', b.dataset.cat === cat));
   renderGrid();
-  showHome();
-  document.getElementById('catalog').scrollIntoView({behavior:'smooth'});
+  openSearchResults();
 }
 function handleSearch(e){
   if(e) e.preventDefault();
   searchQuery = document.getElementById('searchInput').value;
   closeCatMenu();
   renderGrid();
-  showHome();
-  document.getElementById('catalog').scrollIntoView({behavior:'smooth'});
+  openSearchResults();
 }
 document.addEventListener('click', function(e){
   const combo = document.getElementById('searchCombo');
@@ -1351,6 +1393,7 @@ function showProduct(id){
   if(!p) return;
   detailQty = 1;
   document.getElementById('view-home').style.display = 'none';
+  document.getElementById('view-search').style.display = 'none';
   const view = document.getElementById('view-product');
   view.style.display = 'block';
   view.innerHTML = `
@@ -1397,6 +1440,7 @@ function changeDetailQty(delta){
 }
 function showHome(){
   document.getElementById('view-product').style.display = 'none';
+  document.getElementById('view-search').style.display = 'none';
   document.getElementById('view-home').style.display = 'block';
   window.scrollTo({top:0, behavior:'smooth'});
 }
