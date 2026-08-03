@@ -214,11 +214,16 @@
   .sidebar-filter-group{margin-bottom:26px; padding-bottom:22px; border-bottom:1px solid var(--line);}
   .sidebar-filter-group:last-child{border-bottom:none;}
   .sidebar-filter-group h4{font-family:var(--font-display); font-size:14px; font-weight:600; margin-bottom:10px; color:var(--ink);}
-  .filter-tabs.sidebar-list{flex-direction:column; align-items:stretch; gap:1px; margin-bottom:0; max-height:280px; overflow-y:auto; padding-right:4px;}
+  .filter-tabs.sidebar-list{flex-direction:column; align-items:stretch; gap:1px; margin-bottom:0;}
   .filter-tabs.sidebar-list .tab-btn{width:100%; text-align:left; background:none; border:none; padding:6px 8px; border-radius:6px; font-size:13px; font-weight:500; color:var(--ink-soft);}
   .filter-tabs.sidebar-list .tab-btn.active{background:var(--paper-2); color:var(--ink); font-weight:700;}
   .filter-tabs.sidebar-list .tab-btn:hover{background:var(--paper-2); color:var(--ink);}
-  .cat-group-label{font-size:12px; font-weight:700; color:var(--ink); margin:10px 0 2px; padding:0 8px;}
+  .cat-group-label{width:100%; text-align:left; display:flex; align-items:center; justify-content:space-between; background:none; border:none; font-family:var(--font-body); font-size:12.5px; font-weight:700; color:var(--ink); margin:10px 0 2px; padding:6px 8px; cursor:pointer; border-radius:6px;}
+  .cat-group-label:hover{background:var(--paper-2);}
+  .cat-group-label .chevron{font-size:11px; color:var(--ink-soft); transition:transform .2s;}
+  .cat-group-label.open .chevron{transform:rotate(180deg);}
+  .cat-subgroup{display:flex; flex-direction:column; gap:1px; overflow:hidden; max-height:0; transition:max-height .25s ease;}
+  .cat-subgroup.open{max-height:400px;}
   .filter-tabs.sidebar-list .tab-btn.indented{padding-left:18px; font-size:12.5px;}
   .deprecating-tag{font-size:9.5px; font-weight:600; color:var(--ink-soft); font-style:italic; margin-left:4px;}
   .filter-checklist{display:flex; flex-direction:column; gap:9px;}
@@ -286,6 +291,17 @@
   @media (max-width:640px){ .search-cat-btn span.cm-label{display:none;} }
 
   /* MASCOT SECTION */
+  /* DEPARTAMENTOS */
+  .dept-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:16px;}
+  .dept-card{position:relative; border-radius:14px; overflow:hidden; aspect-ratio:1/0.75; border:1px solid var(--line); background:var(--paper-2);}
+  .dept-card img{width:100%; height:100%; object-fit:cover; object-position:top center; transition:transform .35s ease;}
+  .dept-card:hover img{transform:scale(1.05);}
+  .dept-overlay{position:absolute; left:0; right:0; bottom:0; padding:16px; background:linear-gradient(0deg, rgba(0,0,0,.75) 0%, rgba(0,0,0,.15) 70%, transparent 100%); text-align:left; display:flex; flex-direction:column; gap:2px;}
+  .dept-title{color:#fff; font-family:var(--font-display); font-weight:700; font-size:16px;}
+  .dept-sub{color:#E8E3D5; font-size:11.5px; text-transform:uppercase; letter-spacing:.03em; font-weight:600;}
+  @media (max-width:900px){ .dept-grid{grid-template-columns:repeat(2,1fr);} }
+  @media (max-width:520px){ .dept-grid{grid-template-columns:1fr;} }
+
   .mascot-section{background:var(--white); border:1px solid var(--line); border-radius:16px; padding:0; display:grid; grid-template-columns:.85fr 1.15fr; overflow:hidden; align-items:stretch;}
   .mascot-media{background:var(--paper-2); display:flex; align-items:flex-end; justify-content:center; overflow:hidden; min-height:280px;}
   .mascot-media img{width:100%; height:100%; object-fit:cover; object-position:top center;}
@@ -556,6 +572,57 @@
     </div>
   </section>
 
+  <section class="section wrap" style="padding-top:0;">
+    <div class="section-head">
+      <h2>Departamentos</h2>
+      <p>Ve directo a lo que buscas.</p>
+    </div>
+    <div class="dept-grid">
+      <button class="dept-card" onclick="openDepartment('cartucho','katun')">
+        <img src="dept-placeholder.jpg" alt="Cartuchos Katun">
+        <div class="dept-overlay">
+          <span class="dept-title">Cartuchos Katun</span>
+          <span class="dept-sub">Distribuidor autorizado</span>
+        </div>
+      </button>
+      <button class="dept-card" onclick="openDepartment('polvo','cit')">
+        <img src="dept-placeholder.jpg" alt="Kilos CIT">
+        <div class="dept-overlay">
+          <span class="dept-title">Kilos CIT</span>
+          <span class="dept-sub">Polvo a granel por kilo</span>
+        </div>
+      </button>
+      <button class="dept-card" onclick="openDepartment('cartucho','cit')">
+        <img src="dept-placeholder.jpg" alt="Cartuchos CIT">
+        <div class="dept-overlay">
+          <span class="dept-title">Cartuchos CIT</span>
+          <span class="dept-sub">Calidad compatible</span>
+        </div>
+      </button>
+      <button class="dept-card" onclick="openDepartment('group:refacciones', null)">
+        <img src="dept-placeholder.jpg" alt="Refacciones">
+        <div class="dept-overlay">
+          <span class="dept-title">Refacciones</span>
+          <span class="dept-sub">Todo para tu taller</span>
+        </div>
+      </button>
+      <button class="dept-card" onclick="openDepartment('group:consumibles', null)">
+        <img src="dept-placeholder.jpg" alt="Consumibles Recarga">
+        <div class="dept-overlay">
+          <span class="dept-title">Consumibles Recarga</span>
+          <span class="dept-sub">Chips, polvo y más</span>
+        </div>
+      </button>
+      <button class="dept-card" onclick="openDepartment('tinta', null)">
+        <img src="dept-placeholder.jpg" alt="Tintas">
+        <div class="dept-overlay">
+          <span class="dept-title">Tintas</span>
+          <span class="dept-sub">Para sistemas continuos</span>
+        </div>
+      </button>
+    </div>
+  </section>
+
   <section class="hero" style="padding-top:56px;">
     <div class="wrap hero-inner">
       <div>
@@ -677,22 +744,26 @@
           <div class="filter-tabs sidebar-list category-tree" id="filterTabs">
             <button class="tab-btn active" data-cat="all" onclick="filterCat('all')">Todos</button>
             <button class="tab-btn" data-cat="cartucho" onclick="filterCat('cartucho')">Cartucho</button>
-            <div class="cat-group-label">Consumibles de recarga</div>
-            <button class="tab-btn indented" data-cat="chip" onclick="filterCat('chip')">Chips</button>
-            <button class="tab-btn indented" data-cat="polvo" onclick="filterCat('polvo')">Tóner-Polvo</button>
-            <button class="tab-btn indented" data-cat="cilindro" onclick="filterCat('cilindro')">Cilindros</button>
-            <button class="tab-btn indented" data-cat="revelador" onclick="filterCat('revelador')">Reveladores</button>
-            <div class="cat-group-label">Refacciones</div>
-            <button class="tab-btn indented" data-cat="drum" onclick="filterCat('drum')">Unidad de Drum</button>
-            <button class="tab-btn indented" data-cat="fusor" onclick="filterCat('fusor')">Fusor</button>
-            <button class="tab-btn indented" data-cat="filmina" onclick="filterCat('filmina')">Filmina</button>
-            <button class="tab-btn indented" data-cat="rodillo_carga" onclick="filterCat('rodillo_carga')">Rodillo de Carga</button>
-            <button class="tab-btn indented" data-cat="rodillo_presion" onclick="filterCat('rodillo_presion')">Rodillo de Presión</button>
-            <button class="tab-btn indented" data-cat="rodillo_calor" onclick="filterCat('rodillo_calor')">Rodillo de Calor</button>
-            <button class="tab-btn indented" data-cat="engrane" onclick="filterCat('engrane')">Engranes</button>
-            <button class="tab-btn indented" data-cat="una" onclick="filterCat('una')">Uñas</button>
-            <button class="tab-btn indented" data-cat="grasa" onclick="filterCat('grasa')">Grasas</button>
-            <button class="tab-btn indented" data-cat="goma" onclick="filterCat('goma')">Gomas</button>
+            <button class="cat-group-label" onclick="toggleCatGroup('consumibles', this)">Consumibles de recarga <span class="chevron">▾</span></button>
+            <div class="cat-subgroup" id="group-consumibles">
+              <button class="tab-btn indented" data-cat="chip" onclick="filterCat('chip')">Chips</button>
+              <button class="tab-btn indented" data-cat="polvo" onclick="filterCat('polvo')">Tóner-Polvo</button>
+              <button class="tab-btn indented" data-cat="cilindro" onclick="filterCat('cilindro')">Cilindros</button>
+              <button class="tab-btn indented" data-cat="revelador" onclick="filterCat('revelador')">Reveladores</button>
+            </div>
+            <button class="cat-group-label" onclick="toggleCatGroup('refacciones', this)">Refacciones <span class="chevron">▾</span></button>
+            <div class="cat-subgroup" id="group-refacciones">
+              <button class="tab-btn indented" data-cat="drum" onclick="filterCat('drum')">Unidad de Drum</button>
+              <button class="tab-btn indented" data-cat="fusor" onclick="filterCat('fusor')">Fusor</button>
+              <button class="tab-btn indented" data-cat="filmina" onclick="filterCat('filmina')">Filmina</button>
+              <button class="tab-btn indented" data-cat="rodillo_carga" onclick="filterCat('rodillo_carga')">Rodillo de Carga</button>
+              <button class="tab-btn indented" data-cat="rodillo_presion" onclick="filterCat('rodillo_presion')">Rodillo de Presión</button>
+              <button class="tab-btn indented" data-cat="rodillo_calor" onclick="filterCat('rodillo_calor')">Rodillo de Calor</button>
+              <button class="tab-btn indented" data-cat="engrane" onclick="filterCat('engrane')">Engranes</button>
+              <button class="tab-btn indented" data-cat="una" onclick="filterCat('una')">Uñas</button>
+              <button class="tab-btn indented" data-cat="grasa" onclick="filterCat('grasa')">Grasas</button>
+              <button class="tab-btn indented" data-cat="goma" onclick="filterCat('goma')">Gomas</button>
+            </div>
           </div>
         </div>
         <div class="sidebar-filter-group">
@@ -1189,7 +1260,7 @@ function iconFor(p, size){
   </svg>`;
 }
 function stars(n){ return '★★★★★'.slice(0,n) + '☆☆☆☆☆'.slice(0, 5-n); }
-function catLabel(c){ return {cartucho:'Cartucho', polvo:'Tóner-Polvo', chip:'Chips', revelador:'Revelador', cilindro:'Cilindro', cuchilla:'Cuchilla', banda:'Banda de Transferencia', goma:'Goma', fusor:'Fusor', engrane:'Engrane', una:'Uña', pad:'Pad', grasa:'Grasa', filmina:'Filmina', drum:'Unidad de Drum', rodillo_carga:'Rodillo de Carga', rodillo_presion:'Rodillo de Presión', rodillo_calor:'Rodillo de Calor'}[c] || c; }
+function catLabel(c){ return {cartucho:'Cartucho', polvo:'Tóner-Polvo', chip:'Chips', revelador:'Revelador', cilindro:'Cilindro', cuchilla:'Cuchilla', banda:'Banda de Transferencia', goma:'Goma', fusor:'Fusor', engrane:'Engrane', una:'Uña', pad:'Pad', grasa:'Grasa', filmina:'Filmina', drum:'Unidad de Drum', rodillo_carga:'Rodillo de Carga', rodillo_presion:'Rodillo de Presión', rodillo_calor:'Rodillo de Calor', tinta:'Tinta'}[c] || c; }
 const COMPAT_BRAND_LABELS = {katun:'Katun', cit:'CIT', premium:'Premium', cet:'Cet', uninet:'Uninet', original:'Original', ikon:'Ikon', technology:'Technology'};
 function compatBrandTag(p){
   const label = COMPAT_BRAND_LABELS[p.compatBrand] || p.compatBrand;
@@ -1203,7 +1274,16 @@ function normalizeText(s){
   return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 }
 function getFilteredProducts(){
-  let list = currentCat === 'all' ? PRODUCTS : PRODUCTS.filter(p => p.cat === currentCat);
+  let list;
+  if(currentCat === 'all'){
+    list = PRODUCTS;
+  } else if(typeof currentCat === 'string' && currentCat.startsWith('group:')){
+    const groupId = currentCat.split(':')[1];
+    const cats = CAT_GROUPS[groupId] || [];
+    list = PRODUCTS.filter(p => cats.includes(p.cat));
+  } else {
+    list = PRODUCTS.filter(p => p.cat === currentCat);
+  }
   if(selectedBrands.size > 0){
     list = list.filter(p => p.brand && p.brand.some(b => selectedBrands.has(b)));
   }
@@ -1245,12 +1325,57 @@ function renderGrid(){
   }
   grid.innerHTML = list.map(productCardHTML).join('');
 }
+const CAT_GROUPS = {
+  consumibles: ['chip','polvo','cilindro','revelador'],
+  refacciones: ['drum','fusor','filmina','rodillo_carga','rodillo_presion','rodillo_calor','engrane','una','grasa','goma'],
+};
+const GROUP_LABELS = {consumibles:'Consumibles de recarga', refacciones:'Refacciones'};
+function ensureCatGroupOpen(cat){
+  if(typeof cat === 'string' && cat.startsWith('group:')){
+    const groupId = cat.split(':')[1];
+    const group = document.getElementById('group-' + groupId);
+    if(group){
+      const label = group.previousElementSibling;
+      group.classList.add('open');
+      if(label) label.classList.add('open');
+    }
+    return;
+  }
+  for(const [groupId, cats] of Object.entries(CAT_GROUPS)){
+    if(cats.includes(cat)){
+      const group = document.getElementById('group-' + groupId);
+      const label = group.previousElementSibling;
+      group.classList.add('open');
+      if(label) label.classList.add('open');
+    }
+  }
+}
+function openDepartment(cat, compatBrand){
+  currentCat = cat || 'all';
+  selectedBrands.clear();
+  selectedCompatBrands.clear();
+  if(compatBrand) selectedCompatBrands.add(compatBrand);
+  searchQuery = '';
+  const input = document.getElementById('searchInput');
+  if(input) input.value = '';
+  document.querySelectorAll('#filterTabs .tab-btn').forEach(b => b.classList.toggle('active', b.dataset.cat === currentCat));
+  document.querySelectorAll('#compatBrandTabs input[type=checkbox]').forEach(cb => cb.checked = compatBrand ? cb.value === compatBrand : false);
+  document.querySelectorAll('#brandTabs input[type=checkbox]').forEach(cb => cb.checked = false);
+  ensureCatGroupOpen(currentCat);
+  openSearchResults();
+}
+function toggleCatGroup(groupId, labelEl){
+  const group = document.getElementById('group-' + groupId);
+  group.classList.toggle('open');
+  labelEl.classList.toggle('open');
+}
 function filterCat(cat){
   currentCat = cat;
   searchQuery = '';
   const input = document.getElementById('searchInput');
   if(input) input.value = '';
   document.querySelectorAll('#filterTabs .tab-btn').forEach(b => b.classList.toggle('active', b.dataset.cat === cat));
+  ensureCatGroupOpen(cat);
   syncSearchCatLabel(cat);
   openSearchResults();
 }
@@ -1302,7 +1427,14 @@ function openSearchResults(){
 
   const parts = [];
   if(searchQuery.trim() !== '') parts.push(`"${searchQuery.trim()}"`);
-  if(currentCat !== 'all') parts.push(catLabel(currentCat));
+  if(currentCat !== 'all'){
+    if(typeof currentCat === 'string' && currentCat.startsWith('group:')){
+      const groupId = currentCat.split(':')[1];
+      parts.push(GROUP_LABELS[groupId] || groupId);
+    } else {
+      parts.push(catLabel(currentCat));
+    }
+  }
   if(selectedBrands.size > 0) parts.push([...selectedBrands].map(b => b.toUpperCase()).join(', '));
   if(selectedCompatBrands.size > 0) parts.push([...selectedCompatBrands].map(c => COMPAT_BRAND_LABELS[c] || c).join(', '));
   subtitle.textContent = parts.length ? `${list.length} resultado(s) para ${parts.join(' · ')}` : `${list.length} producto(s)`;
