@@ -218,12 +218,21 @@
   .filter-tabs.sidebar-list .tab-btn{width:100%; text-align:left; background:none; border:none; padding:6px 8px; border-radius:6px; font-size:13px; font-weight:500; color:var(--ink-soft);}
   .filter-tabs.sidebar-list .tab-btn.active{background:var(--paper-2); color:var(--ink); font-weight:700;}
   .filter-tabs.sidebar-list .tab-btn:hover{background:var(--paper-2); color:var(--ink);}
+  .cat-group-label{font-size:12px; font-weight:700; color:var(--ink); margin:10px 0 2px; padding:0 8px;}
+  .filter-tabs.sidebar-list .tab-btn.indented{padding-left:18px; font-size:12.5px;}
+  .deprecating-tag{font-size:9.5px; font-weight:600; color:var(--ink-soft); font-style:italic; margin-left:4px;}
+  .filter-checklist{display:flex; flex-direction:column; gap:9px;}
+  .check-item{display:flex; align-items:center; gap:8px; font-size:13px; color:var(--ink-soft); cursor:pointer;}
+  .check-item:hover{color:var(--ink);}
+  .check-item input[type="checkbox"]{width:15px; height:15px; accent-color:var(--charcoal); cursor:pointer;}
   @media (max-width:900px){
     .catalog-layout{flex-direction:column;}
     .catalog-sidebar{width:100%;}
     .filter-tabs.sidebar-list{flex-direction:row; flex-wrap:wrap; max-height:none; overflow:visible;}
     .filter-tabs.sidebar-list .tab-btn{width:auto; border:1px solid var(--line); padding:8px 14px; border-radius:999px;}
     .filter-tabs.sidebar-list .tab-btn.active{background:var(--charcoal); color:var(--gold-light);}
+    .filter-tabs.sidebar-list .tab-btn.indented{padding-left:14px;}
+    .cat-group-label{width:100%; margin:8px 0 0;}
   }
   .tab-btn{padding:9px 16px; border-radius:6px; border:1px solid var(--line); font-size:13px; font-weight:600; background:var(--white); color:var(--ink-soft);}
   .tab-btn.active{background:var(--charcoal); border-color:var(--charcoal); color:var(--gold-light);}
@@ -489,7 +498,7 @@
             <div class="tag">Distribuidor autorizado</div>
             <h3>Distribuidor Autorizado Katun en Ciudad de México</h3>
             <p>Producto original Katun, respaldado por +30 años de experiencia en el mercado.</p>
-            <button class="btn btn-primary" onclick="filterCat('cartucho'); document.getElementById('catalog').scrollIntoView({behavior:'smooth'})">Ver cartuchos Katun →</button>
+            <button class="btn btn-primary" onclick="openAllProducts('cartucho')">Ver cartuchos Katun →</button>
           </div>
           <div class="banner-visual has-logo"><img src="crescen-logo.png" alt="Crescen Inc"></div>
         </div>
@@ -513,7 +522,7 @@
             <div class="tag">Envíos a todo México</div>
             <h3>Recibe hoy mismo, o en cualquier parte de la república</h3>
             <p>En CDMX: manda tu Uber, Didi o compañía de delivery preferida y monitorea tu envío en tiempo real — recibe el mismo día. A toda la república: envío por paquetería con costo adicional.</p>
-            <button class="btn btn-primary" onclick="document.getElementById('catalog').scrollIntoView({behavior:'smooth'})">Ir al catálogo →</button>
+            <button class="btn btn-primary" onclick="openAllProducts()">Ir al catálogo →</button>
           </div>
           <div class="banner-visual" style="border-radius:50%; background:linear-gradient(135deg,var(--gold-light),var(--gold-dark));">ENVÍO<br>MISMO DÍA</div>
         </div>
@@ -525,7 +534,7 @@
             <div class="tag">Katun Performance</div>
             <h3>Katun: lo mejor en cartuchos compatibles</h3>
             <p>Alto rendimiento, impresión nítida y 100% compatible con tu equipo.</p>
-            <button class="btn btn-primary" onclick="filterCat('all'); document.getElementById('catalog').scrollIntoView({behavior:'smooth'})">Ver catálogo →</button>
+            <button class="btn btn-primary" onclick="openAllProducts()">Ver catálogo →</button>
           </div>
           <div class="banner-visual" style="border-radius:50%; background:linear-gradient(135deg,var(--gold-light),var(--gold-dark));">KATUN<br>PERFORMANCE</div>
         </div>
@@ -547,69 +556,6 @@
     </div>
   </section>
 
-  <section class="section wrap" id="catalog">
-    <div class="section-head">
-      <h2>Catálogo</h2>
-      <p>Precios en MXN, IVA incluido.</p>
-    </div>
-    <div class="catalog-layout">
-      <aside class="catalog-sidebar">
-        <div class="sidebar-filter-group">
-          <h4>Categoría</h4>
-          <div class="filter-tabs sidebar-list" id="filterTabs">
-            <button class="tab-btn active" data-cat="all" onclick="filterCat('all')">Todos</button>
-            <button class="tab-btn" data-cat="cartucho" onclick="filterCat('cartucho')">Cartuchos de Tóner</button>
-            <button class="tab-btn" data-cat="polvo" onclick="filterCat('polvo')">Polvo</button>
-            <button class="tab-btn" data-cat="chip" onclick="filterCat('chip')">Chips</button>
-            <button class="tab-btn" data-cat="revelador" onclick="filterCat('revelador')">Reveladores</button>
-            <button class="tab-btn" data-cat="cilindro" onclick="filterCat('cilindro')">Unidad de Drum</button>
-            <button class="tab-btn" data-cat="cuchilla" onclick="filterCat('cuchilla')">Cuchillas</button>
-            <button class="tab-btn" data-cat="banda" onclick="filterCat('banda')">Bandas de Transferencia</button>
-            <button class="tab-btn" data-cat="goma" onclick="filterCat('goma')">Gomas</button>
-            <button class="tab-btn" data-cat="fusor" onclick="filterCat('fusor')">Fusores</button>
-            <button class="tab-btn" data-cat="engrane" onclick="filterCat('engrane')">Engranes</button>
-            <button class="tab-btn" data-cat="una" onclick="filterCat('una')">Uñas</button>
-            <button class="tab-btn" data-cat="pad" onclick="filterCat('pad')">Pad</button>
-            <button class="tab-btn" data-cat="grasa" onclick="filterCat('grasa')">Grasa</button>
-            <button class="tab-btn" data-cat="filmina" onclick="filterCat('filmina')">Filmina</button>
-          </div>
-        </div>
-        <div class="sidebar-filter-group">
-          <h4>Marca de impresora</h4>
-          <div class="filter-tabs sidebar-list" id="brandTabs">
-            <button class="tab-btn brand-tab active" data-brand="all" onclick="filterBrand('all')">Todas</button>
-            <button class="tab-btn brand-tab" data-brand="hp" onclick="filterBrand('hp')">HP</button>
-            <button class="tab-btn brand-tab" data-brand="epson" onclick="filterBrand('epson')">Epson</button>
-            <button class="tab-btn brand-tab" data-brand="canon" onclick="filterBrand('canon')">Canon</button>
-            <button class="tab-btn brand-tab" data-brand="brother" onclick="filterBrand('brother')">Brother</button>
-            <button class="tab-btn brand-tab" data-brand="samsung" onclick="filterBrand('samsung')">Samsung</button>
-            <button class="tab-btn brand-tab" data-brand="xerox" onclick="filterBrand('xerox')">Xerox</button>
-            <button class="tab-btn brand-tab" data-brand="ricoh" onclick="filterBrand('ricoh')">Ricoh</button>
-            <button class="tab-btn brand-tab" data-brand="sharp" onclick="filterBrand('sharp')">Sharp</button>
-            <button class="tab-btn brand-tab" data-brand="lexmark" onclick="filterBrand('lexmark')">Lexmark</button>
-            <button class="tab-btn brand-tab" data-brand="kyocera" onclick="filterBrand('kyocera')">Kyocera Mita</button>
-            <button class="tab-btn brand-tab" data-brand="konica" onclick="filterBrand('konica')">Konica Minolta</button>
-          </div>
-        </div>
-        <div class="sidebar-filter-group">
-          <h4>Marca de compatible</h4>
-          <div class="filter-tabs sidebar-list" id="compatBrandTabs">
-            <button class="tab-btn compat-tab active" data-compat="all" onclick="filterCompatBrand('all')">Todas</button>
-            <button class="tab-btn compat-tab" data-compat="original" onclick="filterCompatBrand('original')">Original</button>
-            <button class="tab-btn compat-tab" data-compat="katun" onclick="filterCompatBrand('katun')">Katun</button>
-            <button class="tab-btn compat-tab" data-compat="premium" onclick="filterCompatBrand('premium')">Premium</button>
-            <button class="tab-btn compat-tab" data-compat="ikon" onclick="filterCompatBrand('ikon')">Ikon</button>
-            <button class="tab-btn compat-tab" data-compat="cit" onclick="filterCompatBrand('cit')">CIT</button>
-            <button class="tab-btn compat-tab" data-compat="technology" onclick="filterCompatBrand('technology')">Technology</button>
-          </div>
-        </div>
-      </aside>
-      <div class="catalog-main">
-        <div class="product-grid" id="productGrid"></div>
-      </div>
-    </div>
-  </section>
-
   <section class="hero" style="padding-top:56px;">
     <div class="wrap hero-inner">
       <div>
@@ -617,7 +563,7 @@
         <h1>Cartuchos nuevos e <span class="accent">insumos para recarga</span>, de la mano de Katun.</h1>
         <p class="lead">Somos distribuidores autorizados de Katun en Ciudad de México. Vendemos cartuchos nuevos compatibles multimarca y todo el insumo para que tú mismo recargues: polvo para tóner, chips de reconocimiento, reveladores, cilindros y cuchillas.</p>
         <div class="hero-ctas">
-          <button class="btn btn-primary" onclick="document.getElementById('catalog').scrollIntoView({behavior:'smooth'})">Ver catálogo →</button>
+          <button class="btn btn-primary" onclick="openAllProducts()">Ver catálogo →</button>
           <button class="btn btn-ghost" onclick="alert('Cotizador de ejemplo — en un sitio real esto abriría un formulario para pedidos por volumen.')">Cotizar para mi negocio</button>
         </div>
         <div class="trust-chips">
@@ -724,11 +670,70 @@
 <main id="view-search" style="display:none">
   <div class="wrap search-results-wrap">
     <button class="breadcrumb-back" onclick="showHome()">← Volver al inicio</button>
-    <div class="section-head">
-      <h2 id="searchResultsTitle">Resultados de búsqueda</h2>
-      <p id="searchResultsSubtitle"></p>
+    <div class="catalog-layout">
+      <aside class="catalog-sidebar">
+        <div class="sidebar-filter-group">
+          <h4>Categoría</h4>
+          <div class="filter-tabs sidebar-list category-tree" id="filterTabs">
+            <button class="tab-btn active" data-cat="all" onclick="filterCat('all')">Todos</button>
+            <button class="tab-btn" data-cat="cartucho" onclick="filterCat('cartucho')">Cartucho</button>
+            <div class="cat-group-label">Consumibles de recarga</div>
+            <button class="tab-btn indented" data-cat="chip" onclick="filterCat('chip')">Chips</button>
+            <button class="tab-btn indented" data-cat="polvo" onclick="filterCat('polvo')">Tóner-Polvo</button>
+            <button class="tab-btn indented" data-cat="cilindro" onclick="filterCat('cilindro')">Cilindros</button>
+            <button class="tab-btn indented" data-cat="revelador" onclick="filterCat('revelador')">Reveladores</button>
+            <div class="cat-group-label">Refacciones</div>
+            <button class="tab-btn indented" data-cat="drum" onclick="filterCat('drum')">Unidad de Drum</button>
+            <button class="tab-btn indented" data-cat="fusor" onclick="filterCat('fusor')">Fusor</button>
+            <button class="tab-btn indented" data-cat="filmina" onclick="filterCat('filmina')">Filmina</button>
+            <button class="tab-btn indented" data-cat="rodillo_carga" onclick="filterCat('rodillo_carga')">Rodillo de Carga</button>
+            <button class="tab-btn indented" data-cat="rodillo_presion" onclick="filterCat('rodillo_presion')">Rodillo de Presión</button>
+            <button class="tab-btn indented" data-cat="rodillo_calor" onclick="filterCat('rodillo_calor')">Rodillo de Calor</button>
+            <button class="tab-btn indented" data-cat="engrane" onclick="filterCat('engrane')">Engranes</button>
+            <button class="tab-btn indented" data-cat="una" onclick="filterCat('una')">Uñas</button>
+            <button class="tab-btn indented" data-cat="grasa" onclick="filterCat('grasa')">Grasas</button>
+            <button class="tab-btn indented" data-cat="goma" onclick="filterCat('goma')">Gomas</button>
+          </div>
+        </div>
+        <div class="sidebar-filter-group">
+          <h4>Marcas</h4>
+          <div class="filter-checklist" id="brandTabs">
+            <label class="check-item"><input type="checkbox" value="hp" onchange="toggleBrandFilter('hp')"> HP</label>
+            <label class="check-item"><input type="checkbox" value="canon" onchange="toggleBrandFilter('canon')"> Canon</label>
+            <label class="check-item"><input type="checkbox" value="samsung" onchange="toggleBrandFilter('samsung')"> Samsung</label>
+            <label class="check-item"><input type="checkbox" value="lexmark" onchange="toggleBrandFilter('lexmark')"> Lexmark</label>
+            <label class="check-item"><input type="checkbox" value="konica" onchange="toggleBrandFilter('konica')"> Konica Minolta</label>
+            <label class="check-item"><input type="checkbox" value="kyocera" onchange="toggleBrandFilter('kyocera')"> Kyocera Mita</label>
+            <label class="check-item"><input type="checkbox" value="brother" onchange="toggleBrandFilter('brother')"> Brother</label>
+            <label class="check-item"><input type="checkbox" value="sharp" onchange="toggleBrandFilter('sharp')"> Sharp</label>
+            <label class="check-item"><input type="checkbox" value="okidata" onchange="toggleBrandFilter('okidata')"> Oki Data</label>
+            <label class="check-item"><input type="checkbox" value="epson" onchange="toggleBrandFilter('epson')"> Epson</label>
+            <label class="check-item"><input type="checkbox" value="xerox" onchange="toggleBrandFilter('xerox')"> Xerox</label>
+            <label class="check-item"><input type="checkbox" value="pantum" onchange="toggleBrandFilter('pantum')"> Pantum</label>
+            <label class="check-item"><input type="checkbox" value="ricoh" onchange="toggleBrandFilter('ricoh')"> Ricoh</label>
+            <label class="check-item"><input type="checkbox" value="toshiba" onchange="toggleBrandFilter('toshiba')"> Toshiba</label>
+            <label class="check-item"><input type="checkbox" value="dell" onchange="toggleBrandFilter('dell')"> Dell</label>
+          </div>
+        </div>
+        <div class="sidebar-filter-group">
+          <h4>Nuestras Marcas</h4>
+          <div class="filter-checklist" id="compatBrandTabs">
+            <label class="check-item"><input type="checkbox" value="katun" onchange="toggleCompatBrandFilter('katun')"> Katun</label>
+            <label class="check-item"><input type="checkbox" value="cit" onchange="toggleCompatBrandFilter('cit')"> CIT</label>
+            <label class="check-item"><input type="checkbox" value="premium" onchange="toggleCompatBrandFilter('premium')"> Premium</label>
+            <label class="check-item"><input type="checkbox" value="cet" onchange="toggleCompatBrandFilter('cet')"> Cet</label>
+            <label class="check-item"><input type="checkbox" value="uninet" onchange="toggleCompatBrandFilter('uninet')"> Uninet <span class="deprecating-tag">próx. desaparece</span></label>
+          </div>
+        </div>
+      </aside>
+      <div class="catalog-main">
+        <div class="section-head">
+          <h2 id="searchResultsTitle">Catálogo</h2>
+          <p id="searchResultsSubtitle"></p>
+        </div>
+        <div class="product-grid" id="productGrid"></div>
+      </div>
     </div>
-    <div class="product-grid" id="searchResultsGrid"></div>
   </div>
 </main>
 
@@ -768,10 +773,10 @@
       <div>
         <h4>Tienda</h4>
         <ul>
-          <li><a href="#catalog" onclick="showHome()">Catálogo</a></li>
-          <li><a href="#" onclick="filterCat('cartucho');showHome();return false;">Cartuchos Nuevos</a></li>
-          <li><a href="#" onclick="filterCat('polvo');showHome();return false;">Polvo para Tóner</a></li>
-          <li><a href="#" onclick="filterCat('chip');showHome();return false;">Chips</a></li>
+          <li><a href="#" onclick="openAllProducts();return false;">Catálogo</a></li>
+          <li><a href="#" onclick="filterCat('cartucho');return false;">Cartuchos Nuevos</a></li>
+          <li><a href="#" onclick="filterCat('polvo');return false;">Polvo para Tóner</a></li>
+          <li><a href="#" onclick="filterCat('chip');return false;">Chips</a></li>
         </ul>
       </div>
       <div>
@@ -851,8 +856,8 @@ async function loadProducts(){
 
 
 let currentCat = 'all';
-let currentBrand = 'all';
-let currentCompatBrand = 'all';
+let selectedBrands = new Set();
+let selectedCompatBrands = new Set();
 let isLoggedIn = false;
 let currentUser = null;
 let localAccounts = []; // {name, phone, email, address, password} — solo en memoria, se pierde al recargar
@@ -1184,8 +1189,8 @@ function iconFor(p, size){
   </svg>`;
 }
 function stars(n){ return '★★★★★'.slice(0,n) + '☆☆☆☆☆'.slice(0, 5-n); }
-function catLabel(c){ return {cartucho:'Cartucho de Tóner', polvo:'Polvo para Tóner', chip:'Chip de Reconocimiento', revelador:'Revelador', cilindro:'Unidad de Drum', cuchilla:'Cuchilla', banda:'Banda de Transferencia', goma:'Goma', fusor:'Fusor', engrane:'Engrane', una:'Uña', pad:'Pad', grasa:'Grasa', filmina:'Filmina'}[c] || c; }
-const COMPAT_BRAND_LABELS = {original:'Original', katun:'Katun', premium:'Premium', ikon:'Ikon', cit:'CIT', technology:'Technology'};
+function catLabel(c){ return {cartucho:'Cartucho', polvo:'Tóner-Polvo', chip:'Chips', revelador:'Revelador', cilindro:'Cilindro', cuchilla:'Cuchilla', banda:'Banda de Transferencia', goma:'Goma', fusor:'Fusor', engrane:'Engrane', una:'Uña', pad:'Pad', grasa:'Grasa', filmina:'Filmina', drum:'Unidad de Drum', rodillo_carga:'Rodillo de Carga', rodillo_presion:'Rodillo de Presión', rodillo_calor:'Rodillo de Calor'}[c] || c; }
+const COMPAT_BRAND_LABELS = {katun:'Katun', cit:'CIT', premium:'Premium', cet:'Cet', uninet:'Uninet', original:'Original', ikon:'Ikon', technology:'Technology'};
 function compatBrandTag(p){
   const label = COMPAT_BRAND_LABELS[p.compatBrand] || p.compatBrand;
   const cls = p.compatBrand === 'katun' ? 'katun-tag' : 'compat-tag';
@@ -1199,11 +1204,11 @@ function normalizeText(s){
 }
 function getFilteredProducts(){
   let list = currentCat === 'all' ? PRODUCTS : PRODUCTS.filter(p => p.cat === currentCat);
-  if(currentBrand !== 'all'){
-    list = list.filter(p => p.brand && p.brand.includes(currentBrand));
+  if(selectedBrands.size > 0){
+    list = list.filter(p => p.brand && p.brand.some(b => selectedBrands.has(b)));
   }
-  if(currentCompatBrand !== 'all'){
-    list = list.filter(p => p.compatBrand === currentCompatBrand);
+  if(selectedCompatBrands.size > 0){
+    list = list.filter(p => selectedCompatBrands.has(p.compatBrand));
   }
   if(searchQuery.trim() !== ''){
     const q = normalizeText(searchQuery.trim());
@@ -1247,17 +1252,30 @@ function filterCat(cat){
   if(input) input.value = '';
   document.querySelectorAll('#filterTabs .tab-btn').forEach(b => b.classList.toggle('active', b.dataset.cat === cat));
   syncSearchCatLabel(cat);
-  renderGrid();
+  openSearchResults();
 }
-function filterBrand(brand){
-  currentBrand = brand;
-  document.querySelectorAll('#brandTabs .tab-btn').forEach(b => b.classList.toggle('active', b.dataset.brand === brand));
-  renderGrid();
+function toggleBrandFilter(brand){
+  if(selectedBrands.has(brand)) selectedBrands.delete(brand);
+  else selectedBrands.add(brand);
+  openSearchResults();
 }
-function filterCompatBrand(compat){
-  currentCompatBrand = compat;
-  document.querySelectorAll('#compatBrandTabs .tab-btn').forEach(b => b.classList.toggle('active', b.dataset.compat === compat));
-  renderGrid();
+function toggleCompatBrandFilter(compat){
+  if(selectedCompatBrands.has(compat)) selectedCompatBrands.delete(compat);
+  else selectedCompatBrands.add(compat);
+  openSearchResults();
+}
+function openAllProducts(cat){
+  currentCat = cat || 'all';
+  selectedBrands.clear();
+  selectedCompatBrands.clear();
+  searchQuery = '';
+  const input = document.getElementById('searchInput');
+  if(input) input.value = '';
+  document.querySelectorAll('#filterTabs .tab-btn').forEach(b => b.classList.toggle('active', b.dataset.cat === currentCat));
+  document.querySelectorAll('#brandTabs input[type=checkbox]').forEach(cb => cb.checked = false);
+  document.querySelectorAll('#compatBrandTabs input[type=checkbox]').forEach(cb => cb.checked = false);
+  syncSearchCatLabel(currentCat);
+  openSearchResults();
 }
 
 /* ---------- SEARCH BAR ---------- */
@@ -1279,14 +1297,14 @@ function openSearchResults(){
   document.getElementById('view-search').style.display = 'block';
 
   const list = getFilteredProducts();
-  const grid = document.getElementById('searchResultsGrid');
+  const grid = document.getElementById('productGrid');
   const subtitle = document.getElementById('searchResultsSubtitle');
 
   const parts = [];
   if(searchQuery.trim() !== '') parts.push(`"${searchQuery.trim()}"`);
   if(currentCat !== 'all') parts.push(catLabel(currentCat));
-  if(currentBrand !== 'all') parts.push(currentBrand.toUpperCase());
-  if(currentCompatBrand !== 'all') parts.push(COMPAT_BRAND_LABELS[currentCompatBrand] || currentCompatBrand);
+  if(selectedBrands.size > 0) parts.push([...selectedBrands].map(b => b.toUpperCase()).join(', '));
+  if(selectedCompatBrands.size > 0) parts.push([...selectedCompatBrands].map(c => COMPAT_BRAND_LABELS[c] || c).join(', '));
   subtitle.textContent = parts.length ? `${list.length} resultado(s) para ${parts.join(' · ')}` : `${list.length} producto(s)`;
 
   if(list.length === 0){
