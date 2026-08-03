@@ -208,11 +208,29 @@
   /* FILTER TABS */
   .filter-tabs{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:28px;}
   .filter-label{font-family:var(--font-mono); font-size:11.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-soft); margin-bottom:10px; margin-top:-14px;}
+  .catalog-layout{display:flex; gap:36px; align-items:flex-start;}
+  .catalog-sidebar{width:230px; flex-shrink:0;}
+  .catalog-main{flex:1; min-width:0;}
+  .sidebar-filter-group{margin-bottom:26px; padding-bottom:22px; border-bottom:1px solid var(--line);}
+  .sidebar-filter-group:last-child{border-bottom:none;}
+  .sidebar-filter-group h4{font-family:var(--font-display); font-size:14px; font-weight:600; margin-bottom:10px; color:var(--ink);}
+  .filter-tabs.sidebar-list{flex-direction:column; align-items:stretch; gap:1px; margin-bottom:0; max-height:280px; overflow-y:auto; padding-right:4px;}
+  .filter-tabs.sidebar-list .tab-btn{width:100%; text-align:left; background:none; border:none; padding:6px 8px; border-radius:6px; font-size:13px; font-weight:500; color:var(--ink-soft);}
+  .filter-tabs.sidebar-list .tab-btn.active{background:var(--paper-2); color:var(--ink); font-weight:700;}
+  .filter-tabs.sidebar-list .tab-btn:hover{background:var(--paper-2); color:var(--ink);}
+  @media (max-width:900px){
+    .catalog-layout{flex-direction:column;}
+    .catalog-sidebar{width:100%;}
+    .filter-tabs.sidebar-list{flex-direction:row; flex-wrap:wrap; max-height:none; overflow:visible;}
+    .filter-tabs.sidebar-list .tab-btn{width:auto; border:1px solid var(--line); padding:8px 14px; border-radius:999px;}
+    .filter-tabs.sidebar-list .tab-btn.active{background:var(--charcoal); color:var(--gold-light);}
+  }
   .tab-btn{padding:9px 16px; border-radius:6px; border:1px solid var(--line); font-size:13px; font-weight:600; background:var(--white); color:var(--ink-soft);}
   .tab-btn.active{background:var(--charcoal); border-color:var(--charcoal); color:var(--gold-light);}
 
   /* PRODUCT GRID */
   .product-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:18px;}
+  @media (min-width:901px){ .catalog-main .product-grid{grid-template-columns:repeat(3,1fr);} }
   .product-card{background:var(--white); border:1px solid var(--line); border-radius:10px; overflow:hidden; display:flex; flex-direction:column; transition:box-shadow .15s, transform .15s;}
   .product-card:hover{box-shadow:0 12px 28px rgba(30,25,10,.1); transform:translateY(-3px);}
   .product-media{background:var(--paper-2); padding:22px; display:flex; align-items:center; justify-content:center; cursor:pointer; aspect-ratio:1/0.85; position:relative;}
@@ -531,49 +549,62 @@
       <h2>Catálogo</h2>
       <p>Precios en MXN, IVA incluido.</p>
     </div>
-    <div class="filter-tabs" id="filterTabs">
-      <button class="tab-btn active" data-cat="all" onclick="filterCat('all')">Todos</button>
-      <button class="tab-btn" data-cat="cartucho" onclick="filterCat('cartucho')">Cartuchos de Tóner</button>
-      <button class="tab-btn" data-cat="polvo" onclick="filterCat('polvo')">Polvo</button>
-      <button class="tab-btn" data-cat="chip" onclick="filterCat('chip')">Chips</button>
-      <button class="tab-btn" data-cat="revelador" onclick="filterCat('revelador')">Reveladores</button>
-      <button class="tab-btn" data-cat="cilindro" onclick="filterCat('cilindro')">Unidad de Drum</button>
-      <button class="tab-btn" data-cat="cuchilla" onclick="filterCat('cuchilla')">Cuchillas</button>
-      <button class="tab-btn" data-cat="banda" onclick="filterCat('banda')">Bandas de Transferencia</button>
-      <button class="tab-btn" data-cat="goma" onclick="filterCat('goma')">Gomas</button>
-      <button class="tab-btn" data-cat="fusor" onclick="filterCat('fusor')">Fusores</button>
-      <button class="tab-btn" data-cat="engrane" onclick="filterCat('engrane')">Engranes</button>
-      <button class="tab-btn" data-cat="una" onclick="filterCat('una')">Uñas</button>
-      <button class="tab-btn" data-cat="pad" onclick="filterCat('pad')">Pad</button>
-      <button class="tab-btn" data-cat="grasa" onclick="filterCat('grasa')">Grasa</button>
-      <button class="tab-btn" data-cat="filmina" onclick="filterCat('filmina')">Filmina</button>
+    <div class="catalog-layout">
+      <aside class="catalog-sidebar">
+        <div class="sidebar-filter-group">
+          <h4>Categoría</h4>
+          <div class="filter-tabs sidebar-list" id="filterTabs">
+            <button class="tab-btn active" data-cat="all" onclick="filterCat('all')">Todos</button>
+            <button class="tab-btn" data-cat="cartucho" onclick="filterCat('cartucho')">Cartuchos de Tóner</button>
+            <button class="tab-btn" data-cat="polvo" onclick="filterCat('polvo')">Polvo</button>
+            <button class="tab-btn" data-cat="chip" onclick="filterCat('chip')">Chips</button>
+            <button class="tab-btn" data-cat="revelador" onclick="filterCat('revelador')">Reveladores</button>
+            <button class="tab-btn" data-cat="cilindro" onclick="filterCat('cilindro')">Unidad de Drum</button>
+            <button class="tab-btn" data-cat="cuchilla" onclick="filterCat('cuchilla')">Cuchillas</button>
+            <button class="tab-btn" data-cat="banda" onclick="filterCat('banda')">Bandas de Transferencia</button>
+            <button class="tab-btn" data-cat="goma" onclick="filterCat('goma')">Gomas</button>
+            <button class="tab-btn" data-cat="fusor" onclick="filterCat('fusor')">Fusores</button>
+            <button class="tab-btn" data-cat="engrane" onclick="filterCat('engrane')">Engranes</button>
+            <button class="tab-btn" data-cat="una" onclick="filterCat('una')">Uñas</button>
+            <button class="tab-btn" data-cat="pad" onclick="filterCat('pad')">Pad</button>
+            <button class="tab-btn" data-cat="grasa" onclick="filterCat('grasa')">Grasa</button>
+            <button class="tab-btn" data-cat="filmina" onclick="filterCat('filmina')">Filmina</button>
+          </div>
+        </div>
+        <div class="sidebar-filter-group">
+          <h4>Marca de impresora</h4>
+          <div class="filter-tabs sidebar-list" id="brandTabs">
+            <button class="tab-btn brand-tab active" data-brand="all" onclick="filterBrand('all')">Todas</button>
+            <button class="tab-btn brand-tab" data-brand="hp" onclick="filterBrand('hp')">HP</button>
+            <button class="tab-btn brand-tab" data-brand="epson" onclick="filterBrand('epson')">Epson</button>
+            <button class="tab-btn brand-tab" data-brand="canon" onclick="filterBrand('canon')">Canon</button>
+            <button class="tab-btn brand-tab" data-brand="brother" onclick="filterBrand('brother')">Brother</button>
+            <button class="tab-btn brand-tab" data-brand="samsung" onclick="filterBrand('samsung')">Samsung</button>
+            <button class="tab-btn brand-tab" data-brand="xerox" onclick="filterBrand('xerox')">Xerox</button>
+            <button class="tab-btn brand-tab" data-brand="ricoh" onclick="filterBrand('ricoh')">Ricoh</button>
+            <button class="tab-btn brand-tab" data-brand="sharp" onclick="filterBrand('sharp')">Sharp</button>
+            <button class="tab-btn brand-tab" data-brand="lexmark" onclick="filterBrand('lexmark')">Lexmark</button>
+            <button class="tab-btn brand-tab" data-brand="kyocera" onclick="filterBrand('kyocera')">Kyocera Mita</button>
+            <button class="tab-btn brand-tab" data-brand="konica" onclick="filterBrand('konica')">Konica Minolta</button>
+          </div>
+        </div>
+        <div class="sidebar-filter-group">
+          <h4>Marca de compatible</h4>
+          <div class="filter-tabs sidebar-list" id="compatBrandTabs">
+            <button class="tab-btn compat-tab active" data-compat="all" onclick="filterCompatBrand('all')">Todas</button>
+            <button class="tab-btn compat-tab" data-compat="original" onclick="filterCompatBrand('original')">Original</button>
+            <button class="tab-btn compat-tab" data-compat="katun" onclick="filterCompatBrand('katun')">Katun</button>
+            <button class="tab-btn compat-tab" data-compat="premium" onclick="filterCompatBrand('premium')">Premium</button>
+            <button class="tab-btn compat-tab" data-compat="ikon" onclick="filterCompatBrand('ikon')">Ikon</button>
+            <button class="tab-btn compat-tab" data-compat="cit" onclick="filterCompatBrand('cit')">CIT</button>
+            <button class="tab-btn compat-tab" data-compat="technology" onclick="filterCompatBrand('technology')">Technology</button>
+          </div>
+        </div>
+      </aside>
+      <div class="catalog-main">
+        <div class="product-grid" id="productGrid"></div>
+      </div>
     </div>
-    <div class="filter-label">Marca de impresora:</div>
-    <div class="filter-tabs" id="brandTabs">
-      <button class="tab-btn brand-tab active" data-brand="all" onclick="filterBrand('all')">Todas</button>
-      <button class="tab-btn brand-tab" data-brand="hp" onclick="filterBrand('hp')">HP</button>
-      <button class="tab-btn brand-tab" data-brand="epson" onclick="filterBrand('epson')">Epson</button>
-      <button class="tab-btn brand-tab" data-brand="canon" onclick="filterBrand('canon')">Canon</button>
-      <button class="tab-btn brand-tab" data-brand="brother" onclick="filterBrand('brother')">Brother</button>
-      <button class="tab-btn brand-tab" data-brand="samsung" onclick="filterBrand('samsung')">Samsung</button>
-      <button class="tab-btn brand-tab" data-brand="xerox" onclick="filterBrand('xerox')">Xerox</button>
-      <button class="tab-btn brand-tab" data-brand="ricoh" onclick="filterBrand('ricoh')">Ricoh</button>
-      <button class="tab-btn brand-tab" data-brand="sharp" onclick="filterBrand('sharp')">Sharp</button>
-      <button class="tab-btn brand-tab" data-brand="lexmark" onclick="filterBrand('lexmark')">Lexmark</button>
-      <button class="tab-btn brand-tab" data-brand="kyocera" onclick="filterBrand('kyocera')">Kyocera Mita</button>
-      <button class="tab-btn brand-tab" data-brand="konica" onclick="filterBrand('konica')">Konica Minolta</button>
-    </div>
-    <div class="filter-label">Marca de compatible:</div>
-    <div class="filter-tabs" id="compatBrandTabs">
-      <button class="tab-btn compat-tab active" data-compat="all" onclick="filterCompatBrand('all')">Todas</button>
-      <button class="tab-btn compat-tab" data-compat="original" onclick="filterCompatBrand('original')">Original</button>
-      <button class="tab-btn compat-tab" data-compat="katun" onclick="filterCompatBrand('katun')">Katun</button>
-      <button class="tab-btn compat-tab" data-compat="premium" onclick="filterCompatBrand('premium')">Premium</button>
-      <button class="tab-btn compat-tab" data-compat="ikon" onclick="filterCompatBrand('ikon')">Ikon</button>
-      <button class="tab-btn compat-tab" data-compat="cit" onclick="filterCompatBrand('cit')">CIT</button>
-      <button class="tab-btn compat-tab" data-compat="technology" onclick="filterCompatBrand('technology')">Technology</button>
-    </div>
-    <div class="product-grid" id="productGrid"></div>
   </section>
 
   <section class="hero" style="padding-top:56px;">
