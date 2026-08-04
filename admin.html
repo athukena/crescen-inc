@@ -112,6 +112,20 @@
   .row-save:hover{background:var(--gold-dim); color:var(--carbon);}
   .saved-flash{color:var(--success); font-size:12px; font-family:var(--font-mono);}
   .stock-low{color:var(--danger); font-weight:600;}
+  .agotado-tag{
+    display:inline-block; font-size:11px; font-family:var(--font-mono); color:var(--danger);
+    border:1px solid var(--danger); border-radius:4px; padding:1px 6px; margin-top:3px;
+  }
+  .vis-toggle{
+    width:38px; height:22px; border-radius:11px; background:var(--carbon-3); border:1px solid var(--line);
+    position:relative; cursor:pointer; display:inline-block; transition:background .15s;
+  }
+  .vis-toggle.on{background:var(--gold-dim);}
+  .vis-toggle .knob{
+    position:absolute; top:2px; left:2px; width:16px; height:16px; border-radius:50%;
+    background:var(--text-dim); transition:left .15s, background .15s;
+  }
+  .vis-toggle.on .knob{left:18px; background:var(--gold-light);}
 
   /* ---------- empty / orders placeholder ---------- */
   .empty{
@@ -183,6 +197,7 @@
               <th>Marca</th>
               <th style="text-align:right">Precio (MXN)</th>
               <th style="text-align:right">Existencias</th>
+              <th style="text-align:center">Visible en el sitio</th>
               <th></th>
             </tr>
           </thead>
@@ -330,7 +345,7 @@ function renderTable() {
   tbody.innerHTML = '';
 
   if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6"><div class="empty">Sin resultados</div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty">Sin resultados</div></td></tr>`;
     return;
   }
 
@@ -338,6 +353,8 @@ function renderTable() {
     const tr = document.createElement('tr');
     tr.dataset.id = p.id;
     const brandStr = Array.isArray(p.brand) ? p.brand.join(', ') : (p.brand || '');
+    const isOut = (p.stock ?? 0) <= 0;
+    const isVisible = p.visible !== false;
     tr.innerHTML = `
       <td class="name-cell">${escapeHtml(p.name || '')}<span class="id">${escapeHtml(p.id)}</span></td>
       <td>${escapeHtml(p.cat || '')}</td>
@@ -347,6 +364,12 @@ function renderTable() {
       </td>
       <td style="text-align:right">
         <input type="number" class="stock-input" step="1" value="${p.stock ?? 0}" oninput="markDirty('${p.id}')">
+        ${isOut ? '<span class="agotado-tag">Agotado</span>' : ''}
+      </td>
+      <td style="text-align:center">
+        <span class="vis-toggle ${isVisible ? 'on' : ''}" onclick="toggleVisible('${p.id}', ${isVisible})">
+          <span class="knob"></span>
+        </span>
       </td>
       <td style="text-align:right; white-space:nowrap;">
         <button class="row-save" onclick="saveRow('${p.id}')">Guardar</button>
@@ -376,13 +399,24 @@ async function saveRow(id) {
     return;
   }
 
-  tr.classList.remove('dirty');
   flash.style.color = 'var(--success)';
   flash.textContent = 'Guardado ✓';
-  setTimeout(() => { flash.textContent = ''; }, 2000);
 
   const prod = allProducts.find(p => p.id === id);
   if (prod) { prod.price = price; prod.stock = stock; }
+  renderTable();
+}
+
+async function toggleVisible(id, currentlyVisible) {
+  const newVisible = !currentlyVisible;
+  const { error } = await sb.from('products').update({ visible: newVisible }).eq('id', id);
+  if (error) {
+    alert('Error al cambiar visibilidad: ' + error.message);
+    return;
+  }
+  const prod = allProducts.find(p => p.id === id);
+  if (prod) prod.visible = newVisible;
+  renderTable();
 }
 
 function openAddModal() {
