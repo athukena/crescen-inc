@@ -92,6 +92,16 @@
   input:focus, select:focus, textarea:focus{outline:none; border-color:var(--gold-dim);}
   #search{flex:1; min-width:200px;}
   .count{color:var(--text-dim); font-size:13px; font-family:var(--font-mono);}
+  #bulk-bar{
+    background:var(--katun-blue-bg); border:1px solid var(--katun-blue); border-radius:6px;
+    padding:10px 14px; margin-top:-8px;
+  }
+  #bulk-bar .count{color:var(--katun-blue-dark); font-weight:500;}
+  #bulk-bar .btn-ghost{border-color:var(--katun-blue); color:var(--katun-blue-dark); background:#fff;}
+  #bulk-bar .btn-ghost:hover{background:var(--katun-blue); color:#fff;}
+  .row-check{width:16px; height:16px; cursor:pointer;}
+  tr.selected-row td{background:var(--katun-blue-bg) !important; color:var(--katun-blue-dark);}
+  tr.selected-row .id{color:var(--katun-blue);}
 
   /* ---------- table ---------- */
   .table-wrap{border:1px solid var(--line); border-radius:8px; overflow:hidden;}
@@ -214,10 +224,18 @@ tr:hover .id{color:var(--katun-blue);}
         <button class="btn" onclick="openAddModal()">+ Agregar producto</button>
       </div>
 
+      <div class="toolbar" id="bulk-bar" style="display:none;">
+        <span class="count" id="selected-count"></span>
+        <button class="btn-ghost bulk-btn-hide" onclick="bulkSetVisible(false)">Ocultar seleccionados</button>
+        <button class="btn-ghost bulk-btn-show" onclick="bulkSetVisible(true)">Mostrar seleccionados</button>
+        <button class="btn-ghost" onclick="clearSelection()">Cancelar selección</button>
+      </div>
+
       <div class="table-wrap">
         <table>
           <thead>
             <tr>
+              <th style="width:36px;"><input type="checkbox" id="select-all" onclick="toggleSelectAll(this.checked)"></th>
               <th>Producto</th>
               <th>Categoría</th>
               <th>Marca</th>
@@ -347,6 +365,8 @@ function switchTab(name) {
   document.getElementById('tab-pedidos').style.display = name === 'pedidos' ? 'block' : 'none';
 }
 
+let selectedIds = new Set();
+
 async function loadProducts() {
   const { data, error } = await sb.from('products').select('*').order('name');
   if (error) {
@@ -354,6 +374,7 @@ async function loadProducts() {
     return;
   }
   allProducts = data || [];
+  selectedIds.clear();
   renderTable();
 }
 
@@ -371,7 +392,8 @@ function renderTable() {
   tbody.innerHTML = '';
 
   if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7"><div class="empty">Sin resultados</div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8"><div class="empty">Sin resultados</div></td></tr>`;
+    updateBulkBar();
     return;
   }
 
@@ -381,7 +403,9 @@ function renderTable() {
     const brandStr = Array.isArray(p.brand) ? p.brand.join(', ') : (p.brand || '');
     const isOut = (p.stock ?? 0) <= 0;
     const isVisible = p.visible !== false;
+    const isChecked = selectedIds.has(p.id);
     tr.innerHTML = `
+      <td><input type="checkbox" class="row-check" ${isChecked ? 'checked' : ''} onclick="toggleSelectRow('${p.id}', this.checked)"></td>
       <td class="name-cell">${escapeHtml(p.name || '')}<span class="id">${escapeHtml(p.id)}</span></td>
       <td>${escapeHtml(p.cat || '')}</td>
       <td>${escapeHtml(brandStr)}</td>
@@ -402,8 +426,69 @@ function renderTable() {
         <span class="saved-flash" id="flash-${cssEscape(p.id)}"></span>
       </td>
     `;
+    if (isChecked) tr.classList.add('selected-row');
     tbody.appendChild(tr);
   });
+
+  const selectAllBox = document.getElementById('select-all');
+  selectAllBox.checked = filtered.length > 0 && filtered.every(p => selectedIds.has(p.id));
+  updateBulkBar();
+}
+
+function toggleSelectRow(id, checked) {
+  if (checked) selectedIds.add(id); else selectedIds.delete(id);
+  const tr = document.querySelector(`tr[data-id="${cssEscape(id)}"]`);
+  if (tr) tr.classList.toggle('selected-row', checked);
+  const q = document.getElementById('search').value.trim().toLowerCase();
+  const filtered = !q ? allProducts : allProducts.filter(p =>
+    (p.name || '').toLowerCase().includes(q) || (p.id || '').toLowerCase().includes(q) || (p.cat || '').toLowerCase().includes(q)
+  );
+  document.getElementById('select-all').checked = filtered.length > 0 && filtered.every(p => selectedIds.has(p.id));
+  updateBulkBar();
+}
+
+function toggleSelectAll(checked) {
+  const q = document.getElementById('search').value.trim().toLowerCase();
+  const filtered = !q ? allProducts : allProducts.filter(p =>
+    (p.name || '').toLowerCase().includes(q) || (p.id || '').toLowerCase().includes(q) || (p.cat || '').toLowerCase().includes(q)
+  );
+  filtered.forEach(p => { if (checked) selectedIds.add(p.id); else selectedIds.delete(p.id); });
+  renderTable();
+}
+
+function clearSelection() {
+  selectedIds.clear();
+  renderTable();
+}
+
+function updateBulkBar() {
+  const bar = document.getElementById('bulk-bar');
+  const n = selectedIds.size;
+  if (n === 0) {
+    bar.style.display = 'none';
+    return;
+  }
+  bar.style.display = 'flex';
+  document.getElementById('selected-count').textContent = `${n} producto${n === 1 ? '' : 's'} seleccionado${n === 1 ? '' : 's'}`;
+}
+
+async function bulkSetVisible(visible) {
+  const ids = Array.from(selectedIds);
+  if (ids.length === 0) return;
+  const label = visible ? 'mostrar' : 'ocultar';
+  if (!confirm(`¿${visible ? 'Mostrar' : 'Ocultar'} ${ids.length} producto(s) en el catálogo público?`)) return;
+
+  const { error } = await sb.from('products').update({ visible }).in('id', ids);
+  if (error) {
+    alert(`Error al ${label}: ` + error.message);
+    return;
+  }
+  ids.forEach(id => {
+    const prod = allProducts.find(p => p.id === id);
+    if (prod) prod.visible = visible;
+  });
+  selectedIds.clear();
+  renderTable();
 }
 
 function markDirty(id) {
