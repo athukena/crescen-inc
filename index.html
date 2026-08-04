@@ -2416,7 +2416,7 @@ async function goToPaymentStep(){
   continueBtn.textContent = 'Calculando envío...';
 
   try {
-    const { data, error } = await sb.functions.invoke('shipping-quote', {
+    const { data, error } = await sb.functions.invoke('super-task', {
       body: { postal_code: getEffectivePostalCode() }
     });
     if(error || !data || !data.cheapest) throw new Error('sin cotización disponible');
