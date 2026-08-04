@@ -388,6 +388,27 @@
   .notif-item.unread{background:#FBF3E4;}
   .notif-msg{font-size:13px; line-height:1.4; color:var(--ink); margin-bottom:3px;}
   .notif-date{font-family:var(--font-mono); font-size:11px; color:var(--ink-soft);}
+
+  /* ---------- MI CUENTA ---------- */
+  .account-title{font-family:var(--font-display); font-size:28px; font-weight:600; margin-top:18px;}
+  .account-sub{color:var(--ink-soft); font-size:13.5px; margin-bottom:22px;}
+  .account-tabs{display:flex; gap:6px; border-bottom:1px solid var(--line); margin-bottom:24px; flex-wrap:wrap;}
+  .account-tab{padding:10px 16px; font-size:13.5px; font-weight:600; color:var(--ink-soft); border-bottom:2px solid transparent; margin-bottom:-1px;}
+  .account-tab.active{color:var(--gold-dark); border-bottom-color:var(--gold);}
+  .account-tab:hover{color:var(--ink);}
+  .order-list{display:flex; flex-direction:column; gap:14px; max-width:640px;}
+  .order-card{border:1px solid var(--line); border-radius:10px; padding:16px 18px; background:var(--white);}
+  .order-card-top{display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:10px;}
+  .order-number{font-family:var(--font-mono); font-weight:600; font-size:13.5px;}
+  .order-date{font-size:12px; color:var(--ink-soft); margin-top:2px; text-transform:capitalize;}
+  .order-status{font-size:11px; font-weight:700; font-family:var(--font-mono); letter-spacing:.03em; padding:4px 10px; border-radius:20px; white-space:nowrap;}
+  .status-placed{background:#F0E6C4; color:#7A6420;}
+  .status-shipped{background:#D9E7F5; color:#1E5A96;}
+  .status-delivered{background:#DCEEDC; color:#2A7A3B;}
+  .status-cancelled{background:#F5DCD8; color:#B1402F;}
+  .order-items-preview{font-size:13px; color:var(--ink-soft); margin-bottom:10px; line-height:1.4;}
+  .order-card-bottom{display:flex; justify-content:space-between; font-size:12.5px; color:var(--ink-soft); border-top:1px solid var(--line); padding-top:10px;}
+  .order-total{font-family:var(--font-mono); font-weight:600; color:var(--ink);}
   .spec-table{width:100%; border-collapse:collapse; margin-bottom:26px; font-size:13.5px;}
   .spec-table tr{border-bottom:1px solid var(--line);}
   .spec-table td{padding:10px 0; }
@@ -507,9 +528,9 @@
       <div id="authArea">
         <button class="login-trigger-btn" id="loginTriggerBtn" onclick="openAuthModal()">Iniciar sesión / Crear cuenta</button>
         <div class="user-chip" id="userChip" style="display:none;">
-          <img id="userAvatar" src="" alt="" style="display:none;">
-          <div class="initials-avatar" id="userInitials" style="display:none;"></div>
-          <span class="user-name" id="userName"></span>
+          <img id="userAvatar" src="" alt="" style="display:none;" onclick="showAccount('pedidos')">
+          <div class="initials-avatar" id="userInitials" style="display:none;" onclick="showAccount('pedidos')"></div>
+          <span class="user-name" id="userName" onclick="showAccount('pedidos')" style="cursor:pointer;"></span>
           <button onclick="handleLogout()">Salir</button>
         </div>
       </div>
@@ -789,6 +810,7 @@
 </main>
 
 <main id="view-product" style="display:none"></main>
+<main id="view-account" style="display:none"></main>
 
 <main id="view-search" style="display:none">
   <div class="wrap search-results-wrap">
@@ -1084,24 +1106,119 @@ function refreshHeartIcons(id){
   });
 }
 function showFavorites(){
+  showAccount('favoritos');
+}
+
+/* ---------- MI CUENTA ---------- */
+let myOrders = [];
+let accountTab = 'pedidos';
+
+async function loadMyOrders(){
+  if(!isLoggedIn || !currentUser?.email) return;
+  const { data, error } = await sb
+    .from('orders')
+    .select('*, order_items(*)')
+    .eq('user_email', currentUser.email)
+    .order('created_at', {ascending:false});
+  if(error){ console.error('Error cargando pedidos:', error); return; }
+  myOrders = data || [];
+}
+
+const ORDER_STATUS_LABELS = {
+  realizado: 'Pedido realizado',
+  enviado: 'Pedido enviado',
+  entregado: 'Pedido entregado',
+  cancelado: 'Pedido cancelado',
+};
+const ORDER_STATUS_CLASS = {
+  realizado: 'status-placed',
+  enviado: 'status-shipped',
+  entregado: 'status-delivered',
+  cancelado: 'status-cancelled',
+};
+
+async function showAccount(tab){
   if(!isLoggedIn){ promptLogin(); return; }
+  accountTab = tab || 'pedidos';
   document.getElementById('view-home').style.display = 'none';
+  document.getElementById('view-search').style.display = 'none';
   document.getElementById('view-product').style.display = 'none';
-  document.getElementById('view-search').style.display = 'block';
-
-  const sidebar = document.querySelector('#view-search .catalog-sidebar');
-  if(sidebar) sidebar.style.display = 'none';
-
-  const grid = document.getElementById('productGrid');
-  document.getElementById('searchResultsTitle').textContent = 'Tus favoritos';
-  document.getElementById('searchResultsSubtitle').textContent = '';
-
-  const list = PRODUCTS.filter(p => favoriteIds.has(p.id));
-  grid.innerHTML = list.length === 0
-    ? `<div class="no-results"><b>Aún no tienes favoritos</b>Toca el corazón ♡ en cualquier producto para guardarlo aquí.</div>`
-    : list.map(productCardHTML).join('');
-
+  const view = document.getElementById('view-account');
+  view.style.display = 'block';
+  view.innerHTML = `<div class="wrap"><div class="no-results"><b>Cargando tu cuenta...</b></div></div>`;
+  await loadMyOrders();
+  renderAccountView();
   window.scrollTo(0,0);
+}
+
+function renderAccountView(){
+  const view = document.getElementById('view-account');
+  const active = myOrders.filter(o => o.status === 'realizado' || o.status === 'enviado');
+  const past = myOrders.filter(o => o.status === 'entregado' || o.status === 'cancelado');
+
+  view.innerHTML = `
+    <div class="wrap">
+      <div class="breadcrumb"><button onclick="showHome()">← Volver al inicio</button></div>
+      <h1 class="account-title">Mi cuenta</h1>
+      <p class="account-sub">${currentUser?.name || ''} · ${currentUser?.email || ''}</p>
+      <div class="account-tabs">
+        <button class="account-tab ${accountTab==='pedidos'?'active':''}" onclick="switchAccountTab('pedidos')">Mis pedidos</button>
+        <button class="account-tab ${accountTab==='anteriores'?'active':''}" onclick="switchAccountTab('anteriores')">Pedidos anteriores</button>
+        <button class="account-tab ${accountTab==='favoritos'?'active':''}" onclick="switchAccountTab('favoritos')">Mis favoritos</button>
+        <button class="account-tab ${accountTab==='pagos'?'active':''}" onclick="switchAccountTab('pagos')">Métodos de pago</button>
+      </div>
+      <div id="accountTabContent">${renderAccountTabContent(active, past)}</div>
+    </div>
+  `;
+}
+
+function switchAccountTab(tab){
+  accountTab = tab;
+  renderAccountView();
+}
+
+function renderAccountTabContent(active, past){
+  if(accountTab === 'pedidos'){
+    return active.length === 0
+      ? `<div class="no-results"><b>No tienes pedidos en curso</b>Cuando hagas una compra, la vas a ver aquí mientras se prepara y se envía.</div>`
+      : `<div class="order-list">${active.map(orderCardHTML).join('')}</div>`;
+  }
+  if(accountTab === 'anteriores'){
+    return past.length === 0
+      ? `<div class="no-results"><b>Aún no tienes pedidos anteriores</b>Aquí vas a ver tu historial de pedidos entregados o cancelados.</div>`
+      : `<div class="order-list">${past.map(orderCardHTML).join('')}</div>`;
+  }
+  if(accountTab === 'favoritos'){
+    const list = PRODUCTS.filter(p => favoriteIds.has(p.id));
+    return list.length === 0
+      ? `<div class="no-results"><b>Aún no tienes favoritos</b>Toca el corazón ♡ en cualquier producto para guardarlo aquí.</div>`
+      : `<div class="product-grid">${list.map(productCardHTML).join('')}</div>`;
+  }
+  if(accountTab === 'pagos'){
+    return `<div class="no-results"><b>Aún no tienes métodos de pago guardados</b>Estamos por conectar el pago con tarjeta de forma segura — en cuanto esté listo, vas a poder guardar aquí tus tarjetas para pagar más rápido la próxima vez.</div>`;
+  }
+  return '';
+}
+
+function orderCardHTML(o){
+  const items = o.order_items || [];
+  const itemsPreview = items.slice(0,3).map(it => it.product_name).join(', ') + (items.length > 3 ? `, +${items.length-3} más` : '');
+  return `
+    <div class="order-card">
+      <div class="order-card-top">
+        <div>
+          <div class="order-number">${o.order_number}</div>
+          <div class="order-date">${new Date(o.created_at).toLocaleDateString('es-MX', {day:'numeric', month:'long', year:'numeric'})}</div>
+        </div>
+        <span class="order-status ${ORDER_STATUS_CLASS[o.status] || ''}">${ORDER_STATUS_LABELS[o.status] || o.status}</span>
+      </div>
+      <div class="order-items-preview">${itemsPreview}</div>
+      <div class="order-card-bottom">
+        <span>${items.reduce((s,it)=>s+it.qty,0)} producto(s)</span>
+        <span class="order-total">${money(o.total)}</span>
+      </div>
+    </div>
+  `;
 }
 
 /* ---------- NOTIFICACIONES (campanita) ---------- */
@@ -1611,6 +1728,7 @@ function syncSearchCatLabel(cat){
 function openSearchResults(){
   document.getElementById('view-home').style.display = 'none';
   document.getElementById('view-product').style.display = 'none';
+  document.getElementById('view-account').style.display = 'none';
   document.getElementById('view-search').style.display = 'block';
   const sidebar = document.querySelector('#view-search .catalog-sidebar');
   if(sidebar) sidebar.style.display = '';
@@ -1746,6 +1864,7 @@ function showProduct(id){
   const isFav = favoriteIds.has(p.id);
   document.getElementById('view-home').style.display = 'none';
   document.getElementById('view-search').style.display = 'none';
+  document.getElementById('view-account').style.display = 'none';
   const view = document.getElementById('view-product');
   view.style.display = 'block';
   view.innerHTML = `
@@ -1797,6 +1916,7 @@ function changeDetailQty(delta){
 function showHome(){
   document.getElementById('view-product').style.display = 'none';
   document.getElementById('view-search').style.display = 'none';
+  document.getElementById('view-account').style.display = 'none';
   document.getElementById('view-home').style.display = 'block';
   window.scrollTo({top:0, behavior:'smooth'});
 }
@@ -1911,10 +2031,48 @@ function selectPayment(method){
   document.getElementById(`pay-${method}`).checked = true;
   document.getElementById('confirmPayBtn').disabled = false;
 }
-function confirmOrder(){
+async function confirmOrder(){
+  const confirmBtn = document.getElementById('confirmPayBtn');
+  if(confirmBtn){ confirmBtn.disabled = true; confirmBtn.textContent = 'Confirmando...'; }
+
   const orderNum = 'CRN-' + Math.floor(100000 + Math.random()*899999);
-  const modal = document.getElementById('checkoutModal');
   const payLabel = {tarjeta:'Tarjeta', oxxo:'OXXO', transferencia:'Transferencia SPEI'}[selectedPayment];
+  const total = cartTotal();
+
+  const { data: orderData, error: orderError } = await sb.from('orders').insert({
+    order_number: orderNum,
+    user_email: currentUser.email,
+    status: 'realizado',
+    payment_method: payLabel,
+    total: total,
+  }).select().single();
+
+  if(orderError){
+    const modal = document.getElementById('checkoutModal');
+    modal.innerHTML = `
+      <button class="modal-close" onclick="closeCheckout()">✕</button>
+      <div class="confirm-box">
+        <h3>No se pudo registrar el pedido</h3>
+        <p class="sub">${orderError.message}</p>
+        <button class="btn btn-primary" style="width:100%; justify-content:center;" onclick="closeCheckout()">Cerrar</button>
+      </div>
+    `;
+    return;
+  }
+
+  const itemRows = cart.map(c => {
+    const p = PRODUCTS.find(x => x.id === c.id);
+    return {
+      order_id: orderData.id,
+      product_id: c.id,
+      product_name: p ? p.name : c.id,
+      qty: c.qty,
+      unit_price: p ? p.price : 0,
+    };
+  });
+  await sb.from('order_items').insert(itemRows);
+
+  const modal = document.getElementById('checkoutModal');
   modal.innerHTML = `
     <button class="modal-close" onclick="closeCheckout()">✕</button>
     <div class="confirm-box">
@@ -1924,7 +2082,7 @@ function confirmOrder(){
       <div class="confirm-order">
         <div>Número de pedido: <strong>${orderNum}</strong></div>
         <div>Método: <strong>${payLabel}</strong></div>
-        <div>Total: <strong>${money(cartTotal())}</strong></div>
+        <div>Total: <strong>${money(total)}</strong></div>
       </div>
       <button class="btn btn-primary" style="width:100%; justify-content:center;" onclick="finishOrder()">Volver a la tienda</button>
     </div>
