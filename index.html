@@ -347,6 +347,47 @@
     letter-spacing:.04em; color:#C1543B; border:1px solid #C1543B; border-radius:5px;
     padding:4px 10px; margin-bottom:14px;
   }
+  .fav-heart{
+    position:absolute; top:8px; right:8px; z-index:5; background:rgba(255,255,255,.9);
+    border:1px solid var(--line); border-radius:50%; width:30px; height:30px; font-size:16px;
+    line-height:1; display:flex; align-items:center; justify-content:center; cursor:pointer;
+    color:#C1543B; transition:transform .1s, background .15s;
+  }
+  .fav-heart:hover{transform:scale(1.1); background:#fff;}
+  .fav-heart.active{background:#C1543B; color:#fff; border-color:#C1543B;}
+  .fav-heart-detail{position:static; margin-bottom:10px; display:inline-flex;}
+  .oos-badge{
+    position:absolute; bottom:8px; left:8px; background:#C1543B; color:#fff; font-family:var(--font-mono);
+    font-size:10.5px; font-weight:700; letter-spacing:.03em; padding:3px 8px; border-radius:4px; z-index:4;
+  }
+  .add-btn-disabled{opacity:.4; cursor:not-allowed; background:var(--ink-soft) !important;}
+  .notif-bell-wrap{position:relative; display:inline-flex;}
+  .notif-bell{
+    position:relative; background:none; border:none; color:var(--white); font-size:19px;
+    cursor:pointer; padding:4px; display:inline-flex; align-items:center;
+  }
+  .notif-badge{
+    position:absolute; top:-3px; right:-3px; background:#C1543B; color:#fff; font-family:var(--font-mono);
+    font-size:10px; font-weight:700; min-width:16px; height:16px; border-radius:8px; padding:0 4px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .notif-panel{
+    display:none; position:absolute; top:calc(100% + 12px); right:0; width:320px; max-height:380px;
+    overflow-y:auto; background:var(--white); color:var(--ink); border:1px solid var(--line);
+    border-radius:10px; box-shadow:0 16px 40px rgba(0,0,0,.25); text-align:left; z-index:60;
+  }
+  .notif-panel.open{display:block;}
+  .notif-panel-title{
+    font-family:var(--font-display); font-weight:600; font-size:15px; padding:14px 16px 10px;
+    border-bottom:1px solid var(--line);
+  }
+  .notif-empty{padding:24px 16px; font-size:13px; color:var(--ink-soft); line-height:1.5;}
+  .notif-item{padding:12px 16px; border-bottom:1px solid var(--line); cursor:pointer; transition:background .1s;}
+  .notif-item:last-child{border-bottom:none;}
+  .notif-item:hover{background:var(--paper-2);}
+  .notif-item.unread{background:#FBF3E4;}
+  .notif-msg{font-size:13px; line-height:1.4; color:var(--ink); margin-bottom:3px;}
+  .notif-date{font-family:var(--font-mono); font-size:11px; color:var(--ink-soft);}
   .spec-table{width:100%; border-collapse:collapse; margin-bottom:26px; font-size:13.5px;}
   .spec-table tr{border-bottom:1px solid var(--line);}
   .spec-table td{padding:10px 0; }
@@ -429,7 +470,6 @@
   }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
 
@@ -443,6 +483,7 @@
     <nav class="main-nav">
       <a href="#" onclick="showHome();return false;">Inicio</a>
       <a href="#catalog" onclick="showHome();">Catálogo</a>
+      <a href="#" onclick="showFavorites();return false;">Favoritos</a>
       <a href="#trust">Nosotros</a>
       <a href="#footer">Contacto</a>
     </nav>
@@ -470,6 +511,16 @@
           <div class="initials-avatar" id="userInitials" style="display:none;"></div>
           <span class="user-name" id="userName"></span>
           <button onclick="handleLogout()">Salir</button>
+        </div>
+      </div>
+      <div class="notif-bell-wrap" id="notifBell" style="display:none;">
+        <button class="notif-bell" onclick="toggleNotifPanel(); event.stopPropagation();" aria-label="Notificaciones">
+          🔔
+          <span class="notif-badge" id="notifBadge" style="display:none;"></span>
+        </button>
+        <div class="notif-panel" id="notifPanel">
+          <div class="notif-panel-title">Notificaciones</div>
+          <div id="notifList"></div>
         </div>
       </div>
       <button class="cart-btn" onclick="openCart()" aria-label="Abrir carrito">
@@ -939,56 +990,172 @@ let selectedBrands = new Set();
 let selectedCompatBrands = new Set();
 let isLoggedIn = false;
 let currentUser = null;
-let localAccounts = []; // {name, phone, email, address, password} — solo en memoria, se pierde al recargar
+let favoriteIds = new Set();
+let notifications = [];
 
-const GOOGLE_CLIENT_ID = '240721962065-t6uhe074f2an5m98rio046a5e571j7bq.apps.googleusercontent.com';
-// Cuando tengas tu App ID de Facebook, ponlo aquí para activar el botón de verdad:
-const FACEBOOK_APP_ID = '';
+/* ---------- AUTENTICACIÓN REAL (Supabase Auth) ---------- */
+async function initAuth(){
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) applySession(session);
 
-function parseJwt(token){
-  const base64Url = token.split('.')[1];
-  const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-  const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
-  return JSON.parse(jsonPayload);
+  sb.auth.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_IN' && session) {
+      applySession(session, true);
+    } else if (event === 'SIGNED_OUT') {
+      currentUser = null;
+      isLoggedIn = false;
+      favoriteIds = new Set();
+      notifications = [];
+      updateAuthUI();
+      renderNotifBell();
+      renderGrid();
+      renderOffers();
+      renderCart();
+    }
+  });
 }
-function loginSuccess(user, methodLabel){
-  currentUser = user;
+function applySession(session, justSignedIn){
+  const u = session.user;
+  const meta = u.user_metadata || {};
+  currentUser = {
+    email: u.email,
+    name: meta.name || meta.full_name || (u.email ? u.email.split('@')[0] : 'Cliente'),
+    picture: meta.avatar_url || meta.picture || null,
+    provider: (u.app_metadata && u.app_metadata.provider) || 'email',
+  };
   isLoggedIn = true;
   closeAuthModal();
   updateAuthUI();
+  loadFavorites();
+  loadNotifications();
   renderGrid();
   renderOffers();
   renderCart();
-  showToast('Sesión iniciada' + (user.name ? ' como ' + user.name.split(' ')[0] : '') + (methodLabel ? ' (' + methodLabel + ')' : ''));
+  if (justSignedIn) {
+    showToast('Sesión iniciada como ' + currentUser.name.split(' ')[0]);
+  }
 }
-function handleCredentialResponse(response){
-  const payload = parseJwt(response.credential);
-  loginSuccess({ name: payload.name, email: payload.email, picture: payload.picture, provider: 'google' }, 'Google');
+async function handleGoogleAuth(){
+  const { error } = await sb.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.origin + window.location.pathname }
+  });
+  if (error) showToast('No se pudo iniciar con Google: ' + error.message);
 }
 function handleFacebookLogin(){
-  if (!FACEBOOK_APP_ID) {
-    showToast('El inicio con Facebook aún se está configurando — usa Google o crea una cuenta');
-    return;
-  }
-  FB.login(function(response){
-    if (response.authResponse) {
-      FB.api('/me', {fields: 'name,email,picture'}, function(fbUser){
-        loginSuccess({ name: fbUser.name, email: fbUser.email, picture: fbUser.picture ? fbUser.picture.data.url : null, provider: 'facebook' }, 'Facebook');
-      });
-    }
-  }, {scope: 'public_profile,email'});
+  showToast('El inicio con Facebook aún se está configurando — usa Google o crea una cuenta');
 }
-function handleLogout(){
-  isLoggedIn = false;
-  currentUser = null;
-  if (window.google && google.accounts && google.accounts.id) {
-    google.accounts.id.disableAutoSelect();
-  }
-  updateAuthUI();
+async function handleLogout(){
+  await sb.auth.signOut();
+}
+
+/* ---------- FAVORITOS ---------- */
+async function loadFavorites(){
+  if(!isLoggedIn || !currentUser?.email) return;
+  const { data, error } = await sb.from('favorites').select('product_id').eq('user_email', currentUser.email);
+  if(error){ console.error('Error cargando favoritos:', error); return; }
+  favoriteIds = new Set((data || []).map(r => r.product_id));
   renderGrid();
   renderOffers();
-  renderCart();
 }
+async function toggleFavorite(id){
+  if(!isLoggedIn || !currentUser?.email){ promptLogin(); return; }
+  const isFav = favoriteIds.has(id);
+  if(isFav){
+    favoriteIds.delete(id);
+    renderGrid(); renderOffers();
+    const { error } = await sb.from('favorites').delete().eq('user_email', currentUser.email).eq('product_id', id);
+    if(error){ favoriteIds.add(id); renderGrid(); renderOffers(); showToast('No se pudo quitar de favoritos'); }
+  } else {
+    favoriteIds.add(id);
+    renderGrid(); renderOffers();
+    const { error } = await sb.from('favorites').insert({ user_email: currentUser.email, product_id: id });
+    if(error){ favoriteIds.delete(id); renderGrid(); renderOffers(); showToast('No se pudo agregar a favoritos'); }
+    else showToast('Agregado a favoritos ♥');
+  }
+  const p = PRODUCTS.find(x => x.id === id);
+  if(p) refreshHeartIcons(id);
+}
+function refreshHeartIcons(id){
+  document.querySelectorAll(`.fav-heart[onclick*="'${id}'"]`).forEach(btn => {
+    const active = favoriteIds.has(id);
+    btn.classList.toggle('active', active);
+    btn.textContent = active ? '♥' : '♡';
+  });
+}
+function showFavorites(){
+  if(!isLoggedIn){ promptLogin(); return; }
+  document.getElementById('view-home').style.display = 'none';
+  document.getElementById('view-product').style.display = 'none';
+  document.getElementById('view-search').style.display = 'block';
+
+  const sidebar = document.querySelector('#view-search .catalog-sidebar');
+  if(sidebar) sidebar.style.display = 'none';
+
+  const grid = document.getElementById('productGrid');
+  document.getElementById('searchResultsTitle').textContent = 'Tus favoritos';
+  document.getElementById('searchResultsSubtitle').textContent = '';
+
+  const list = PRODUCTS.filter(p => favoriteIds.has(p.id));
+  grid.innerHTML = list.length === 0
+    ? `<div class="no-results"><b>Aún no tienes favoritos</b>Toca el corazón ♡ en cualquier producto para guardarlo aquí.</div>`
+    : list.map(productCardHTML).join('');
+
+  window.scrollTo(0,0);
+}
+
+/* ---------- NOTIFICACIONES (campanita) ---------- */
+async function loadNotifications(){
+  if(!isLoggedIn || !currentUser?.email) return;
+  const { data, error } = await sb.from('notifications').select('*').eq('user_email', currentUser.email).order('created_at', {ascending:false});
+  if(error){ console.error('Error cargando notificaciones:', error); return; }
+  notifications = data || [];
+  renderNotifBell();
+}
+function renderNotifBell(){
+  const bell = document.getElementById('notifBell');
+  if(!bell) return;
+  bell.style.display = isLoggedIn ? 'inline-flex' : 'none';
+  const unread = notifications.filter(n => !n.read).length;
+  const badge = document.getElementById('notifBadge');
+  badge.style.display = unread > 0 ? 'flex' : 'none';
+  badge.textContent = unread > 9 ? '9+' : unread;
+}
+function toggleNotifPanel(){
+  const panel = document.getElementById('notifPanel');
+  const opening = !panel.classList.contains('open');
+  panel.classList.toggle('open');
+  if(opening) renderNotifList();
+  if(opening && notifications.some(n => !n.read)) markAllNotifsRead();
+}
+function renderNotifList(){
+  const wrap = document.getElementById('notifList');
+  if(notifications.length === 0){
+    wrap.innerHTML = `<div class="notif-empty">Aquí te avisaremos cuando algún producto de tus favoritos vuelva a tener existencias.</div>`;
+    return;
+  }
+  wrap.innerHTML = notifications.map(n => `
+    <div class="notif-item ${n.read ? '' : 'unread'}" onclick="showProduct('${n.product_id}'); toggleNotifPanel();">
+      <div class="notif-msg">${n.message}</div>
+      <div class="notif-date">${new Date(n.created_at).toLocaleDateString('es-MX', {day:'numeric', month:'short'})}</div>
+    </div>
+  `).join('');
+}
+async function markAllNotifsRead(){
+  const unreadIds = notifications.filter(n => !n.read).map(n => n.id);
+  if(unreadIds.length === 0) return;
+  notifications = notifications.map(n => ({...n, read:true}));
+  renderNotifBell();
+  await sb.from('notifications').update({read:true}).in('id', unreadIds);
+}
+document.addEventListener('click', function(e){
+  const panel = document.getElementById('notifPanel');
+  const bell = document.getElementById('notifBell');
+  if(panel && panel.classList.contains('open') && !panel.contains(e.target) && !bell.contains(e.target)){
+    panel.classList.remove('open');
+  }
+});
+
 function initials(name){
   if(!name) return '?';
   return name.trim().split(/\s+/).slice(0,2).map(w => w[0].toUpperCase()).join('');
@@ -1010,25 +1177,6 @@ function updateAuthUI(){
   } else {
     triggerBtn.style.display = 'inline-block';
     chip.style.display = 'none';
-  }
-}
-function initGoogleSignIn(){
-  if (!window.google || !google.accounts || !google.accounts.id) {
-    setTimeout(initGoogleSignIn, 300);
-    return;
-  }
-  google.accounts.id.initialize({
-    client_id: GOOGLE_CLIENT_ID,
-    callback: handleCredentialResponse,
-  });
-}
-function renderGoogleButtonInModal(){
-  const el = document.getElementById('googleSignInModalBtn');
-  if (el && window.google && google.accounts && google.accounts.id) {
-    el.innerHTML = '';
-    google.accounts.id.renderButton(el, { theme: 'outline', size: 'large', shape: 'pill', text: 'continue_with', locale: 'es-419', width: 320 });
-  } else {
-    setTimeout(renderGoogleButtonInModal, 300);
   }
 }
 function priceOrLock(priceHtml){
@@ -1058,7 +1206,10 @@ function renderAuthModal(view){
         <h3>Inicia sesión o crea tu cuenta</h3>
         <p>Los precios de Crescen Inc son exclusivos para clientes registrados.</p>
       </div>
-      <div id="googleSignInModalBtn"></div>
+      <button class="social-login-btn google" onclick="handleGoogleAuth()">
+        <svg class="icon" viewBox="0 0 48 48" width="18" height="18"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.6-6 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l6-6C34.6 5.1 29.6 3 24 3 12.4 3 3 12.4 3 24s9.4 21 21 21 21-9.4 21-21c0-1.4-.1-2.7-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.8 1.1 8 3l6-6C34.6 5.1 29.6 3 24 3 16.3 3 9.6 7.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 45c5.5 0 10.4-1.9 14.2-5.1l-6.6-5.4C29.6 36.3 26.9 37 24 37c-5.2 0-9.6-3.3-11.2-8l-6.6 5.1C9.5 40.6 16.2 45 24 45z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.2 4.2-4 5.6l6.6 5.4C40.9 36.3 45 30.6 45 24c0-1.4-.1-2.7-.4-3.5z"/></svg>
+        Continuar con Google
+      </button>
       <button class="social-login-btn fb" onclick="handleFacebookLogin()">
         <svg class="icon" viewBox="0 0 24 24" fill="#fff"><path d="M22 12a10 10 0 1 0-11.5 9.9v-7H7.9V12h2.6V9.8c0-2.6 1.5-4 3.9-4 1.1 0 2.3.2 2.3.2v2.5h-1.3c-1.3 0-1.7.8-1.7 1.6V12h2.9l-.5 2.9h-2.4v7A10 10 0 0 0 22 12z"/></svg>
         Continuar con Facebook
@@ -1067,7 +1218,6 @@ function renderAuthModal(view){
       <button class="auth-option-btn" onclick="renderAuthModal('login')">Iniciar sesión con correo</button>
       <button class="auth-option-btn" onclick="renderAuthModal('register')">Crear una cuenta nueva</button>
     `;
-    setTimeout(renderGoogleButtonInModal, 50);
 
   } else if (view === 'login') {
     modal.innerHTML = `
@@ -1094,7 +1244,7 @@ function renderAuthModal(view){
       <button class="auth-back-btn" onclick="renderAuthModal('options')">← Volver</button>
       <div class="auth-modal-head">
         <h3>Crear tu cuenta</h3>
-        <p>Regístrate para ver precios y comprar. <em style="font-style:normal; color:var(--gold-dark);">(Demo: tu cuenta dura mientras esta pestaña esté abierta)</em></p>
+        <p>Regístrate para ver precios y comprar.</p>
       </div>
       <form class="auth-form" onsubmit="handleLocalRegister(event)">
         <label>Nombre completo</label>
@@ -1114,34 +1264,62 @@ function renderAuthModal(view){
     `;
   }
 }
-function handleLocalLogin(e){
+async function handleLocalLogin(e){
   e.preventDefault();
   const email = document.getElementById('loginEmail').value.trim().toLowerCase();
   const password = document.getElementById('loginPassword').value;
-  const account = localAccounts.find(a => a.email.toLowerCase() === email && a.password === password);
   const errEl = document.getElementById('loginError');
-  if (!account) {
-    errEl.textContent = 'Correo o contraseña incorrectos, o esta cuenta se creó en una sesión anterior y ya no está guardada (ver nota abajo).';
+  errEl.classList.remove('show');
+
+  const submitBtn = e.target.querySelector('button[type="submit"]');
+  submitBtn.disabled = true; submitBtn.textContent = 'Entrando...';
+
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+
+  submitBtn.disabled = false; submitBtn.textContent = 'Iniciar sesión';
+
+  if (error) {
+    errEl.textContent = error.message.includes('Invalid login credentials')
+      ? 'Correo o contraseña incorrectos.'
+      : error.message;
     errEl.classList.add('show');
-    return;
   }
-  loginSuccess({ name: account.name, email: account.email, picture: null, provider: 'local' }, 'cuenta Crescen');
+  // Si no hay error, onAuthStateChange (SIGNED_IN) se encarga del resto.
 }
-function handleLocalRegister(e){
+async function handleLocalRegister(e){
   e.preventDefault();
   const name = document.getElementById('regName').value.trim();
   const phone = document.getElementById('regPhone').value.trim();
-  const email = document.getElementById('regEmail').value.trim();
+  const email = document.getElementById('regEmail').value.trim().toLowerCase();
   const address = document.getElementById('regAddress').value.trim();
   const password = document.getElementById('regPassword').value;
   const errEl = document.getElementById('registerError');
-  if (localAccounts.some(a => a.email.toLowerCase() === email.toLowerCase())) {
-    errEl.textContent = 'Ya existe una cuenta con ese correo. Intenta iniciar sesión.';
+  errEl.classList.remove('show');
+
+  const submitBtn = e.target.querySelector('button[type="submit"]');
+  submitBtn.disabled = true; submitBtn.textContent = 'Creando cuenta...';
+
+  const { data, error } = await sb.auth.signUp({
+    email, password,
+    options: { data: { name, phone, address } }
+  });
+
+  submitBtn.disabled = false; submitBtn.textContent = 'Crear cuenta';
+
+  if (error) {
+    errEl.textContent = error.message.includes('already registered') || error.message.includes('User already registered')
+      ? 'Ya existe una cuenta con ese correo. Intenta iniciar sesión.'
+      : error.message;
     errEl.classList.add('show');
     return;
   }
-  localAccounts.push({ name, phone, email, address, password });
-  loginSuccess({ name, email, picture: null, provider: 'local' }, 'cuenta Crescen');
+
+  if (data.session) {
+    // Confirmación de correo desactivada: entra directo.
+  } else {
+    closeAuthModal();
+    showToast('Cuenta creada — revisa tu correo para confirmarla antes de entrar');
+  }
 }
 let searchQuery = '';
 let cart = []; // {id, qty}
@@ -1305,11 +1483,15 @@ function getFilteredProducts(){
   return list;
 }
 function productCardHTML(p){
+  const outOfStock = p.stock !== null && p.stock !== undefined && p.stock <= 0;
+  const isFav = favoriteIds.has(p.id);
   return `
     <div class="product-card">
       <div class="product-media" onclick="showProduct('${p.id}')">
         ${compatBrandTag(p)}
+        <button class="fav-heart ${isFav ? 'active' : ''}" aria-label="Favoritos" onclick="toggleFavorite('${p.id}'); event.stopPropagation();">${isFav ? '♥' : '♡'}</button>
         ${iconFor(p,100)}
+        ${outOfStock ? '<span class="oos-badge">Agotado</span>' : ''}
       </div>
       <div class="product-body">
         <div class="product-cat">${catLabel(p.cat)}</div>
@@ -1318,7 +1500,9 @@ function productCardHTML(p){
         <div class="product-stars">${stars(p.rating)}</div>
         <div class="product-foot">
           <div class="product-price"><span class="see-detail-hint" onclick="showProduct('${p.id}')">Ver precio en la ficha →</span><small>${p.yield_}</small></div>
-          <button class="add-btn" aria-label="Agregar al carrito" onclick="addToCart('${p.id}',1); event.stopPropagation();">+</button>
+          ${outOfStock
+            ? `<button class="add-btn add-btn-disabled" aria-label="Sin existencias" disabled title="Sin existencias">✕</button>`
+            : `<button class="add-btn" aria-label="Agregar al carrito" onclick="addToCart('${p.id}',1); event.stopPropagation();">+</button>`}
         </div>
       </div>
     </div>
@@ -1428,6 +1612,8 @@ function openSearchResults(){
   document.getElementById('view-home').style.display = 'none';
   document.getElementById('view-product').style.display = 'none';
   document.getElementById('view-search').style.display = 'block';
+  const sidebar = document.querySelector('#view-search .catalog-sidebar');
+  if(sidebar) sidebar.style.display = '';
 
   const list = getFilteredProducts();
   const grid = document.getElementById('productGrid');
@@ -1488,11 +1674,15 @@ function renderOffers(){
   const offers = PRODUCTS.filter(p => p.discount);
   track.innerHTML = offers.map(p => {
     const newPrice = Math.round(p.price * (1 - p.discount/100));
+    const outOfStock = p.stock !== null && p.stock !== undefined && p.stock <= 0;
+    const isFav = favoriteIds.has(p.id);
     return `
     <div class="carousel-card">
       <div class="product-media" onclick="showProduct('${p.id}')">
         <span class="offer-badge">−${p.discount}%</span>
+        <button class="fav-heart ${isFav ? 'active' : ''}" aria-label="Favoritos" onclick="toggleFavorite('${p.id}'); event.stopPropagation();">${isFav ? '♥' : '♡'}</button>
         ${iconFor(p,90)}
+        ${outOfStock ? '<span class="oos-badge">Agotado</span>' : ''}
       </div>
       <div class="product-body">
         <div class="product-cat">${catLabel(p.cat)}</div>
@@ -1500,7 +1690,9 @@ function renderOffers(){
         <div class="product-stars">${stars(p.rating)}</div>
         <div class="product-foot">
           <div class="product-price">${isLoggedIn ? `<span class="old-price">${money(p.price)}</span>${money(newPrice)}` : priceOrLock('')}</div>
-          <button class="add-btn" aria-label="Agregar al carrito" onclick="addToCart('${p.id}',1); event.stopPropagation();">+</button>
+          ${outOfStock
+            ? `<button class="add-btn add-btn-disabled" aria-label="Sin existencias" disabled title="Sin existencias">✕</button>`
+            : `<button class="add-btn" aria-label="Agregar al carrito" onclick="addToCart('${p.id}',1); event.stopPropagation();">+</button>`}
         </div>
       </div>
     </div>`;
@@ -1550,6 +1742,8 @@ function showProduct(id){
   const p = PRODUCTS.find(x => x.id === id);
   if(!p) return;
   detailQty = 1;
+  const outOfStock = p.stock !== null && p.stock !== undefined && p.stock <= 0;
+  const isFav = favoriteIds.has(p.id);
   document.getElementById('view-home').style.display = 'none';
   document.getElementById('view-search').style.display = 'none';
   const view = document.getElementById('view-product');
@@ -1560,6 +1754,7 @@ function showProduct(id){
       <div class="product-detail">
         <div class="detail-media">
           ${compatBrandTag(p)}
+          <button class="fav-heart fav-heart-detail ${isFav ? 'active' : ''}" aria-label="Favoritos" onclick="toggleFavorite('${p.id}')">${isFav ? '♥' : '♡'}</button>
           ${iconFor(p,220)}
         </div>
         <div>
@@ -1567,7 +1762,7 @@ function showProduct(id){
           <h1 class="detail-title">${p.name}</h1>
           <div class="detail-compat">Compatible con: ${p.compat}</div>
           <div class="detail-price">${priceOrLock(money(p.price))}</div>
-          ${isLoggedIn && p.stock !== null && p.stock <= 0 ? `<div class="stock-out-banner">SIN EXISTENCIAS</div>` : ''}
+          ${isLoggedIn && outOfStock ? `<div class="stock-out-banner">SIN EXISTENCIAS</div>` : ''}
           <div class="detail-price-note">IVA incluido · Mismo día en CDMX · Envíos a toda la república con costo adicional</div>
           ${!isLoggedIn ? `<div class="login-hint-banner">Los precios son exclusivos para clientes registrados. <button onclick="promptLogin()">Inicia sesión con Google</button> para verlos.</div>` : ''}
           <table class="spec-table">
@@ -1581,7 +1776,9 @@ function showProduct(id){
               <span id="detailQtyVal">1</span>
               <button onclick="changeDetailQty(1)" aria-label="Sumar">+</button>
             </div>
-            <button class="btn btn-primary" onclick="addToCart('${p.id}', detailQty); showToast('Agregado al carrito')">Agregar al carrito</button>
+            ${outOfStock
+              ? `<button class="btn btn-primary" disabled style="opacity:.5; cursor:not-allowed;" title="Sin existencias">Sin existencias</button>`
+              : `<button class="btn btn-primary" onclick="addToCart('${p.id}', detailQty); showToast('Agregado al carrito')">Agregar al carrito</button>`}
           </div>
           <div class="detail-badges">
             <span class="chip-pill" style="color:var(--ink-soft); border-color:var(--line); background:var(--white);">📦 Mismo día en CDMX · Envíos a toda la república</span>
@@ -1765,7 +1962,7 @@ animateBars();
 renderBannerDots();
 resetBannerTimer();
 syncSearchCatLabel('all');
-initGoogleSignIn();
+initAuth();
 loadProducts();
 </script>
 
