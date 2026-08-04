@@ -479,6 +479,17 @@
   .branch-option label{flex:1; font-size:13.5px; font-weight:600; cursor:pointer;}
   .branch-option .sub-lbl{display:block; font-weight:400; font-size:11.5px; color:var(--ink-soft); margin-top:1px;}
   .delivery-detail-box textarea, .delivery-detail-box input[type=text]{width:100%; border:1.5px solid var(--line); border-radius:7px; padding:10px 12px; font-family:var(--font-body); font-size:13.5px; resize:vertical;}
+  .addr-form-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  .addr-field-wide{grid-column:1 / -1;}
+  .addr-field input, .addr-field select{
+    width:100%; border:1.5px solid var(--line); border-radius:7px; padding:9px 11px;
+    font-family:var(--font-body); font-size:13.5px; background:var(--white);
+  }
+  .addr-field input:disabled{background:var(--paper-2); color:var(--ink-soft);}
+  .addr-field select{appearance:auto;}
+  .cp-status{display:block; font-size:11px; margin-top:4px;}
+  .cp-status-ok{color:#2E7D4F;}
+  .cp-status-error{color:#B1402F;}
   .ship-cost-note{font-size:12.5px; color:var(--ink-soft); margin-top:10px; line-height:1.5;}
   .branch-option{position:relative;}
   .addr-delete-btn{background:none; color:var(--ink-soft); font-size:13px; padding:4px; flex-shrink:0;}
@@ -487,6 +498,9 @@
   .save-addr-check input{accent-color:var(--gold-dark);}
   .modal .btn-primary{width:100%; justify-content:center; margin-top:16px; background:var(--charcoal); color:var(--gold-light);}
   .modal .btn-primary:hover{background:#000;}
+  .checkout-page-wrap{padding:32px 20px 80px; display:flex; justify-content:center;}
+  .checkout-card{max-width:520px; width:100%; padding:0; background:transparent; max-height:none; overflow:visible; position:static;}
+  .checkout-card .breadcrumb{margin-bottom:20px;}
   .confirm-box{text-align:center; padding:10px 0;}
   .confirm-icon{width:64px; height:64px; border-radius:50%; background:linear-gradient(120deg,var(--gold-light),var(--gold-dark)); display:flex; align-items:center; justify-content:center; margin:0 auto 18px; color:#fff; font-size:30px;}
   .confirm-order{font-family:var(--font-mono); background:var(--paper-2); border-radius:8px; padding:14px; margin:18px 0; font-size:13.5px;}
@@ -924,9 +938,9 @@
   <div class="modal" id="authModal"></div>
 </div>
 
-<div class="modal-overlay" id="checkoutOverlay">
-  <div class="modal" id="checkoutModal"></div>
-</div>
+<main id="view-checkout" style="display:none">
+  <div class="wrap checkout-page-wrap" id="checkoutPage"></div>
+</main>
 
 <div class="toast" id="toast"></div>
 
@@ -1164,6 +1178,7 @@ async function showAccount(tab){
   document.getElementById('view-home').style.display = 'none';
   document.getElementById('view-search').style.display = 'none';
   document.getElementById('view-product').style.display = 'none';
+  document.getElementById('view-checkout').style.display = 'none';
   const view = document.getElementById('view-account');
   view.style.display = 'block';
   view.innerHTML = `<div class="wrap"><div class="no-results"><b>Cargando tu cuenta...</b></div></div>`;
@@ -1751,6 +1766,7 @@ function openSearchResults(){
   document.getElementById('view-home').style.display = 'none';
   document.getElementById('view-product').style.display = 'none';
   document.getElementById('view-account').style.display = 'none';
+  document.getElementById('view-checkout').style.display = 'none';
   document.getElementById('view-search').style.display = 'block';
   const sidebar = document.querySelector('#view-search .catalog-sidebar');
   if(sidebar) sidebar.style.display = '';
@@ -1887,6 +1903,7 @@ function showProduct(id){
   document.getElementById('view-home').style.display = 'none';
   document.getElementById('view-search').style.display = 'none';
   document.getElementById('view-account').style.display = 'none';
+  document.getElementById('view-checkout').style.display = 'none';
   const view = document.getElementById('view-product');
   view.style.display = 'block';
   view.innerHTML = `
@@ -1939,6 +1956,7 @@ function showHome(){
   document.getElementById('view-product').style.display = 'none';
   document.getElementById('view-search').style.display = 'none';
   document.getElementById('view-account').style.display = 'none';
+  document.getElementById('view-checkout').style.display = 'none';
   document.getElementById('view-home').style.display = 'block';
   window.scrollTo({top:0, behavior:'smooth'});
 }
@@ -2091,19 +2109,48 @@ const BRANCHES = {
 let selectedPayment = null;
 let selectedDelivery = null; // 'pickup' | 'shipping'
 let selectedBranch = null;
-let shippingAddress = '';
-let shippingPostalCode = '';
 let shippingCost = 0;
 let shippingQuoteOptions = null; // null = usando estimado plano; array = cotización real de Skydropx
 let savedAddresses = [];
 let selectedSavedAddressId = null; // null = usando dirección nueva
 let saveNewAddress = true;
 
+// Campos de la dirección nueva (estructurados)
+let newAddr = {
+  street: '', ext_number: '', int_number: '', postal_code: '',
+  colonia: '', municipio: '', estado: '',
+  phone: '', recipient_name: '',
+};
+let cpLookupResult = null; // { estado, municipio, asentamientos: [...] } de la API de Postali
+let cpLookupStatus = 'idle'; // idle | loading | ok | error
+
 async function loadSavedAddresses(){
   if(!isLoggedIn || !currentUser?.email) return;
   const { data, error } = await sb.from('shipping_addresses').select('*').eq('user_email', currentUser.email).order('created_at', {ascending:false});
   if(error){ console.error('Error cargando direcciones:', error); return; }
   savedAddresses = data || [];
+}
+
+async function lookupPostalCode(cp){
+  cpLookupStatus = 'loading';
+  cpLookupResult = null;
+  renderShippingAddressDetail();
+  try {
+    const res = await fetch(`https://postali.app/api/v1/mx/cp/${cp}`);
+    if(!res.ok) throw new Error('CP no encontrado');
+    const data = await res.json();
+    cpLookupResult = data;
+    cpLookupStatus = 'ok';
+    newAddr.estado = data.estado || '';
+    newAddr.municipio = data.municipio || '';
+    if(data.asentamientos && data.asentamientos.length === 1){
+      newAddr.colonia = data.asentamientos[0].nombre;
+    }
+  } catch(e){
+    cpLookupStatus = 'error';
+  }
+  renderShippingAddressDetail();
+  document.getElementById('continueDeliveryBtn').disabled = !addressIsReady();
 }
 
 function currentShippingCost(){
@@ -2117,40 +2164,48 @@ function openCheckout(){
   selectedPayment = null;
   selectedDelivery = null;
   selectedBranch = null;
-  shippingAddress = '';
-  shippingPostalCode = '';
+  resetNewAddressForm();
   shippingCost = 0;
   shippingQuoteOptions = null;
   selectedSavedAddressId = savedAddresses.length > 0 ? savedAddresses[0].id : null;
+
+  closeCart();
+  document.getElementById('view-home').style.display = 'none';
+  document.getElementById('view-search').style.display = 'none';
+  document.getElementById('view-product').style.display = 'none';
+  document.getElementById('view-account').style.display = 'none';
+  document.getElementById('view-checkout').style.display = 'block';
   renderDeliveryStep();
-  document.getElementById('checkoutOverlay').classList.add('open');
+  window.scrollTo(0,0);
 }
 
 function renderDeliveryStep(){
-  const modal = document.getElementById('checkoutModal');
+  const modal = document.getElementById('checkoutPage');
   modal.innerHTML = `
-    <button class="modal-close" onclick="closeCheckout()">✕</button>
-    <h3>Método de entrega</h3>
-    <p class="sub">Subtotal de productos: <strong style="font-family:var(--font-mono)">${money(cartTotal())}</strong></p>
+    <div class="modal checkout-card">
+      <div class="breadcrumb"><button onclick="closeCheckout()">← Volver a la tienda</button></div>
+      <h3>Método de entrega</h3>
+      <p class="sub">Subtotal de productos: <strong style="font-family:var(--font-mono)">${money(cartTotal())}</strong></p>
 
-    <div class="pay-option" data-deliv="pickup" onclick="selectDelivery('pickup')">
-      <input type="radio" name="deliv" id="deliv-pickup">
-      <label for="deliv-pickup">Recoger en sucursal<span class="sub-lbl">Sin costo — listo el mismo día</span></label>
+      <div class="pay-option" data-deliv="pickup" onclick="selectDelivery('pickup')">
+        <input type="radio" name="deliv" id="deliv-pickup">
+        <label for="deliv-pickup">Recoger en sucursal<span class="sub-lbl">Sin costo — listo el mismo día</span></label>
+      </div>
+      <div class="pay-option" data-deliv="shipping" onclick="selectDelivery('shipping')">
+        <input type="radio" name="deliv" id="deliv-shipping">
+        <label for="deliv-shipping">Enviar a domicilio<span class="sub-lbl">${cartTotal() >= FREE_SHIPPING_THRESHOLD ? 'Envío gratis por tu compra' : `Desde ${money(FLAT_SHIPPING_RATE)}, según tu dirección`}</span></label>
+      </div>
+
+      <div id="deliveryDetail"></div>
+
+      <button class="btn btn-primary" id="continueDeliveryBtn" onclick="goToPaymentStep()" disabled>Continuar</button>
     </div>
-    <div class="pay-option" data-deliv="shipping" onclick="selectDelivery('shipping')">
-      <input type="radio" name="deliv" id="deliv-shipping">
-      <label for="deliv-shipping">Enviar a domicilio<span class="sub-lbl">${cartTotal() >= FREE_SHIPPING_THRESHOLD ? 'Envío gratis por tu compra' : `Desde ${money(FLAT_SHIPPING_RATE)}, según tu dirección`}</span></label>
-    </div>
-
-    <div id="deliveryDetail"></div>
-
-    <button class="btn btn-primary" id="continueDeliveryBtn" onclick="goToPaymentStep()" disabled>Continuar</button>
   `;
 }
 
 function selectDelivery(method){
   selectedDelivery = method;
-  document.querySelectorAll('#checkoutModal .pay-option[data-deliv]').forEach(el => el.classList.toggle('selected', el.dataset.deliv === method));
+  document.querySelectorAll('#checkoutPage .pay-option[data-deliv]').forEach(el => el.classList.toggle('selected', el.dataset.deliv === method));
   document.getElementById(`deliv-${method}`).checked = true;
 
   const detail = document.getElementById('deliveryDetail');
@@ -2158,8 +2213,7 @@ function selectDelivery(method){
 
   if(method === 'pickup'){
     detail.innerHTML = `
-      <div class="delivery-detail-box">
-        <label class="field-label">¿En qué sucursal recoges?</label>
+      <div class="delivery-detail-box">        <label class="field-label">¿En qué sucursal recoges?</label>
         ${Object.entries(BRANCHES).map(([key, b]) => `
           <div class="branch-option ${selectedBranch === key ? 'selected' : ''}" onclick="selectBranch('${key}')">
             <input type="radio" name="branch" id="branch-${key}" ${selectedBranch === key ? 'checked' : ''}>
@@ -2178,7 +2232,12 @@ function selectDelivery(method){
 
 function addressIsReady(){
   if(selectedSavedAddressId !== null) return true;
-  return shippingAddress.trim().length >= 10 && /^\d{5}$/.test(shippingPostalCode);
+  return newAddr.street.trim().length >= 2
+    && newAddr.ext_number.trim().length >= 1
+    && /^\d{5}$/.test(newAddr.postal_code)
+    && newAddr.colonia.trim().length >= 2
+    && newAddr.phone.trim().length >= 10
+    && newAddr.recipient_name.trim().length >= 2;
 }
 
 function renderShippingAddressDetail(){
@@ -2191,7 +2250,7 @@ function renderShippingAddressDetail(){
     addressBlock += savedAddresses.map(a => `
       <div class="branch-option ${selectedSavedAddressId === a.id ? 'selected' : ''}" onclick="selectSavedAddress(${a.id})">
         <input type="radio" name="savedAddr" id="addr-${a.id}" ${selectedSavedAddressId === a.id ? 'checked' : ''}>
-        <label for="addr-${a.id}">${escapeHtmlClient(a.label || 'Mi dirección')}<span class="sub-lbl">${escapeHtmlClient(a.address)}${a.postal_code ? ' · CP ' + escapeHtmlClient(a.postal_code) : ''}</span></label>
+        <label for="addr-${a.id}">${escapeHtmlClient(a.label || 'Mi dirección')}<span class="sub-lbl">${escapeHtmlClient(a.address)}</span></label>
         <button type="button" class="addr-delete-btn" onclick="deleteSavedAddress(event, ${a.id})" aria-label="Eliminar dirección">✕</button>
       </div>
     `).join('');
@@ -2203,16 +2262,60 @@ function renderShippingAddressDetail(){
     `;
   }
 
-  const showTextarea = savedAddresses.length === 0 || selectedSavedAddressId === null;
+  const showForm = savedAddresses.length === 0 || selectedSavedAddressId === null;
+
+  const colonias = cpLookupResult?.asentamientos || [];
+  const colonyOptions = colonias.length > 0
+    ? colonias.map(c => `<option value="${escapeHtmlClient(c.nombre)}" ${newAddr.colonia === c.nombre ? 'selected' : ''}>${escapeHtmlClient(c.nombre)}</option>`).join('')
+    : '';
 
   detail.innerHTML = `
     <div class="delivery-detail-box">
       ${addressBlock}
-      ${showTextarea ? `
-        <label class="field-label" style="margin-top:${savedAddresses.length > 0 ? '12px' : '0'};">Dirección de envío</label>
-        <textarea id="shippingAddressInput" rows="3" placeholder="Calle, número, colonia, alcaldía/municipio, ciudad" oninput="onAddressInput()">${shippingAddress}</textarea>
-        <label class="field-label" style="margin-top:10px;">Código postal</label>
-        <input type="text" id="shippingCpInput" inputmode="numeric" maxlength="5" placeholder="Ej. 06600" value="${shippingPostalCode}" oninput="onAddressInput()">
+      ${showForm ? `
+        <div class="addr-form-grid" style="margin-top:${savedAddresses.length > 0 ? '12px' : '0'};">
+          <div class="addr-field addr-field-wide">
+            <label class="field-label">Calle o avenida</label>
+            <input type="text" id="f-street" value="${escapeHtmlClient(newAddr.street)}" placeholder="Ej. Av. Insurgentes Sur" oninput="onFieldInput('street', this.value)">
+          </div>
+          <div class="addr-field">
+            <label class="field-label">Número externo</label>
+            <input type="text" id="f-ext" value="${escapeHtmlClient(newAddr.ext_number)}" placeholder="Ej. 123" oninput="onFieldInput('ext_number', this.value)">
+          </div>
+          <div class="addr-field">
+            <label class="field-label">Número interno (opcional)</label>
+            <input type="text" id="f-int" value="${escapeHtmlClient(newAddr.int_number)}" placeholder="Ej. Depto 4B" oninput="onFieldInput('int_number', this.value)">
+          </div>
+          <div class="addr-field">
+            <label class="field-label">Código postal</label>
+            <input type="text" id="f-cp" inputmode="numeric" maxlength="5" value="${escapeHtmlClient(newAddr.postal_code)}" placeholder="Ej. 06600" oninput="onCpInput(this.value)">
+            ${cpLookupStatus === 'loading' ? '<span class="cp-status">Buscando...</span>' : ''}
+            ${cpLookupStatus === 'error' ? '<span class="cp-status cp-status-error">No se encontró ese CP, verifica</span>' : ''}
+            ${cpLookupStatus === 'ok' ? '<span class="cp-status cp-status-ok">✓ CP válido</span>' : ''}
+          </div>
+          <div class="addr-field">
+            <label class="field-label">Colonia</label>
+            ${colonias.length > 0
+              ? `<select id="f-colonia" onchange="onFieldInput('colonia', this.value)">
+                  <option value="">Elige tu colonia</option>
+                  ${colonyOptions}
+                </select>`
+              : `<input type="text" id="f-colonia" value="${escapeHtmlClient(newAddr.colonia)}" placeholder="Escribe tu CP primero" oninput="onFieldInput('colonia', this.value)" ${cpLookupStatus !== 'ok' ? 'disabled' : ''}>`
+            }
+          </div>
+          <div class="addr-field">
+            <label class="field-label">Estado</label>
+            <input type="text" value="${escapeHtmlClient(newAddr.estado)}" placeholder="Se completa con tu CP" disabled>
+          </div>
+          <div class="addr-field">
+            <label class="field-label">Teléfono de contacto</label>
+            <input type="tel" id="f-phone" value="${escapeHtmlClient(newAddr.phone)}" placeholder="10 dígitos" maxlength="10" oninput="onFieldInput('phone', this.value.replace(/\\D/g,''))">
+          </div>
+          <div class="addr-field">
+            <label class="field-label">Persona que recibe</label>
+            <input type="text" id="f-recipient" value="${escapeHtmlClient(newAddr.recipient_name)}" placeholder="Nombre completo" oninput="onFieldInput('recipient_name', this.value)">
+          </div>
+        </div>
         <label class="save-addr-check">
           <input type="checkbox" id="saveAddrCheckbox" ${saveNewAddress ? 'checked' : ''} onchange="saveNewAddress = this.checked">
           Guardar esta dirección para la próxima vez
@@ -2223,16 +2326,58 @@ function renderShippingAddressDetail(){
   `;
 }
 
+function onFieldInput(field, value){
+  newAddr[field] = value;
+  document.getElementById('continueDeliveryBtn').disabled = !addressIsReady();
+}
+
+function onCpInput(value){
+  const cp = value.replace(/\D/g,'').slice(0,5);
+  newAddr.postal_code = cp;
+  newAddr.colonia = '';
+  cpLookupResult = null;
+  cpLookupStatus = 'idle';
+  if(cp.length === 5){
+    lookupPostalCode(cp);
+  } else {
+    document.getElementById('continueDeliveryBtn').disabled = true;
+  }
+}
+
+function resetNewAddressForm(){
+  newAddr = { street:'', ext_number:'', int_number:'', postal_code:'', colonia:'', municipio:'', estado:'', phone:'', recipient_name:'' };
+  cpLookupResult = null;
+  cpLookupStatus = 'idle';
+}
+
+function getEffectivePostalCode(){
+  if(selectedSavedAddressId !== null){
+    const a = savedAddresses.find(a => a.id === selectedSavedAddressId);
+    return a ? (a.postal_code || '') : '';
+  }
+  return newAddr.postal_code;
+}
+
+function getFormattedAddress(){
+  if(selectedSavedAddressId !== null){
+    const a = savedAddresses.find(a => a.id === selectedSavedAddressId);
+    return a ? a.address : '';
+  }
+  const intPart = newAddr.int_number ? ` Int. ${newAddr.int_number}` : '';
+  return `${newAddr.street} ${newAddr.ext_number}${intPart}, Col. ${newAddr.colonia}, ${newAddr.municipio}, ${newAddr.estado}, CP ${newAddr.postal_code}`;
+}
+
+function getRecipientInfo(){
+  if(selectedSavedAddressId !== null){
+    const a = savedAddresses.find(a => a.id === selectedSavedAddressId);
+    return { name: a?.recipient_name || '', phone: a?.phone || '' };
+  }
+  return { name: newAddr.recipient_name, phone: newAddr.phone };
+}
+
 function selectSavedAddress(id){
   selectedSavedAddressId = id;
-  if(id !== null){
-    const addr = savedAddresses.find(a => a.id === id);
-    shippingAddress = addr ? addr.address : '';
-    shippingPostalCode = addr ? (addr.postal_code || '') : '';
-  } else {
-    shippingAddress = '';
-    shippingPostalCode = '';
-  }
+  if(id === null) resetNewAddressForm();
   renderShippingAddressDetail();
   document.getElementById('continueDeliveryBtn').disabled = !addressIsReady();
 }
@@ -2258,13 +2403,6 @@ function selectBranch(key){
   document.getElementById('continueDeliveryBtn').disabled = false;
 }
 
-function onAddressInput(){
-  shippingAddress = document.getElementById('shippingAddressInput').value;
-  const cpEl = document.getElementById('shippingCpInput');
-  if(cpEl) shippingPostalCode = cpEl.value.replace(/\D/g,'').slice(0,5);
-  document.getElementById('continueDeliveryBtn').disabled = !addressIsReady();
-}
-
 async function goToPaymentStep(){
   if(selectedDelivery !== 'shipping' || cartTotal() >= FREE_SHIPPING_THRESHOLD){
     shippingCost = currentShippingCost();
@@ -2279,7 +2417,7 @@ async function goToPaymentStep(){
 
   try {
     const { data, error } = await sb.functions.invoke('shipping-quote', {
-      body: { postal_code: shippingPostalCode }
+      body: { postal_code: getEffectivePostalCode() }
     });
     if(error || !data || !data.cheapest) throw new Error('sin cotización disponible');
     shippingCost = Math.round(data.cheapest.price);
@@ -2297,35 +2435,36 @@ async function goToPaymentStep(){
 }
 
 function renderPaymentStep(){
-  const modal = document.getElementById('checkoutModal');
+  const modal = document.getElementById('checkoutPage');
   const grandTotal = cartTotal() + shippingCost;
   modal.innerHTML = `
-    <button class="modal-close" onclick="closeCheckout()">✕</button>
-    <button class="auth-back-btn" onclick="renderDeliveryStep()">← Volver a entrega</button>
-    <h3>Método de pago</h3>
-    <p class="sub">
-      Productos: <strong style="font-family:var(--font-mono)">${money(cartTotal())}</strong>
-      ${shippingCost > 0 ? ` + Envío: <strong style="font-family:var(--font-mono)">${money(shippingCost)}</strong>${shippingQuoteOptions ? ` (${escapeHtmlClient(shippingQuoteOptions[0].carrier)})` : ''}` : ' · Envío gratis'}
-      <br>Total a pagar: <strong style="font-family:var(--font-mono)">${money(grandTotal)}</strong>
-    </p>
-    <div class="pay-option" data-pay="tarjeta" onclick="selectPayment('tarjeta')">
-      <input type="radio" name="pay" id="pay-tarjeta">
-      <label for="pay-tarjeta">Tarjeta de crédito/débito<span class="sub-lbl">Visa, Mastercard, Amex</span></label>
+    <div class="modal checkout-card">
+      <div class="breadcrumb"><button onclick="renderDeliveryStep()">← Volver a entrega</button></div>
+      <h3>Método de pago</h3>
+      <p class="sub">
+        Productos: <strong style="font-family:var(--font-mono)">${money(cartTotal())}</strong>
+        ${shippingCost > 0 ? ` + Envío: <strong style="font-family:var(--font-mono)">${money(shippingCost)}</strong>${shippingQuoteOptions ? ` (${escapeHtmlClient(shippingQuoteOptions[0].carrier)})` : ''}` : ' · Envío gratis'}
+        <br>Total a pagar: <strong style="font-family:var(--font-mono)">${money(grandTotal)}</strong>
+      </p>
+      <div class="pay-option" data-pay="tarjeta" onclick="selectPayment('tarjeta')">
+        <input type="radio" name="pay" id="pay-tarjeta">
+        <label for="pay-tarjeta">Tarjeta de crédito/débito<span class="sub-lbl">Visa, Mastercard, Amex</span></label>
+      </div>
+      <div class="pay-option" data-pay="oxxo" onclick="selectPayment('oxxo')">
+        <input type="radio" name="pay" id="pay-oxxo">
+        <label for="pay-oxxo">Pago en OXXO<span class="sub-lbl">Genera una ficha, paga en efectivo</span></label>
+      </div>
+      <div class="pay-option" data-pay="transferencia" onclick="selectPayment('transferencia')">
+        <input type="radio" name="pay" id="pay-transferencia">
+        <label for="pay-transferencia">Transferencia SPEI<span class="sub-lbl">Confirmación en 24h hábiles</span></label>
+      </div>
+      <button class="btn btn-primary" id="confirmPayBtn" onclick="confirmOrder()" disabled>Confirmar pedido</button>
     </div>
-    <div class="pay-option" data-pay="oxxo" onclick="selectPayment('oxxo')">
-      <input type="radio" name="pay" id="pay-oxxo">
-      <label for="pay-oxxo">Pago en OXXO<span class="sub-lbl">Genera una ficha, paga en efectivo</span></label>
-    </div>
-    <div class="pay-option" data-pay="transferencia" onclick="selectPayment('transferencia')">
-      <input type="radio" name="pay" id="pay-transferencia">
-      <label for="pay-transferencia">Transferencia SPEI<span class="sub-lbl">Confirmación en 24h hábiles</span></label>
-    </div>
-    <button class="btn btn-primary" id="confirmPayBtn" onclick="confirmOrder()" disabled>Confirmar pedido</button>
   `;
 }
 function selectPayment(method){
   selectedPayment = method;
-  document.querySelectorAll('#checkoutModal .pay-option[data-pay]').forEach(el => el.classList.toggle('selected', el.dataset.pay === method));
+  document.querySelectorAll('#checkoutPage .pay-option[data-pay]').forEach(el => el.classList.toggle('selected', el.dataset.pay === method));
   document.getElementById(`pay-${method}`).checked = true;
   document.getElementById('confirmPayBtn').disabled = false;
 }
@@ -2337,6 +2476,7 @@ async function confirmOrder(){
   const payLabel = {tarjeta:'Tarjeta', oxxo:'OXXO', transferencia:'Transferencia SPEI'}[selectedPayment];
   const productsTotal = cartTotal();
   const total = productsTotal + shippingCost;
+  const recipient = selectedDelivery === 'shipping' ? getRecipientInfo() : { name: null, phone: null };
 
   const { data: orderData, error: orderError } = await sb.from('orders').insert({
     order_number: orderNum,
@@ -2346,18 +2486,21 @@ async function confirmOrder(){
     total: total,
     delivery_method: selectedDelivery,
     pickup_branch: selectedDelivery === 'pickup' ? BRANCHES[selectedBranch].label : null,
-    shipping_address: selectedDelivery === 'shipping' ? shippingAddress.trim() : null,
+    shipping_address: selectedDelivery === 'shipping' ? getFormattedAddress() : null,
     shipping_cost: shippingCost,
+    recipient_name: recipient.name,
+    recipient_phone: recipient.phone,
   }).select().single();
 
   if(orderError){
-    const modal = document.getElementById('checkoutModal');
+    const modal = document.getElementById('checkoutPage');
     modal.innerHTML = `
-      <button class="modal-close" onclick="closeCheckout()">✕</button>
-      <div class="confirm-box">
-        <h3>No se pudo registrar el pedido</h3>
-        <p class="sub">${orderError.message}</p>
-        <button class="btn btn-primary" style="width:100%; justify-content:center;" onclick="closeCheckout()">Cerrar</button>
+      <div class="modal checkout-card">
+        <div class="confirm-box">
+          <h3>No se pudo registrar el pedido</h3>
+          <p class="sub">${orderError.message}</p>
+          <button class="btn btn-primary" style="width:100%; justify-content:center;" onclick="closeCheckout()">Cerrar</button>
+        </div>
       </div>
     `;
     return;
@@ -2375,35 +2518,44 @@ async function confirmOrder(){
   });
   await sb.from('order_items').insert(itemRows);
 
-  if(selectedDelivery === 'shipping' && selectedSavedAddressId === null && saveNewAddress && shippingAddress.trim()){
-    const { data: newAddr } = await sb.from('shipping_addresses').insert({
+  if(selectedDelivery === 'shipping' && selectedSavedAddressId === null && saveNewAddress && newAddr.street.trim()){
+    const { data: savedAddrRow } = await sb.from('shipping_addresses').insert({
       user_email: currentUser.email,
       label: `Dirección ${savedAddresses.length + 1}`,
-      address: shippingAddress.trim(),
-      postal_code: shippingPostalCode,
+      address: getFormattedAddress(),
+      postal_code: newAddr.postal_code,
+      street: newAddr.street,
+      ext_number: newAddr.ext_number,
+      int_number: newAddr.int_number || null,
+      colonia: newAddr.colonia,
+      municipio: newAddr.municipio,
+      estado: newAddr.estado,
+      phone: newAddr.phone,
+      recipient_name: newAddr.recipient_name,
     }).select().single();
-    if(newAddr) savedAddresses.unshift(newAddr);
+    if(savedAddrRow) savedAddresses.unshift(savedAddrRow);
   }
 
   const deliveryLine = selectedDelivery === 'pickup'
     ? `Recoger en: <strong>${BRANCHES[selectedBranch].label}</strong>`
-    : `Envío a: <strong>${escapeHtmlClient(shippingAddress.trim())}</strong>`;
+    : `Envío a: <strong>${escapeHtmlClient(getFormattedAddress())}</strong>`;
 
-  const modal = document.getElementById('checkoutModal');
+  const modal = document.getElementById('checkoutPage');
   modal.innerHTML = `
-    <button class="modal-close" onclick="closeCheckout()">✕</button>
-    <div class="confirm-box">
-      <div class="confirm-icon">✓</div>
-      <h3>¡Pedido confirmado!</h3>
-      <p class="sub">Este es un sitio de demostración — no se procesó ningún pago real.</p>
-      <div class="confirm-order">
-        <div>Número de pedido: <strong>${orderNum}</strong></div>
-        <div>Método de pago: <strong>${payLabel}</strong></div>
-        <div>${deliveryLine}</div>
-        ${shippingCost > 0 ? `<div>Costo de envío: <strong>${money(shippingCost)}</strong></div>` : ''}
-        <div>Total: <strong>${money(total)}</strong></div>
+    <div class="modal checkout-card">
+      <div class="confirm-box">
+        <div class="confirm-icon">✓</div>
+        <h3>¡Pedido confirmado!</h3>
+        <p class="sub">Este es un sitio de demostración — no se procesó ningún pago real.</p>
+        <div class="confirm-order">
+          <div>Número de pedido: <strong>${orderNum}</strong></div>
+          <div>Método de pago: <strong>${payLabel}</strong></div>
+          <div>${deliveryLine}</div>
+          ${shippingCost > 0 ? `<div>Costo de envío: <strong>${money(shippingCost)}</strong></div>` : ''}
+          <div>Total: <strong>${money(total)}</strong></div>
+        </div>
+        <button class="btn btn-primary" style="width:100%; justify-content:center;" onclick="finishOrder()">Volver a la tienda</button>
       </div>
-      <button class="btn btn-primary" style="width:100%; justify-content:center;" onclick="finishOrder()">Volver a la tienda</button>
     </div>
   `;
 }
@@ -2413,12 +2565,10 @@ function escapeHtmlClient(s){
 function finishOrder(){
   cart = [];
   renderCart();
-  closeCheckout();
-  closeCart();
   showHome();
 }
 function closeCheckout(){
-  document.getElementById('checkoutOverlay').classList.remove('open');
+  showHome();
 }
 
 /* ---------- TOAST ---------- */
