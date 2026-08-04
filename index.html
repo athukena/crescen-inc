@@ -2419,12 +2419,22 @@ async function goToPaymentStep(){
     const { data, error } = await sb.functions.invoke('super-task', {
       body: { postal_code: getEffectivePostalCode() }
     });
-    if(error || !data || !data.cheapest) throw new Error('sin cotización disponible');
+    if(error){
+      let detail = error.message;
+      try {
+        if(error.context && typeof error.context.json === 'function'){
+          const body = await error.context.json();
+          detail = body.error || JSON.stringify(body);
+        }
+      } catch(_){}
+      throw new Error(detail);
+    }
+    if(!data || !data.cheapest) throw new Error('la función respondió pero sin opciones de envío: ' + JSON.stringify(data));
     shippingCost = Math.round(data.cheapest.price);
     shippingQuoteOptions = data.options;
   } catch(e) {
     // La función de cotización real aún no está lista o falló — usamos el estimado plano, sin interrumpir la compra
-    console.warn('Cotización real no disponible, usando estimado:', e.message);
+    console.warn('Cotización real no disponible, usando estimado. MOTIVO:', e.message);
     shippingCost = currentShippingCost();
     shippingQuoteOptions = null;
   }
