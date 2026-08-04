@@ -112,6 +112,8 @@
   .status-enviado{background:#1B3A52; color:#8FC2E8; border-color:#2E6690;}
   .status-entregado{background:#1E3A24; color:#8FD19E; border-color:#2E6E3E;}
   .status-cancelado{background:#3A1E1A; color:#E08A78; border-color:#8A3A2A;}
+  .attended-tag{font-size:12px; color:var(--gold-light); font-family:var(--font-mono);}
+  .unattended-tag{font-size:12px; color:var(--text-dim); font-style:italic;}
 
   /* ---------- table ---------- */
   .table-wrap{border:1px solid var(--line); border-radius:8px; overflow:hidden;}
@@ -333,6 +335,7 @@ const SUPABASE_KEY = 'sb_publishable_JcPBR-kmxmfVIgoadCGc7Q_WxDz3Iym';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let currentUser = null;
+let currentStaffName = null;
 let allProducts = [];
 
 async function init() {
@@ -371,6 +374,7 @@ async function handleSignedIn(user) {
   }
 
   document.getElementById('who-name').textContent = data.name || user.email;
+  currentStaffName = data.name || user.email;
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   await loadProducts();
@@ -441,6 +445,7 @@ function renderOrders() {
             <th>Fecha</th>
             <th style="text-align:right">Total</th>
             <th>Estatus</th>
+            <th>Atendido por</th>
             <th></th>
           </tr>
         </thead>
@@ -466,6 +471,7 @@ function orderRowHTML(o) {
           ${ORDER_STATUSES.map(s => `<option value="${s}" ${s === o.status ? 'selected' : ''}>${ORDER_STATUS_LABELS[s]}</option>`).join('')}
         </select>
       </td>
+      <td id="attended-cell-${o.id}">${o.attended_by_name ? `<span class="attended-tag">${escapeHtml(o.attended_by_name)}</span>` : `<span class="unattended-tag">Sin atender</span>`}</td>
       <td style="text-align:right; white-space:nowrap;">
         <button class="btn-ghost" onclick="openOrderDetail(${o.id})">Ver detalle</button>
       </td>
@@ -487,16 +493,35 @@ async function updateOrderStatus(orderId, newStatus, selectEl) {
   if (order) order.status = newStatus;
 }
 
-function openOrderDetail(orderId) {
+async function openOrderDetail(orderId) {
   const o = allOrders.find(x => x.id === orderId);
   if (!o) return;
+
+  // Si nadie lo ha atendido, esta persona lo toma — solo la primera vez
+  if (!o.attended_by_email) {
+    const { data, error } = await sb.from('orders')
+      .update({ attended_by_email: currentUser.email, attended_by_name: currentStaffName, attended_at: new Date().toISOString() })
+      .eq('id', orderId)
+      .is('attended_by_email', null)
+      .select()
+      .maybeSingle();
+    if (!error && data) {
+      o.attended_by_email = data.attended_by_email;
+      o.attended_by_name = data.attended_by_name;
+      o.attended_at = data.attended_at;
+      const cell = document.getElementById(`attended-cell-${orderId}`);
+      if (cell) cell.innerHTML = `<span class="attended-tag">${escapeHtml(o.attended_by_name)}</span>`;
+    }
+  }
+
   const items = o.order_items || [];
   const modal = document.getElementById('order-detail-modal');
   modal.innerHTML = `
     <h2>Pedido ${escapeHtml(o.order_number)}</h2>
     <p style="color:var(--text-dim); font-size:13px; margin-bottom:16px;">
       ${escapeHtml(o.user_email)} · ${new Date(o.created_at).toLocaleString('es-MX')}<br>
-      Método de pago: ${escapeHtml(o.payment_method || '—')}
+      Método de pago: ${escapeHtml(o.payment_method || '—')}<br>
+      Atendido por: ${o.attended_by_name ? escapeHtml(o.attended_by_name) : 'sin atender'}
     </p>
     <div class="table-wrap">
       <table>
