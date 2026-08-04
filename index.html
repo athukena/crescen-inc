@@ -445,6 +445,11 @@
   .cart-item-controls{display:flex; align-items:center; gap:8px; margin-top:8px;}
   .cart-item-controls button{width:24px; height:24px; border:1px solid var(--line); border-radius:6px; font-size:14px;}
   .cart-item-remove{font-size:11.5px; color:#A3402C; font-weight:600; margin-left:auto;}
+  .cart-item-save{font-size:11px; color:var(--ink-soft); font-weight:600; background:var(--paper-2); border:1px solid var(--line); border-radius:5px; padding:3px 8px;}
+  .cart-item-save:hover{color:var(--ink); border-color:var(--gold-dark);}
+  .low-stock-tag{font-size:11px; font-weight:600; color:#B1402F; margin-top:4px;}
+  .saved-section-title{font-size:12px; font-weight:700; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.03em; padding:16px 0 6px; border-top:1px solid var(--line); margin-top:8px;}
+  .saved-item{opacity:.85;}
   .cart-empty{text-align:center; padding:60px 20px; color:var(--ink-soft); font-size:14px;}
   .cart-foot{padding:20px 22px; border-top:1px solid var(--line);}
   .cart-subtotal{display:flex; justify-content:space-between; font-family:var(--font-mono); font-weight:600; font-size:16px; margin-bottom:14px;}
@@ -465,6 +470,21 @@
   .pay-option label{flex:1; font-size:14px; font-weight:600; cursor:pointer;}
   .pay-option .sub-lbl{display:block; font-weight:400; font-size:12px; color:var(--ink-soft); margin-top:2px;}
   .pay-option.selected{border-color:var(--gold-dark); background:var(--paper-2);}
+  .delivery-detail-box{background:var(--paper-2); border-radius:8px; padding:14px 16px; margin-bottom:14px;}
+  .field-label{display:block; font-size:12.5px; font-weight:600; color:var(--ink-soft); margin-bottom:8px;}
+  .branch-option{display:flex; align-items:center; gap:10px; border:1.5px solid var(--line); border-radius:7px; padding:10px 12px; margin-bottom:8px; background:var(--white); cursor:pointer;}
+  .branch-option:last-child{margin-bottom:0;}
+  .branch-option.selected{border-color:var(--gold-dark);}
+  .branch-option input{accent-color:var(--gold-dark);}
+  .branch-option label{flex:1; font-size:13.5px; font-weight:600; cursor:pointer;}
+  .branch-option .sub-lbl{display:block; font-weight:400; font-size:11.5px; color:var(--ink-soft); margin-top:1px;}
+  .delivery-detail-box textarea{width:100%; border:1.5px solid var(--line); border-radius:7px; padding:10px 12px; font-family:var(--font-body); font-size:13.5px; resize:vertical;}
+  .ship-cost-note{font-size:12.5px; color:var(--ink-soft); margin-top:10px; line-height:1.5;}
+  .branch-option{position:relative;}
+  .addr-delete-btn{background:none; color:var(--ink-soft); font-size:13px; padding:4px; flex-shrink:0;}
+  .addr-delete-btn:hover{color:#A3402C;}
+  .save-addr-check{display:flex; align-items:center; gap:7px; font-size:12.5px; color:var(--ink-soft); margin-top:10px; cursor:pointer;}
+  .save-addr-check input{accent-color:var(--gold-dark);}
   .modal .btn-primary{width:100%; justify-content:center; margin-top:16px; background:var(--charcoal); color:var(--gold-light);}
   .modal .btn-primary:hover{background:#000;}
   .confirm-box{text-align:center; padding:10px 0;}
@@ -1050,6 +1070,7 @@ function applySession(session, justSignedIn){
   updateAuthUI();
   loadFavorites();
   loadNotifications();
+  loadSavedAddresses();
   renderGrid();
   renderOffers();
   renderCart();
@@ -1440,6 +1461,7 @@ async function handleLocalRegister(e){
 }
 let searchQuery = '';
 let cart = []; // {id, qty}
+let savedForLater = []; // {id, qty}
 
 /* ---------- ICONS ---------- */
 function iconFor(p, size){
@@ -1927,7 +1949,12 @@ function addToCart(id, qty){
   if(existing) existing.qty += qty;
   else cart.push({id, qty});
   renderCart();
-  showToast('Agregado al carrito');
+  const p = PRODUCTS.find(x => x.id === id);
+  if(p && p.stock !== null && p.stock !== undefined && p.stock > 0 && p.stock < 5){
+    showToast(`Agregado — pocas existencias (quedan ${p.stock})`);
+  } else {
+    showToast('Agregado al carrito');
+  }
   openCart();
 }
 function changeCartQty(id, delta){
@@ -1939,6 +1966,30 @@ function changeCartQty(id, delta){
 }
 function removeFromCart(id){
   cart = cart.filter(c => c.id !== id);
+  renderCart();
+}
+function saveForLater(id){
+  const item = cart.find(c => c.id === id);
+  if(!item) return;
+  cart = cart.filter(c => c.id !== id);
+  const existingSaved = savedForLater.find(c => c.id === id);
+  if(existingSaved) existingSaved.qty += item.qty;
+  else savedForLater.push(item);
+  renderCart();
+  showToast('Guardado para después');
+}
+function moveToCart(id){
+  const item = savedForLater.find(c => c.id === id);
+  if(!item) return;
+  savedForLater = savedForLater.filter(c => c.id !== id);
+  const existingCart = cart.find(c => c.id === id);
+  if(existingCart) existingCart.qty += item.qty;
+  else cart.push(item);
+  renderCart();
+  showToast('Movido al carrito');
+}
+function removeSaved(id){
+  savedForLater = savedForLater.filter(c => c.id !== id);
   renderCart();
 }
 function cartTotal(){
@@ -1956,30 +2007,61 @@ function renderCart(){
   document.getElementById('checkoutBtn').textContent = isLoggedIn ? 'Ir a pagar' : 'Inicia sesión para pagar';
 
   const wrap = document.getElementById('cartItemsWrap');
-  if(cart.length === 0){
-    wrap.innerHTML = `<div class="cart-empty">Tu carrito está vacío.<br>Agrega productos desde el catálogo.</div>`;
+  let html = '';
+  if(cart.length === 0 && savedForLater.length === 0){
+    html = `<div class="cart-empty">Tu carrito está vacío.<br>Agrega productos desde el catálogo.</div>`;
   } else {
-    wrap.innerHTML = (!isLoggedIn ? `<div class="login-hint-banner">Inicia sesión con Google para ver precios y pagar. <button onclick="promptLogin()">Iniciar sesión</button></div>` : '') + cart.map(c => {
-      const p = PRODUCTS.find(x => x.id === c.id);
-      if(!p) return '';
-      return `
-      <div class="cart-item">
-        <div class="cart-item-media">${iconFor(p,34)}</div>
-        <div class="cart-item-info">
-          <div class="cart-item-name">${p.name}</div>
-          <div class="cart-item-price">${isLoggedIn ? money(p.price) + ' c/u' : '<span class="price-locked-cart">🔒 precio oculto</span>'}</div>
-          <div class="cart-item-controls">
-            <button onclick="changeCartQty('${p.id}',-1)">−</button>
-            <span style="font-family:var(--font-mono); font-size:12.5px; min-width:16px; text-align:center;">${c.qty}</span>
-            <button onclick="changeCartQty('${p.id}',1)">+</button>
-            <button class="cart-item-remove" onclick="removeFromCart('${p.id}')">Quitar</button>
-          </div>
-        </div>
-      </div>`;
-    }).join('');
-  }
+    if(!isLoggedIn) html += `<div class="login-hint-banner">Inicia sesión con Google para ver precios y pagar. <button onclick="promptLogin()">Iniciar sesión</button></div>`;
 
-  const threshold = 999;
+    if(cart.length === 0){
+      html += `<div class="cart-empty" style="padding:18px 0;">Tu carrito está vacío.</div>`;
+    } else {
+      html += cart.map(c => {
+        const p = PRODUCTS.find(x => x.id === c.id);
+        if(!p) return '';
+        const lowStock = p.stock !== null && p.stock !== undefined && p.stock > 0 && p.stock < 5;
+        return `
+        <div class="cart-item">
+          <div class="cart-item-media">${iconFor(p,34)}</div>
+          <div class="cart-item-info">
+            <div class="cart-item-name">${p.name}</div>
+            <div class="cart-item-price">${isLoggedIn ? money(p.price) + ' c/u' : '<span class="price-locked-cart">🔒 precio oculto</span>'}</div>
+            ${lowStock ? `<div class="low-stock-tag">⚠ Pocas existencias — quedan ${p.stock}</div>` : ''}
+            <div class="cart-item-controls">
+              <button onclick="changeCartQty('${p.id}',-1)">−</button>
+              <span style="font-family:var(--font-mono); font-size:12.5px; min-width:16px; text-align:center;">${c.qty}</span>
+              <button onclick="changeCartQty('${p.id}',1)">+</button>
+              <button class="cart-item-save" onclick="saveForLater('${p.id}')">Guardar para después</button>
+              <button class="cart-item-remove" onclick="removeFromCart('${p.id}')">Quitar</button>
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    if(savedForLater.length > 0){
+      html += `<div class="saved-section-title">Guardado para después (${savedForLater.length})</div>`;
+      html += savedForLater.map(c => {
+        const p = PRODUCTS.find(x => x.id === c.id);
+        if(!p) return '';
+        return `
+        <div class="cart-item saved-item">
+          <div class="cart-item-media">${iconFor(p,34)}</div>
+          <div class="cart-item-info">
+            <div class="cart-item-name">${p.name}</div>
+            <div class="cart-item-price">Cantidad: ${c.qty}</div>
+            <div class="cart-item-controls">
+              <button class="cart-item-save" onclick="moveToCart('${p.id}')">Mover al carrito</button>
+              <button class="cart-item-remove" onclick="removeSaved('${p.id}')">Quitar</button>
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+  }
+  wrap.innerHTML = html;
+
+  const threshold = FREE_SHIPPING_THRESHOLD;
   const total = cartTotal();
   const pct = Math.min(100, Math.round((total/threshold)*100));
   const progWrap = document.getElementById('shipProgress');
@@ -1999,16 +2081,197 @@ function closeCart(){
 }
 
 /* ---------- CHECKOUT ---------- */
+const FREE_SHIPPING_THRESHOLD = 999;
+const FLAT_SHIPPING_RATE = 150; // estimado mientras se conecta una paquetería real
+const BRANCHES = {
+  tecnologia: { label: 'Plaza de la Tecnología', address: 'Uruguay 17, Local N° 23, Planta Baja' },
+  cruces: { label: 'Las Cruces (Centro Histórico)', address: 'Las Cruces 56 B' },
+};
+
 let selectedPayment = null;
+let selectedDelivery = null; // 'pickup' | 'shipping'
+let selectedBranch = null;
+let shippingAddress = '';
+let shippingCost = 0;
+let savedAddresses = [];
+let selectedSavedAddressId = null; // null = usando dirección nueva
+let saveNewAddress = true;
+
+async function loadSavedAddresses(){
+  if(!isLoggedIn || !currentUser?.email) return;
+  const { data, error } = await sb.from('shipping_addresses').select('*').eq('user_email', currentUser.email).order('created_at', {ascending:false});
+  if(error){ console.error('Error cargando direcciones:', error); return; }
+  savedAddresses = data || [];
+}
+
+function currentShippingCost(){
+  if(selectedDelivery !== 'shipping') return 0;
+  return cartTotal() >= FREE_SHIPPING_THRESHOLD ? 0 : FLAT_SHIPPING_RATE;
+}
+
 function openCheckout(){
   if(cart.length === 0) return;
   if(!isLoggedIn){ promptLogin(); return; }
   selectedPayment = null;
+  selectedDelivery = null;
+  selectedBranch = null;
+  shippingAddress = '';
+  shippingCost = 0;
+  selectedSavedAddressId = savedAddresses.length > 0 ? savedAddresses[0].id : null;
+  renderDeliveryStep();
+  document.getElementById('checkoutOverlay').classList.add('open');
+}
+
+function renderDeliveryStep(){
   const modal = document.getElementById('checkoutModal');
   modal.innerHTML = `
     <button class="modal-close" onclick="closeCheckout()">✕</button>
+    <h3>Método de entrega</h3>
+    <p class="sub">Subtotal de productos: <strong style="font-family:var(--font-mono)">${money(cartTotal())}</strong></p>
+
+    <div class="pay-option" data-deliv="pickup" onclick="selectDelivery('pickup')">
+      <input type="radio" name="deliv" id="deliv-pickup">
+      <label for="deliv-pickup">Recoger en sucursal<span class="sub-lbl">Sin costo — listo el mismo día</span></label>
+    </div>
+    <div class="pay-option" data-deliv="shipping" onclick="selectDelivery('shipping')">
+      <input type="radio" name="deliv" id="deliv-shipping">
+      <label for="deliv-shipping">Enviar a domicilio<span class="sub-lbl">${cartTotal() >= FREE_SHIPPING_THRESHOLD ? 'Envío gratis por tu compra' : `Desde ${money(FLAT_SHIPPING_RATE)}, según tu dirección`}</span></label>
+    </div>
+
+    <div id="deliveryDetail"></div>
+
+    <button class="btn btn-primary" id="continueDeliveryBtn" onclick="goToPaymentStep()" disabled>Continuar</button>
+  `;
+}
+
+function selectDelivery(method){
+  selectedDelivery = method;
+  document.querySelectorAll('#checkoutModal .pay-option[data-deliv]').forEach(el => el.classList.toggle('selected', el.dataset.deliv === method));
+  document.getElementById(`deliv-${method}`).checked = true;
+
+  const detail = document.getElementById('deliveryDetail');
+  const continueBtn = document.getElementById('continueDeliveryBtn');
+
+  if(method === 'pickup'){
+    detail.innerHTML = `
+      <div class="delivery-detail-box">
+        <label class="field-label">¿En qué sucursal recoges?</label>
+        ${Object.entries(BRANCHES).map(([key, b]) => `
+          <div class="branch-option ${selectedBranch === key ? 'selected' : ''}" onclick="selectBranch('${key}')">
+            <input type="radio" name="branch" id="branch-${key}" ${selectedBranch === key ? 'checked' : ''}>
+            <label for="branch-${key}">${b.label}<span class="sub-lbl">${b.address}</span></label>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    continueBtn.disabled = !selectedBranch;
+  } else {
+    if(selectedSavedAddressId === null && savedAddresses.length > 0) selectedSavedAddressId = savedAddresses[0].id;
+    renderShippingAddressDetail();
+    continueBtn.disabled = !addressIsReady();
+  }
+}
+
+function addressIsReady(){
+  if(selectedSavedAddressId !== null) return true;
+  return shippingAddress.trim().length >= 10;
+}
+
+function renderShippingAddressDetail(){
+  const detail = document.getElementById('deliveryDetail');
+  const shipNote = cartTotal() >= FREE_SHIPPING_THRESHOLD ? '🎉 Envío gratis por tu compra' : `Costo estimado de envío: <strong>${money(FLAT_SHIPPING_RATE)}</strong> — se confirma el costo exacto según tu zona.`;
+
+  let addressBlock = '';
+  if(savedAddresses.length > 0){
+    addressBlock += `<label class="field-label">Elige una dirección guardada</label>`;
+    addressBlock += savedAddresses.map(a => `
+      <div class="branch-option ${selectedSavedAddressId === a.id ? 'selected' : ''}" onclick="selectSavedAddress(${a.id})">
+        <input type="radio" name="savedAddr" id="addr-${a.id}" ${selectedSavedAddressId === a.id ? 'checked' : ''}>
+        <label for="addr-${a.id}">${escapeHtmlClient(a.label || 'Mi dirección')}<span class="sub-lbl">${escapeHtmlClient(a.address)}</span></label>
+        <button type="button" class="addr-delete-btn" onclick="deleteSavedAddress(event, ${a.id})" aria-label="Eliminar dirección">✕</button>
+      </div>
+    `).join('');
+    addressBlock += `
+      <div class="branch-option ${selectedSavedAddressId === null ? 'selected' : ''}" onclick="selectSavedAddress(null)">
+        <input type="radio" name="savedAddr" id="addr-new" ${selectedSavedAddressId === null ? 'checked' : ''}>
+        <label for="addr-new">+ Usar una dirección nueva</label>
+      </div>
+    `;
+  }
+
+  const showTextarea = savedAddresses.length === 0 || selectedSavedAddressId === null;
+
+  detail.innerHTML = `
+    <div class="delivery-detail-box">
+      ${addressBlock}
+      ${showTextarea ? `
+        <label class="field-label" style="margin-top:${savedAddresses.length > 0 ? '12px' : '0'};">Dirección de envío</label>
+        <textarea id="shippingAddressInput" rows="3" placeholder="Calle, número, colonia, alcaldía/municipio, ciudad, código postal" oninput="onAddressInput()">${shippingAddress}</textarea>
+        <label class="save-addr-check">
+          <input type="checkbox" id="saveAddrCheckbox" ${saveNewAddress ? 'checked' : ''} onchange="saveNewAddress = this.checked">
+          Guardar esta dirección para la próxima vez
+        </label>
+      ` : ''}
+      <p class="ship-cost-note">${shipNote}</p>
+    </div>
+  `;
+}
+
+function selectSavedAddress(id){
+  selectedSavedAddressId = id;
+  if(id !== null){
+    const addr = savedAddresses.find(a => a.id === id);
+    shippingAddress = addr ? addr.address : '';
+  } else {
+    shippingAddress = '';
+  }
+  renderShippingAddressDetail();
+  document.getElementById('continueDeliveryBtn').disabled = !addressIsReady();
+}
+
+async function deleteSavedAddress(e, id){
+  e.stopPropagation();
+  if(!confirm('¿Eliminar esta dirección guardada?')) return;
+  savedAddresses = savedAddresses.filter(a => a.id !== id);
+  if(selectedSavedAddressId === id) selectedSavedAddressId = savedAddresses.length > 0 ? savedAddresses[0].id : null;
+  renderShippingAddressDetail();
+  document.getElementById('continueDeliveryBtn').disabled = !addressIsReady();
+  await sb.from('shipping_addresses').delete().eq('id', id);
+}
+
+function selectBranch(key){
+  selectedBranch = key;
+  document.querySelectorAll('.branch-option').forEach(el => {
+    const input = el.querySelector('input');
+    const match = input && input.id === `branch-${key}`;
+    el.classList.toggle('selected', match);
+    if(input) input.checked = match;
+  });
+  document.getElementById('continueDeliveryBtn').disabled = false;
+}
+
+function onAddressInput(){
+  shippingAddress = document.getElementById('shippingAddressInput').value;
+  document.getElementById('continueDeliveryBtn').disabled = !addressIsReady();
+}
+
+function goToPaymentStep(){
+  shippingCost = currentShippingCost();
+  renderPaymentStep();
+}
+
+function renderPaymentStep(){
+  const modal = document.getElementById('checkoutModal');
+  const grandTotal = cartTotal() + shippingCost;
+  modal.innerHTML = `
+    <button class="modal-close" onclick="closeCheckout()">✕</button>
+    <button class="auth-back-btn" onclick="renderDeliveryStep()">← Volver a entrega</button>
     <h3>Método de pago</h3>
-    <p class="sub">Total a pagar: <strong style="font-family:var(--font-mono)">${money(cartTotal())}</strong></p>
+    <p class="sub">
+      Productos: <strong style="font-family:var(--font-mono)">${money(cartTotal())}</strong>
+      ${shippingCost > 0 ? ` + Envío: <strong style="font-family:var(--font-mono)">${money(shippingCost)}</strong>` : ' · Envío gratis'}
+      <br>Total a pagar: <strong style="font-family:var(--font-mono)">${money(grandTotal)}</strong>
+    </p>
     <div class="pay-option" data-pay="tarjeta" onclick="selectPayment('tarjeta')">
       <input type="radio" name="pay" id="pay-tarjeta">
       <label for="pay-tarjeta">Tarjeta de crédito/débito<span class="sub-lbl">Visa, Mastercard, Amex</span></label>
@@ -2023,11 +2286,10 @@ function openCheckout(){
     </div>
     <button class="btn btn-primary" id="confirmPayBtn" onclick="confirmOrder()" disabled>Confirmar pedido</button>
   `;
-  document.getElementById('checkoutOverlay').classList.add('open');
 }
 function selectPayment(method){
   selectedPayment = method;
-  document.querySelectorAll('.pay-option').forEach(el => el.classList.toggle('selected', el.dataset.pay === method));
+  document.querySelectorAll('#checkoutModal .pay-option[data-pay]').forEach(el => el.classList.toggle('selected', el.dataset.pay === method));
   document.getElementById(`pay-${method}`).checked = true;
   document.getElementById('confirmPayBtn').disabled = false;
 }
@@ -2037,7 +2299,8 @@ async function confirmOrder(){
 
   const orderNum = 'CRN-' + Math.floor(100000 + Math.random()*899999);
   const payLabel = {tarjeta:'Tarjeta', oxxo:'OXXO', transferencia:'Transferencia SPEI'}[selectedPayment];
-  const total = cartTotal();
+  const productsTotal = cartTotal();
+  const total = productsTotal + shippingCost;
 
   const { data: orderData, error: orderError } = await sb.from('orders').insert({
     order_number: orderNum,
@@ -2045,6 +2308,10 @@ async function confirmOrder(){
     status: 'realizado',
     payment_method: payLabel,
     total: total,
+    delivery_method: selectedDelivery,
+    pickup_branch: selectedDelivery === 'pickup' ? BRANCHES[selectedBranch].label : null,
+    shipping_address: selectedDelivery === 'shipping' ? shippingAddress.trim() : null,
+    shipping_cost: shippingCost,
   }).select().single();
 
   if(orderError){
@@ -2072,6 +2339,19 @@ async function confirmOrder(){
   });
   await sb.from('order_items').insert(itemRows);
 
+  if(selectedDelivery === 'shipping' && selectedSavedAddressId === null && saveNewAddress && shippingAddress.trim()){
+    const { data: newAddr } = await sb.from('shipping_addresses').insert({
+      user_email: currentUser.email,
+      label: `Dirección ${savedAddresses.length + 1}`,
+      address: shippingAddress.trim(),
+    }).select().single();
+    if(newAddr) savedAddresses.unshift(newAddr);
+  }
+
+  const deliveryLine = selectedDelivery === 'pickup'
+    ? `Recoger en: <strong>${BRANCHES[selectedBranch].label}</strong>`
+    : `Envío a: <strong>${escapeHtmlClient(shippingAddress.trim())}</strong>`;
+
   const modal = document.getElementById('checkoutModal');
   modal.innerHTML = `
     <button class="modal-close" onclick="closeCheckout()">✕</button>
@@ -2081,12 +2361,17 @@ async function confirmOrder(){
       <p class="sub">Este es un sitio de demostración — no se procesó ningún pago real.</p>
       <div class="confirm-order">
         <div>Número de pedido: <strong>${orderNum}</strong></div>
-        <div>Método: <strong>${payLabel}</strong></div>
+        <div>Método de pago: <strong>${payLabel}</strong></div>
+        <div>${deliveryLine}</div>
+        ${shippingCost > 0 ? `<div>Costo de envío: <strong>${money(shippingCost)}</strong></div>` : ''}
         <div>Total: <strong>${money(total)}</strong></div>
       </div>
       <button class="btn btn-primary" style="width:100%; justify-content:center;" onclick="finishOrder()">Volver a la tienda</button>
     </div>
   `;
+}
+function escapeHtmlClient(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 function finishOrder(){
   cart = [];
