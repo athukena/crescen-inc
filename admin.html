@@ -103,6 +103,16 @@
   tr.selected-row td{background:var(--katun-blue-bg) !important; color:var(--katun-blue-dark);}
   tr.selected-row .id{color:var(--katun-blue);}
 
+  /* ---------- pedidos ---------- */
+  .order-status-select{
+    font-family:var(--font-mono); font-size:12px; font-weight:600; padding:5px 8px; border-radius:5px;
+    border:1px solid var(--line); cursor:pointer;
+  }
+  .status-realizado{background:#3A331A; color:#E8CE7A; border-color:#8A7530;}
+  .status-enviado{background:#1B3A52; color:#8FC2E8; border-color:#2E6690;}
+  .status-entregado{background:#1E3A24; color:#8FD19E; border-color:#2E6E3E;}
+  .status-cancelado{background:#3A1E1A; color:#E08A78; border-color:#8A3A2A;}
+
   /* ---------- table ---------- */
   .table-wrap{border:1px solid var(--line); border-radius:8px; overflow:hidden;}
   table{width:100%; border-collapse:collapse;}
@@ -251,12 +261,24 @@ tr:hover .id{color:var(--katun-blue);}
     </div>
 
     <div id="tab-pedidos" style="display:none">
-      <div class="empty">
-        <h3>Pedidos — próximamente</h3>
-        <p>Cuando la página empiece a recibir pedidos en línea, aquí vas a poder verlos y darles seguimiento.</p>
+      <div class="toolbar">
+        <input type="text" id="orderSearch" placeholder="Buscar por número de pedido o correo del cliente..." oninput="renderOrders()">
+        <select id="orderStatusFilter" onchange="renderOrders()">
+          <option value="all">Todos los estatus</option>
+          <option value="realizado">Realizado</option>
+          <option value="enviado">Enviado</option>
+          <option value="entregado">Entregado</option>
+          <option value="cancelado">Cancelado</option>
+        </select>
+        <span class="count" id="orders-count-label"></span>
       </div>
+      <div id="orders-list"></div>
     </div>
   </div>
+</div>
+
+<div class="modal-overlay" id="order-detail-overlay">
+  <div class="modal" id="order-detail-modal"></div>
 </div>
 
 <div class="modal-overlay" id="add-modal-overlay">
@@ -359,13 +381,148 @@ function showLogin() {
   document.getElementById('login-screen').style.display = 'flex';
 }
 
+let ordersLoaded = false;
 function switchTab(name) {
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
   document.getElementById('tab-productos').style.display = name === 'productos' ? 'block' : 'none';
   document.getElementById('tab-pedidos').style.display = name === 'pedidos' ? 'block' : 'none';
+  if (name === 'pedidos' && !ordersLoaded) {
+    ordersLoaded = true;
+    loadOrders();
+  }
 }
 
 let selectedIds = new Set();
+
+/* ---------- PEDIDOS ---------- */
+let allOrders = [];
+const ORDER_STATUSES = ['realizado', 'enviado', 'entregado', 'cancelado'];
+const ORDER_STATUS_LABELS = { realizado: 'Realizado', enviado: 'Enviado', entregado: 'Entregado', cancelado: 'Cancelado' };
+
+async function loadOrders() {
+  document.getElementById('orders-list').innerHTML = `<div class="empty">Cargando pedidos...</div>`;
+  const { data, error } = await sb
+    .from('orders')
+    .select('*, order_items(*)')
+    .order('created_at', { ascending: false });
+  if (error) {
+    document.getElementById('orders-list').innerHTML = `<div class="empty">Error cargando pedidos: ${escapeHtml(error.message)}</div>`;
+    return;
+  }
+  allOrders = data || [];
+  renderOrders();
+}
+
+function renderOrders() {
+  const q = document.getElementById('orderSearch').value.trim().toLowerCase();
+  const statusFilter = document.getElementById('orderStatusFilter').value;
+
+  let filtered = allOrders;
+  if (statusFilter !== 'all') filtered = filtered.filter(o => o.status === statusFilter);
+  if (q) filtered = filtered.filter(o =>
+    o.order_number.toLowerCase().includes(q) || (o.user_email || '').toLowerCase().includes(q)
+  );
+
+  document.getElementById('orders-count-label').textContent = `${filtered.length} de ${allOrders.length} pedidos`;
+
+  const wrap = document.getElementById('orders-list');
+  if (filtered.length === 0) {
+    wrap.innerHTML = `<div class="empty">Sin pedidos que coincidan</div>`;
+    return;
+  }
+
+  wrap.innerHTML = `
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Pedido</th>
+            <th>Cliente</th>
+            <th>Fecha</th>
+            <th style="text-align:right">Total</th>
+            <th>Estatus</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${filtered.map(orderRowHTML).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function orderRowHTML(o) {
+  const itemCount = (o.order_items || []).reduce((s, it) => s + it.qty, 0);
+  const date = new Date(o.created_at).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' });
+  return `
+    <tr>
+      <td class="name-cell">${escapeHtml(o.order_number)}<span class="id">${itemCount} producto(s)</span></td>
+      <td>${escapeHtml(o.user_email)}</td>
+      <td>${date}</td>
+      <td style="text-align:right; font-family:var(--font-mono);">$${Number(o.total).toLocaleString('es-MX', {minimumFractionDigits:2, maximumFractionDigits:2})}</td>
+      <td>
+        <select class="order-status-select status-${o.status}" onchange="updateOrderStatus(${o.id}, this.value, this)">
+          ${ORDER_STATUSES.map(s => `<option value="${s}" ${s === o.status ? 'selected' : ''}>${ORDER_STATUS_LABELS[s]}</option>`).join('')}
+        </select>
+      </td>
+      <td style="text-align:right; white-space:nowrap;">
+        <button class="btn-ghost" onclick="openOrderDetail(${o.id})">Ver detalle</button>
+      </td>
+    </tr>
+  `;
+}
+
+async function updateOrderStatus(orderId, newStatus, selectEl) {
+  const prevClass = Array.from(selectEl.classList).find(c => c.startsWith('status-'));
+  const { error } = await sb.from('orders').update({ status: newStatus, updated_at: new Date().toISOString() }).eq('id', orderId);
+  if (error) {
+    alert('Error al actualizar el estatus: ' + error.message);
+    selectEl.value = prevClass ? prevClass.replace('status-', '') : selectEl.value;
+    return;
+  }
+  if (prevClass) selectEl.classList.remove(prevClass);
+  selectEl.classList.add('status-' + newStatus);
+  const order = allOrders.find(o => o.id === orderId);
+  if (order) order.status = newStatus;
+}
+
+function openOrderDetail(orderId) {
+  const o = allOrders.find(x => x.id === orderId);
+  if (!o) return;
+  const items = o.order_items || [];
+  const modal = document.getElementById('order-detail-modal');
+  modal.innerHTML = `
+    <h2>Pedido ${escapeHtml(o.order_number)}</h2>
+    <p style="color:var(--text-dim); font-size:13px; margin-bottom:16px;">
+      ${escapeHtml(o.user_email)} · ${new Date(o.created_at).toLocaleString('es-MX')}<br>
+      Método de pago: ${escapeHtml(o.payment_method || '—')}
+    </p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Producto</th><th style="text-align:right">Cant.</th><th style="text-align:right">Precio</th><th style="text-align:right">Subtotal</th></tr></thead>
+        <tbody>
+          ${items.map(it => `
+            <tr>
+              <td>${escapeHtml(it.product_name)}</td>
+              <td style="text-align:right">${it.qty}</td>
+              <td style="text-align:right; font-family:var(--font-mono);">$${Number(it.unit_price).toLocaleString('es-MX', {minimumFractionDigits:2})}</td>
+              <td style="text-align:right; font-family:var(--font-mono);">$${(it.qty * it.unit_price).toLocaleString('es-MX', {minimumFractionDigits:2})}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div class="modal-actions">
+      <span style="margin-right:auto; font-family:var(--font-mono); font-weight:600;">Total: $${Number(o.total).toLocaleString('es-MX', {minimumFractionDigits:2})}</span>
+      <button class="btn-ghost" onclick="closeOrderDetail()">Cerrar</button>
+    </div>
+  `;
+  document.getElementById('order-detail-overlay').classList.add('open');
+}
+function closeOrderDetail() {
+  document.getElementById('order-detail-overlay').classList.remove('open');
+}
 
 async function loadProducts() {
   const { data, error } = await sb.from('products').select('*').order('name');
