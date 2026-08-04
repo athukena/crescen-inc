@@ -21,6 +21,9 @@
     --text-dim: #ABA791;
     --danger: #C1543B;
     --success: #6F9E5C;
+    --katun-blue: #0B4F8A;
+    --katun-blue-dark: #073A66;
+    --katun-blue-bg: #EAF2FB;
     --font-display: 'Fraunces', serif;
     --font-body: 'Work Sans', sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
@@ -40,7 +43,8 @@
     padding-bottom:24px; margin-bottom:28px; border-bottom:1px solid var(--line);
     flex-wrap:wrap; gap:16px;
   }
-  .brand{display:flex; align-items:baseline; gap:10px;}
+  .brand{display:flex; align-items:center; gap:12px;}
+  .brand-logo{height:44px; width:auto; border-radius:6px;}
   .brand h1{font-family:var(--font-display); font-weight:600; font-size:26px; color:var(--gold-light);}
   .brand span{font-size:13px; color:var(--text-dim); font-family:var(--font-mono);}
   .who{display:flex; align-items:center; gap:12px; font-size:14px; color:var(--text-dim);}
@@ -112,6 +116,26 @@
   .row-save:hover{background:var(--gold-dim); color:var(--carbon);}
   .saved-flash{color:var(--success); font-size:12px; font-family:var(--font-mono);}
   .stock-low{color:var(--danger); font-weight:600;}
+
+  /* fila en edición: acento azul Katun sobre fondo claro, para distinguirla de un vistazo */
+  tr.dirty td{
+    background:var(--katun-blue-bg) !important;
+    transition:background .15s;
+  }
+  tr.dirty td:first-child{
+    box-shadow: inset 3px 0 0 var(--katun-blue);
+  }
+  tr.dirty .name-cell{color:var(--katun-blue-dark);}
+  tr.dirty .name-cell .id{color:var(--katun-blue);}
+  tr.dirty td:nth-child(2), tr.dirty td:nth-child(3){color:var(--katun-blue-dark);}
+  tr.dirty .price-input, tr.dirty .stock-input{
+    background:#fff; color:var(--katun-blue-dark); border-color:var(--katun-blue);
+  }
+  tr.dirty .row-save{
+    background:var(--katun-blue); color:#fff; opacity:1; pointer-events:auto;
+  }
+  tr.dirty .row-save:hover{background:var(--katun-blue-dark); color:#fff;}
+  tr.dirty .agotado-tag{border-color:var(--danger); color:var(--danger);}
   .agotado-tag{
     display:inline-block; font-size:11px; font-family:var(--font-mono); color:var(--danger);
     border:1px solid var(--danger); border-radius:4px; padding:1px 6px; margin-top:3px;
@@ -167,6 +191,7 @@
   <div class="wrap">
     <header>
       <div class="brand">
+        <img src="crescen-logo.png" alt="Crescen Inc" class="brand-logo">
         <h1>Crescen</h1>
         <span>panel de administrador</span>
       </div>
@@ -401,10 +426,19 @@ async function saveRow(id) {
 
   flash.style.color = 'var(--success)';
   flash.textContent = 'Guardado ✓';
+  setTimeout(() => { flash.textContent = ''; }, 2000);
 
   const prod = allProducts.find(p => p.id === id);
   if (prod) { prod.price = price; prod.stock = stock; }
-  renderTable();
+
+  tr.classList.remove('dirty');
+  const stockCell = tr.querySelector('.stock-input').parentElement;
+  const existingTag = stockCell.querySelector('.agotado-tag');
+  if (stock <= 0 && !existingTag) {
+    stockCell.insertAdjacentHTML('beforeend', '<span class="agotado-tag">Agotado</span>');
+  } else if (stock > 0 && existingTag) {
+    existingTag.remove();
+  }
 }
 
 async function toggleVisible(id, currentlyVisible) {
