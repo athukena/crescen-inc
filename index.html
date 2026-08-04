@@ -478,7 +478,7 @@
   .branch-option input{accent-color:var(--gold-dark);}
   .branch-option label{flex:1; font-size:13.5px; font-weight:600; cursor:pointer;}
   .branch-option .sub-lbl{display:block; font-weight:400; font-size:11.5px; color:var(--ink-soft); margin-top:1px;}
-  .delivery-detail-box textarea{width:100%; border:1.5px solid var(--line); border-radius:7px; padding:10px 12px; font-family:var(--font-body); font-size:13.5px; resize:vertical;}
+  .delivery-detail-box textarea, .delivery-detail-box input[type=text]{width:100%; border:1.5px solid var(--line); border-radius:7px; padding:10px 12px; font-family:var(--font-body); font-size:13.5px; resize:vertical;}
   .ship-cost-note{font-size:12.5px; color:var(--ink-soft); margin-top:10px; line-height:1.5;}
   .branch-option{position:relative;}
   .addr-delete-btn{background:none; color:var(--ink-soft); font-size:13px; padding:4px; flex-shrink:0;}
@@ -2092,7 +2092,9 @@ let selectedPayment = null;
 let selectedDelivery = null; // 'pickup' | 'shipping'
 let selectedBranch = null;
 let shippingAddress = '';
+let shippingPostalCode = '';
 let shippingCost = 0;
+let shippingQuoteOptions = null; // null = usando estimado plano; array = cotización real de Skydropx
 let savedAddresses = [];
 let selectedSavedAddressId = null; // null = usando dirección nueva
 let saveNewAddress = true;
@@ -2116,7 +2118,9 @@ function openCheckout(){
   selectedDelivery = null;
   selectedBranch = null;
   shippingAddress = '';
+  shippingPostalCode = '';
   shippingCost = 0;
+  shippingQuoteOptions = null;
   selectedSavedAddressId = savedAddresses.length > 0 ? savedAddresses[0].id : null;
   renderDeliveryStep();
   document.getElementById('checkoutOverlay').classList.add('open');
@@ -2174,12 +2178,12 @@ function selectDelivery(method){
 
 function addressIsReady(){
   if(selectedSavedAddressId !== null) return true;
-  return shippingAddress.trim().length >= 10;
+  return shippingAddress.trim().length >= 10 && /^\d{5}$/.test(shippingPostalCode);
 }
 
 function renderShippingAddressDetail(){
   const detail = document.getElementById('deliveryDetail');
-  const shipNote = cartTotal() >= FREE_SHIPPING_THRESHOLD ? '🎉 Envío gratis por tu compra' : `Costo estimado de envío: <strong>${money(FLAT_SHIPPING_RATE)}</strong> — se confirma el costo exacto según tu zona.`;
+  const shipNote = cartTotal() >= FREE_SHIPPING_THRESHOLD ? '🎉 Envío gratis por tu compra' : `Costo estimado: <strong>${money(FLAT_SHIPPING_RATE)}</strong> — calculamos el costo exacto con tu código postal al continuar.`;
 
   let addressBlock = '';
   if(savedAddresses.length > 0){
@@ -2187,7 +2191,7 @@ function renderShippingAddressDetail(){
     addressBlock += savedAddresses.map(a => `
       <div class="branch-option ${selectedSavedAddressId === a.id ? 'selected' : ''}" onclick="selectSavedAddress(${a.id})">
         <input type="radio" name="savedAddr" id="addr-${a.id}" ${selectedSavedAddressId === a.id ? 'checked' : ''}>
-        <label for="addr-${a.id}">${escapeHtmlClient(a.label || 'Mi dirección')}<span class="sub-lbl">${escapeHtmlClient(a.address)}</span></label>
+        <label for="addr-${a.id}">${escapeHtmlClient(a.label || 'Mi dirección')}<span class="sub-lbl">${escapeHtmlClient(a.address)}${a.postal_code ? ' · CP ' + escapeHtmlClient(a.postal_code) : ''}</span></label>
         <button type="button" class="addr-delete-btn" onclick="deleteSavedAddress(event, ${a.id})" aria-label="Eliminar dirección">✕</button>
       </div>
     `).join('');
@@ -2206,7 +2210,9 @@ function renderShippingAddressDetail(){
       ${addressBlock}
       ${showTextarea ? `
         <label class="field-label" style="margin-top:${savedAddresses.length > 0 ? '12px' : '0'};">Dirección de envío</label>
-        <textarea id="shippingAddressInput" rows="3" placeholder="Calle, número, colonia, alcaldía/municipio, ciudad, código postal" oninput="onAddressInput()">${shippingAddress}</textarea>
+        <textarea id="shippingAddressInput" rows="3" placeholder="Calle, número, colonia, alcaldía/municipio, ciudad" oninput="onAddressInput()">${shippingAddress}</textarea>
+        <label class="field-label" style="margin-top:10px;">Código postal</label>
+        <input type="text" id="shippingCpInput" inputmode="numeric" maxlength="5" placeholder="Ej. 06600" value="${shippingPostalCode}" oninput="onAddressInput()">
         <label class="save-addr-check">
           <input type="checkbox" id="saveAddrCheckbox" ${saveNewAddress ? 'checked' : ''} onchange="saveNewAddress = this.checked">
           Guardar esta dirección para la próxima vez
@@ -2222,8 +2228,10 @@ function selectSavedAddress(id){
   if(id !== null){
     const addr = savedAddresses.find(a => a.id === id);
     shippingAddress = addr ? addr.address : '';
+    shippingPostalCode = addr ? (addr.postal_code || '') : '';
   } else {
     shippingAddress = '';
+    shippingPostalCode = '';
   }
   renderShippingAddressDetail();
   document.getElementById('continueDeliveryBtn').disabled = !addressIsReady();
@@ -2252,11 +2260,39 @@ function selectBranch(key){
 
 function onAddressInput(){
   shippingAddress = document.getElementById('shippingAddressInput').value;
+  const cpEl = document.getElementById('shippingCpInput');
+  if(cpEl) shippingPostalCode = cpEl.value.replace(/\D/g,'').slice(0,5);
   document.getElementById('continueDeliveryBtn').disabled = !addressIsReady();
 }
 
-function goToPaymentStep(){
-  shippingCost = currentShippingCost();
+async function goToPaymentStep(){
+  if(selectedDelivery !== 'shipping' || cartTotal() >= FREE_SHIPPING_THRESHOLD){
+    shippingCost = currentShippingCost();
+    shippingQuoteOptions = null;
+    renderPaymentStep();
+    return;
+  }
+
+  const continueBtn = document.getElementById('continueDeliveryBtn');
+  continueBtn.disabled = true;
+  continueBtn.textContent = 'Calculando envío...';
+
+  try {
+    const { data, error } = await sb.functions.invoke('shipping-quote', {
+      body: { postal_code: shippingPostalCode }
+    });
+    if(error || !data || !data.cheapest) throw new Error('sin cotización disponible');
+    shippingCost = Math.round(data.cheapest.price);
+    shippingQuoteOptions = data.options;
+  } catch(e) {
+    // La función de cotización real aún no está lista o falló — usamos el estimado plano, sin interrumpir la compra
+    console.warn('Cotización real no disponible, usando estimado:', e.message);
+    shippingCost = currentShippingCost();
+    shippingQuoteOptions = null;
+  }
+
+  continueBtn.disabled = false;
+  continueBtn.textContent = 'Continuar';
   renderPaymentStep();
 }
 
@@ -2269,7 +2305,7 @@ function renderPaymentStep(){
     <h3>Método de pago</h3>
     <p class="sub">
       Productos: <strong style="font-family:var(--font-mono)">${money(cartTotal())}</strong>
-      ${shippingCost > 0 ? ` + Envío: <strong style="font-family:var(--font-mono)">${money(shippingCost)}</strong>` : ' · Envío gratis'}
+      ${shippingCost > 0 ? ` + Envío: <strong style="font-family:var(--font-mono)">${money(shippingCost)}</strong>${shippingQuoteOptions ? ` (${escapeHtmlClient(shippingQuoteOptions[0].carrier)})` : ''}` : ' · Envío gratis'}
       <br>Total a pagar: <strong style="font-family:var(--font-mono)">${money(grandTotal)}</strong>
     </p>
     <div class="pay-option" data-pay="tarjeta" onclick="selectPayment('tarjeta')">
@@ -2344,6 +2380,7 @@ async function confirmOrder(){
       user_email: currentUser.email,
       label: `Dirección ${savedAddresses.length + 1}`,
       address: shippingAddress.trim(),
+      postal_code: shippingPostalCode,
     }).select().single();
     if(newAddr) savedAddresses.unshift(newAddr);
   }
