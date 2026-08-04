@@ -2519,7 +2519,7 @@ async function confirmOrder(){
   await sb.from('order_items').insert(itemRows);
 
   if(selectedDelivery === 'shipping' && selectedSavedAddressId === null && saveNewAddress && newAddr.street.trim()){
-    const { data: savedAddrRow } = await sb.from('shipping_addresses').insert({
+    const { data: savedAddrRow, error: addrError } = await sb.from('shipping_addresses').insert({
       user_email: currentUser.email,
       label: `Dirección ${savedAddresses.length + 1}`,
       address: getFormattedAddress(),
@@ -2533,7 +2533,11 @@ async function confirmOrder(){
       phone: newAddr.phone,
       recipient_name: newAddr.recipient_name,
     }).select().single();
-    if(savedAddrRow) savedAddresses.unshift(savedAddrRow);
+    if(addrError){
+      console.error('No se pudo guardar la dirección nueva:', addrError.message);
+    } else if(savedAddrRow){
+      savedAddresses.unshift(savedAddrRow);
+    }
   }
 
   const deliveryLine = selectedDelivery === 'pickup'
