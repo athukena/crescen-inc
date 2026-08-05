@@ -927,7 +927,6 @@
     <h3>Tu carrito</h3>
     <button class="cart-close" onclick="closeCart()" aria-label="Cerrar carrito">✕</button>
   </div>
-  <div class="cart-ship-progress" id="shipProgress"></div>
   <div class="cart-items" id="cartItemsWrap"></div>
   <div class="cart-foot">
     <div class="cart-subtotal"><span>Subtotal</span><span id="cartSubtotal">$0 MXN</span></div>
@@ -2079,16 +2078,6 @@ function renderCart(){
     }
   }
   wrap.innerHTML = html;
-
-  const threshold = FREE_SHIPPING_THRESHOLD;
-  const total = cartTotal();
-  const pct = Math.min(100, Math.round((total/threshold)*100));
-  const progWrap = document.getElementById('shipProgress');
-  if(total >= threshold){
-    progWrap.innerHTML = `<div class="msg">🎉 Tu pedido ya tiene <b>envío gratis</b></div><div class="ship-track"><div class="ship-fill" style="width:100%"></div></div>`;
-  } else {
-    progWrap.innerHTML = `<div class="msg">Te faltan <b>${money(threshold-total)}</b> para envío gratis</div><div class="ship-track"><div class="ship-fill" style="width:${pct}%"></div></div>`;
-  }
 }
 function openCart(){
   document.getElementById('cartDrawer').classList.add('open');
@@ -2100,7 +2089,6 @@ function closeCart(){
 }
 
 /* ---------- CHECKOUT ---------- */
-const FREE_SHIPPING_THRESHOLD = 999;
 const FLAT_SHIPPING_RATE = 150; // estimado mientras se conecta una paquetería real
 const BRANCHES = {
   tecnologia: { label: 'Plaza de la Tecnología', address: 'Uruguay 17, Local N° 23, Planta Baja' },
@@ -2156,7 +2144,7 @@ async function lookupPostalCode(cp){
 
 function currentShippingCost(){
   if(selectedDelivery !== 'shipping') return 0;
-  return cartTotal() >= FREE_SHIPPING_THRESHOLD ? 0 : FLAT_SHIPPING_RATE;
+  return FLAT_SHIPPING_RATE;
 }
 
 function openCheckout(){
@@ -2195,7 +2183,7 @@ function renderDeliveryStep(){
       </div>
       <div class="pay-option" data-deliv="shipping" onclick="selectDelivery('shipping')">
         <input type="radio" name="deliv" id="deliv-shipping">
-        <label for="deliv-shipping">Enviar a domicilio<span class="sub-lbl">${cartTotal() >= FREE_SHIPPING_THRESHOLD ? 'Envío gratis por tu compra' : `Desde ${money(FLAT_SHIPPING_RATE)}, según tu dirección`}</span></label>
+        <label for="deliv-shipping">Enviar a domicilio<span class="sub-lbl">Desde ${money(FLAT_SHIPPING_RATE)}, según tu dirección</span></label>
       </div>
 
       <div id="deliveryDetail"></div>
@@ -2244,7 +2232,7 @@ function addressIsReady(){
 
 function renderShippingAddressDetail(){
   const detail = document.getElementById('deliveryDetail');
-  const shipNote = cartTotal() >= FREE_SHIPPING_THRESHOLD ? '🎉 Envío gratis por tu compra' : `Costo estimado: <strong>${money(FLAT_SHIPPING_RATE)}</strong> — calculamos el costo exacto con tu código postal al continuar.`;
+  const shipNote = `Costo estimado: <strong>${money(FLAT_SHIPPING_RATE)}</strong> — calculamos el costo exacto con tu código postal al continuar.`;
 
   let addressBlock = '';
   if(savedAddresses.length > 0){
@@ -2424,7 +2412,7 @@ function selectBranch(key){
 }
 
 async function goToPaymentStep(){
-  if(selectedDelivery !== 'shipping' || cartTotal() >= FREE_SHIPPING_THRESHOLD){
+  if(selectedDelivery !== 'shipping'){
     shippingCost = currentShippingCost();
     shippingQuoteOptions = null;
     renderPaymentStep();
@@ -2512,7 +2500,7 @@ function renderPaymentStep(){
       <h3>Método de pago</h3>
       <p class="sub">
         Productos: <strong style="font-family:var(--font-mono)">${money(cartTotal())}</strong>
-        ${shippingCost > 0 ? ` + Envío: <strong style="font-family:var(--font-mono)">${money(shippingCost)}</strong>${shippingQuoteOptions ? ` (${escapeHtmlClient(shippingQuoteOptions[selectedShippingOptionIndex].carrier)}${shippingQuoteOptions[selectedShippingOptionIndex].days ? ` · ${shippingQuoteOptions[selectedShippingOptionIndex].days} día${shippingQuoteOptions[selectedShippingOptionIndex].days == 1 ? '' : 's'}` : ''})` : ''}` : ' · Envío gratis'}
+        ${shippingCost > 0 ? ` + Envío: <strong style="font-family:var(--font-mono)">${money(shippingCost)}</strong>${shippingQuoteOptions ? ` (${escapeHtmlClient(shippingQuoteOptions[selectedShippingOptionIndex].carrier)}${shippingQuoteOptions[selectedShippingOptionIndex].days ? ` · ${shippingQuoteOptions[selectedShippingOptionIndex].days} día${shippingQuoteOptions[selectedShippingOptionIndex].days == 1 ? '' : 's'}` : ''})` : ''}` : (selectedDelivery === 'pickup' ? ' · Recoges en sucursal, sin costo de envío' : '')}
         <br>Total a pagar: <strong style="font-family:var(--font-mono)">${money(grandTotal)}</strong>
       </p>
       <div class="pay-option" data-pay="tarjeta" onclick="selectPayment('tarjeta')">
