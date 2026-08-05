@@ -1069,6 +1069,7 @@ async function loadProducts(){
 
   renderGrid();
   renderOffers();
+  removeOutOfStockFromCart();
   renderCart();
 }
 
@@ -1117,6 +1118,7 @@ function applySession(session, justSignedIn){
   loadFavorites();
   loadNotifications();
   loadSavedAddresses();
+  loadCartFromServer();
   renderGrid();
   renderOffers();
   renderCart();
@@ -1994,11 +1996,53 @@ function showHome(){
 }
 
 /* ---------- CART ---------- */
+let cartSyncTimer = null;
+function scheduleCartSync(){
+  if(!isLoggedIn || !currentUser?.email) return;
+  clearTimeout(cartSyncTimer);
+  cartSyncTimer = setTimeout(syncCartToServer, 800);
+}
+async function syncCartToServer(){
+  if(!isLoggedIn || !currentUser?.email) return;
+  const email = currentUser.email;
+  await sb.from('cart_items').delete().eq('user_email', email);
+  if(cart.length > 0){
+    await sb.from('cart_items').insert(cart.map(c => ({ user_email: email, product_id: c.id, qty: c.qty })));
+  }
+}
+async function loadCartFromServer(){
+  if(!isLoggedIn || !currentUser?.email) return;
+  const { data, error } = await sb.from('cart_items').select('*').eq('user_email', currentUser.email);
+  if(error){ console.error('Error cargando carrito guardado:', error); return; }
+  (data || []).forEach(row => {
+    const existing = cart.find(c => c.id === row.product_id);
+    if(existing) existing.qty += row.qty;
+    else cart.push({ id: row.product_id, qty: row.qty });
+  });
+  removeOutOfStockFromCart();
+  renderCart();
+  scheduleCartSync();
+}
+function removeOutOfStockFromCart(){
+  const removedNames = [];
+  cart = cart.filter(c => {
+    const p = PRODUCTS.find(x => x.id === c.id);
+    const outOfStock = !p || (p.stock !== null && p.stock !== undefined && p.stock <= 0);
+    if(outOfStock && p) removedNames.push(p.name);
+    return !outOfStock;
+  });
+  if(removedNames.length > 0){
+    showToast(`Sin existencias, se quitaron del carrito: ${removedNames.join(', ')}`);
+    scheduleCartSync();
+  }
+}
+
 function addToCart(id, qty){
   const existing = cart.find(c => c.id === id);
   if(existing) existing.qty += qty;
   else cart.push({id, qty});
   renderCart();
+  scheduleCartSync();
   const p = PRODUCTS.find(x => x.id === id);
   if(p && p.stock !== null && p.stock !== undefined && p.stock > 0 && p.stock < 5){
     showToast(`Agregado — pocas existencias (quedan ${p.stock})`);
@@ -2013,10 +2057,12 @@ function changeCartQty(id, delta){
   item.qty += delta;
   if(item.qty <= 0) cart = cart.filter(c => c.id !== id);
   renderCart();
+  scheduleCartSync();
 }
 function removeFromCart(id){
   cart = cart.filter(c => c.id !== id);
   renderCart();
+  scheduleCartSync();
 }
 function saveForLater(id){
   const item = cart.find(c => c.id === id);
@@ -2026,6 +2072,7 @@ function saveForLater(id){
   if(existingSaved) existingSaved.qty += item.qty;
   else savedForLater.push(item);
   renderCart();
+  scheduleCartSync();
   showToast('Guardado para después');
 }
 function moveToCart(id){
@@ -2036,6 +2083,7 @@ function moveToCart(id){
   if(existingCart) existingCart.qty += item.qty;
   else cart.push(item);
   renderCart();
+  scheduleCartSync();
   showToast('Movido al carrito');
 }
 function removeSaved(id){
@@ -2221,7 +2269,7 @@ function renderOrderStep(){
             <h3>Selecciona una opción de envío</h3>
             <div class="pay-option" data-deliv="pickup" onclick="selectDelivery('pickup')">
               <input type="radio" name="deliv" id="deliv-pickup">
-              <label for="deliv-pickup">Recoger en sucursal<span class="sub-lbl">Sin costo — listo el mismo día</span></label>
+              <label for="deliv-pickup">Recoger en sucursal<span class="sub-lbl">Se te notificará cuando tu pedido esté listo para pasar por él</span></label>
             </div>
             <div class="pay-option" data-deliv="shipping" onclick="selectDelivery('shipping')">
               <input type="radio" name="deliv" id="deliv-shipping">
@@ -2777,6 +2825,7 @@ function escapeHtmlClient(s){
 function finishOrder(){
   cart = [];
   renderCart();
+  syncCartToServer();
   showHome();
 }
 function closeCheckout(){
