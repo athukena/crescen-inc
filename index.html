@@ -1653,6 +1653,38 @@ function compatBrandTag(p){
 }
 function money(n){ return '$' + n.toLocaleString('es-MX') + ' MXN'; }
 
+const BUSINESS_CUTOFF_HOUR = 15; // 3:00 PM — después de esto, cuenta como el siguiente día hábil
+function isBusinessDay(d){ const day = d.getDay(); return day !== 0 && day !== 6; }
+function addBusinessDays(date, days){
+  const d = new Date(date);
+  let added = 0;
+  while(added < days){
+    d.setDate(d.getDate() + 1);
+    if(isBusinessDay(d)) added++;
+  }
+  return d;
+}
+function getProcessingStartDate(orderDate){
+  const d = new Date(orderDate);
+  if(!isBusinessDay(d) || d.getHours() >= BUSINESS_CUTOFF_HOUR){
+    let next = new Date(d);
+    next.setDate(next.getDate() + 1);
+    while(!isBusinessDay(next)) next.setDate(next.getDate() + 1);
+    next.setHours(9,0,0,0);
+    return next;
+  }
+  return d;
+}
+function estimateDeliveryDate(orderDate, carrierBusinessDays){
+  const start = getProcessingStartDate(orderDate);
+  const packed = addBusinessDays(start, 1); // 1 día hábil de preparación
+  return addBusinessDays(packed, carrierBusinessDays || 1);
+}
+function formatDeliveryEstimate(carrierBusinessDays){
+  const est = estimateDeliveryDate(new Date(), carrierBusinessDays);
+  return est.toLocaleDateString('es-MX', { weekday:'long', day:'numeric', month:'long' });
+}
+
 /* ---------- RENDER CATALOG ---------- */
 function normalizeText(s){
   return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
@@ -1675,8 +1707,12 @@ function getFilteredProducts(){
     list = list.filter(p => selectedCompatBrands.has(p.compatBrand));
   }
   if(searchQuery.trim() !== ''){
-    const q = normalizeText(searchQuery.trim());
-    list = list.filter(p => normalizeText(p.name).includes(q) || normalizeText(p.compat).includes(q) || normalizeText(catLabel(p.cat)).includes(q));
+    const words = normalizeText(searchQuery.trim()).split(/\s+/).filter(Boolean);
+    list = list.filter(p => {
+      const brandStr = Array.isArray(p.brand) ? p.brand.join(' ') : (p.brand || '');
+      const haystack = normalizeText([p.name, p.compat, catLabel(p.cat), brandStr, p.compatBrand].join(' '));
+      return words.every(w => haystack.includes(w));
+    });
   }
   return list;
 }
@@ -2573,7 +2609,7 @@ function renderShippingOptionsInline(){
       ${shippingQuoteOptions.map((opt, i) => `
         <div class="pay-option ship-opt ${i === selectedShippingOptionIndex ? 'selected' : ''}" data-ship-idx="${i}" onclick="selectShippingOption(${i})">
           <input type="radio" name="shipopt" id="shipopt-${i}" ${i === selectedShippingOptionIndex ? 'checked' : ''}>
-          <label for="shipopt-${i}">${escapeHtmlClient((opt.carrier || '').toUpperCase())}<span class="sub-lbl">${opt.days ? `Llega en ${opt.days} día${opt.days == 1 ? '' : 's'}` : 'Tiempo de entrega por confirmar'}</span></label>
+          <label for="shipopt-${i}">${escapeHtmlClient((opt.carrier || '').toUpperCase())}<span class="sub-lbl">${opt.days ? `Llega el ${formatDeliveryEstimate(opt.days)}` : 'Tiempo de entrega por confirmar'}</span></label>
           <span class="ship-opt-price">${money(opt.price)}</span>
         </div>
       `).join('')}
@@ -2749,7 +2785,7 @@ function renderPaymentStep(){
       <h3>Método de pago</h3>
       <p class="sub">
         Productos: <strong style="font-family:var(--font-mono)">${money(cartTotal())}</strong>
-        ${shippingCost > 0 ? ` + Envío: <strong style="font-family:var(--font-mono)">${money(shippingCost)}</strong>${shippingQuoteOptions ? ` (${escapeHtmlClient(shippingQuoteOptions[selectedShippingOptionIndex].carrier)}${shippingQuoteOptions[selectedShippingOptionIndex].days ? ` · ${shippingQuoteOptions[selectedShippingOptionIndex].days} día${shippingQuoteOptions[selectedShippingOptionIndex].days == 1 ? '' : 's'}` : ''})` : ''}` : (selectedDelivery === 'pickup' ? ' · Recoges en sucursal, sin costo de envío' : '')}
+        ${shippingCost > 0 ? ` + Envío: <strong style="font-family:var(--font-mono)">${money(shippingCost)}</strong>${shippingQuoteOptions ? ` (${escapeHtmlClient(shippingQuoteOptions[selectedShippingOptionIndex].carrier)}${shippingQuoteOptions[selectedShippingOptionIndex].days ? ` · llega el ${formatDeliveryEstimate(shippingQuoteOptions[selectedShippingOptionIndex].days)}` : ''})` : ''}` : (selectedDelivery === 'pickup' ? ' · Recoges en sucursal, sin costo de envío' : '')}
         <br>Total a pagar: <strong style="font-family:var(--font-mono)">${money(grandTotal)}</strong>
       </p>
       <div class="pay-option" data-pay="tarjeta" onclick="selectPayment('tarjeta')">
@@ -2863,7 +2899,7 @@ async function confirmOrder(){
           <div>Número de pedido: <strong>${orderNum}</strong></div>
           <div>Método de pago: <strong>${payLabel}</strong></div>
           <div>${deliveryLine}</div>
-          ${shippingCost > 0 ? `<div>Costo de envío: <strong>${money(shippingCost)}</strong>${shippingQuoteOptions && shippingQuoteOptions[selectedShippingOptionIndex].days ? ` <span style="color:var(--ink-soft); font-weight:400;">(llega en ${shippingQuoteOptions[selectedShippingOptionIndex].days} día${shippingQuoteOptions[selectedShippingOptionIndex].days == 1 ? '' : 's'})</span>` : ''}</div>` : ''}
+          ${shippingCost > 0 ? `<div>Costo de envío: <strong>${money(shippingCost)}</strong>${shippingQuoteOptions && shippingQuoteOptions[selectedShippingOptionIndex].days ? ` <span style="color:var(--ink-soft); font-weight:400;">(llega el ${formatDeliveryEstimate(shippingQuoteOptions[selectedShippingOptionIndex].days)})</span>` : ''}</div>` : ''}
           <div>Total: <strong>${money(total)}</strong></div>
         </div>
         <button class="btn btn-primary" style="width:100%; justify-content:center;" onclick="finishOrder()">Volver a la tienda</button>
