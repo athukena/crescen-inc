@@ -2358,6 +2358,24 @@ function getEffectivePostalCode(){
   return newAddr.postal_code;
 }
 
+function getDestinationLocation(){
+  if(selectedSavedAddressId !== null){
+    const a = savedAddresses.find(a => a.id === selectedSavedAddressId);
+    return {
+      postal_code: a?.postal_code || '',
+      colonia: a?.colonia || '',
+      municipio: a?.municipio || '',
+      estado: a?.estado || '',
+    };
+  }
+  return {
+    postal_code: newAddr.postal_code,
+    colonia: newAddr.colonia,
+    municipio: newAddr.municipio,
+    estado: newAddr.estado,
+  };
+}
+
 function getFormattedAddress(){
   if(selectedSavedAddressId !== null){
     const a = savedAddresses.find(a => a.id === selectedSavedAddressId);
@@ -2417,7 +2435,7 @@ async function goToPaymentStep(){
 
   try {
     const { data, error } = await sb.functions.invoke('super-task', {
-      body: { postal_code: getEffectivePostalCode() }
+      body: getDestinationLocation()
     });
     if(error){
       let detail = error.message;
