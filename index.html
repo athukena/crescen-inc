@@ -502,6 +502,38 @@
   .checkout-page-wrap{padding:32px 20px 80px; display:flex; justify-content:center;}
   .checkout-card{max-width:520px; width:100%; padding:0; background:transparent; max-height:none; overflow:visible; position:static;}
   .checkout-card .breadcrumb{margin-bottom:20px;}
+
+  /* ---------- combined order page (products + shipping + summary) ---------- */
+  .order-page{max-width:1080px; margin:0 auto; padding:32px 20px 80px;}
+  .order-title{font-family:var(--font-display); font-size:28px; font-weight:600; margin-bottom:20px;}
+  .order-layout{display:grid; grid-template-columns:1fr 360px; gap:24px; align-items:start;}
+  @media (max-width:840px){ .order-layout{grid-template-columns:1fr;} }
+  .order-main{display:flex; flex-direction:column; gap:20px; min-width:0;}
+  .order-card{max-width:none; width:100%; background:var(--white); border:1px solid var(--line); border-radius:12px; padding:24px; position:static; max-height:none; overflow:visible;}
+  .order-card h3{font-family:var(--font-display); font-size:18px; font-weight:600; margin-bottom:16px;}
+  .order-sidebar{position:sticky; top:20px;}
+  .order-item-row{display:grid; grid-template-columns:54px 1fr auto auto auto; align-items:center; gap:14px; padding:12px 0; border-bottom:1px solid var(--line);}
+  .order-item-row:last-child{border-bottom:none;}
+  .order-item-media{width:54px; height:54px; background:var(--paper-2); border-radius:8px; display:flex; align-items:center; justify-content:center;}
+  .order-item-name{font-size:13.5px; font-weight:500; line-height:1.4;}
+  .order-item-qty{display:flex; align-items:center; gap:8px; background:var(--paper-2); border-radius:20px; padding:4px 10px;}
+  .order-item-qty button{width:20px; height:20px; font-size:13px; color:var(--ink);}
+  .order-item-qty span{font-family:var(--font-mono); font-size:13px; min-width:14px; text-align:center;}
+  .order-item-price{font-family:var(--font-mono); font-size:13.5px; font-weight:600; white-space:nowrap;}
+  .order-item-remove{background:none; color:var(--ink-soft); font-size:14px;}
+  .order-item-remove:hover{color:#A3402C;}
+  .order-summary-card{padding:22px;}
+  .order-summary-lines{margin-bottom:14px;}
+  .summary-line{display:flex; justify-content:space-between; font-size:13.5px; color:var(--ink-soft); padding:6px 0;}
+  .summary-line.summary-total{border-top:1px solid var(--line); margin-top:6px; padding-top:12px; font-size:15px; font-weight:700; color:var(--ink); font-family:var(--font-mono);}
+  .terms-check{display:flex; align-items:flex-start; gap:8px; font-size:12.5px; color:var(--ink-soft); margin-bottom:16px; cursor:pointer; line-height:1.4;}
+  .terms-check input{margin-top:2px; accent-color:var(--gold-dark);}
+  .terms-check a{color:var(--gold-dark); font-weight:600;}
+  .add-more-btn{width:100%; text-align:center; background:none; color:var(--gold-dark); font-weight:600; font-size:13px; margin-top:12px;}
+  .add-more-btn:hover{text-decoration:underline;}
+  .btn-ghost-calc{background:none; border:1.5px solid var(--gold-dark); color:var(--gold-dark); font-weight:600; font-size:12.5px; padding:8px 14px; border-radius:6px; margin-top:8px;}
+  .btn-ghost-calc:hover{background:var(--gold-dark); color:#fff;}
+  .ship-opt{cursor:pointer;}
   .confirm-box{text-align:center; padding:10px 0;}
   .confirm-icon{width:64px; height:64px; border-radius:50%; background:linear-gradient(120deg,var(--gold-light),var(--gold-dark)); display:flex; align-items:center; justify-content:center; margin:0 auto 18px; color:#fff; font-size:30px;}
   .confirm-order{font-family:var(--font-mono); background:var(--paper-2); border-radius:8px; padding:14px; margin:18px 0; font-size:13.5px;}
@@ -2157,6 +2189,7 @@ function openCheckout(){
   shippingCost = 0;
   shippingQuoteOptions = null;
   selectedShippingOptionIndex = 0;
+  termsAccepted = false;
   selectedSavedAddressId = savedAddresses.length > 0 ? savedAddresses[0].id : null;
 
   closeCart();
@@ -2165,32 +2198,139 @@ function openCheckout(){
   document.getElementById('view-product').style.display = 'none';
   document.getElementById('view-account').style.display = 'none';
   document.getElementById('view-checkout').style.display = 'block';
-  renderDeliveryStep();
+  renderOrderStep();
   window.scrollTo(0,0);
 }
 
-function renderDeliveryStep(){
-  const modal = document.getElementById('checkoutPage');
-  modal.innerHTML = `
-    <div class="modal checkout-card">
+let selectedShippingOptionIndex = 0;
+let termsAccepted = false;
+
+function renderOrderStep(){
+  const page = document.getElementById('checkoutPage');
+  page.innerHTML = `
+    <div class="order-page">
       <div class="breadcrumb"><button onclick="closeCheckout()">← Volver a la tienda</button></div>
-      <h3>Método de entrega</h3>
-      <p class="sub">Subtotal de productos: <strong style="font-family:var(--font-mono)">${money(cartTotal())}</strong></p>
-
-      <div class="pay-option" data-deliv="pickup" onclick="selectDelivery('pickup')">
-        <input type="radio" name="deliv" id="deliv-pickup">
-        <label for="deliv-pickup">Recoger en sucursal<span class="sub-lbl">Sin costo — listo el mismo día</span></label>
+      <h1 class="order-title">Tu pedido</h1>
+      <div class="order-layout">
+        <div class="order-main">
+          <div class="modal order-card">
+            <h3>Productos</h3>
+            <div id="orderItemsList"></div>
+          </div>
+          <div class="modal order-card">
+            <h3>Selecciona una opción de envío</h3>
+            <div class="pay-option" data-deliv="pickup" onclick="selectDelivery('pickup')">
+              <input type="radio" name="deliv" id="deliv-pickup">
+              <label for="deliv-pickup">Recoger en sucursal<span class="sub-lbl">Sin costo — listo el mismo día</span></label>
+            </div>
+            <div class="pay-option" data-deliv="shipping" onclick="selectDelivery('shipping')">
+              <input type="radio" name="deliv" id="deliv-shipping">
+              <label for="deliv-shipping">Enviar a domicilio<span class="sub-lbl">Desde ${money(FLAT_SHIPPING_RATE)}, según tu dirección</span></label>
+            </div>
+            <div id="deliveryDetail"></div>
+          </div>
+        </div>
+        <div class="order-sidebar">
+          <div class="modal order-card order-summary-card">
+            <h3>Resumen de compra</h3>
+            <div class="order-summary-lines" id="orderSummaryLines"></div>
+            <label class="terms-check">
+              <input type="checkbox" id="termsCheckbox" onchange="toggleTerms(this.checked)">
+              Acepto los <a href="#" onclick="showTermsModal(); return false;">Términos y Condiciones</a>
+            </label>
+            <button class="btn btn-primary" id="continueDeliveryBtn" onclick="proceedToPayment()" disabled style="width:100%; justify-content:center;">Continuar a pago</button>
+            <button class="add-more-btn" onclick="closeCheckout()">Agregar más productos →</button>
+          </div>
+        </div>
       </div>
-      <div class="pay-option" data-deliv="shipping" onclick="selectDelivery('shipping')">
-        <input type="radio" name="deliv" id="deliv-shipping">
-        <label for="deliv-shipping">Enviar a domicilio<span class="sub-lbl">Desde ${money(FLAT_SHIPPING_RATE)}, según tu dirección</span></label>
-      </div>
-
-      <div id="deliveryDetail"></div>
-
-      <button class="btn btn-primary" id="continueDeliveryBtn" onclick="goToPaymentStep()" disabled>Continuar</button>
     </div>
   `;
+  renderOrderItemsList();
+  if(selectedDelivery){
+    document.getElementById(`deliv-${selectedDelivery}`).checked = true;
+    document.querySelector(`#checkoutPage .pay-option[data-deliv="${selectedDelivery}"]`).classList.add('selected');
+    selectDelivery(selectedDelivery);
+  } else {
+    updateOrderSummary();
+  }
+  if(termsAccepted) document.getElementById('termsCheckbox').checked = true;
+}
+
+function renderOrderItemsList(){
+  const wrap = document.getElementById('orderItemsList');
+  if(!wrap) return;
+  wrap.innerHTML = cart.map(c => {
+    const p = PRODUCTS.find(x => x.id === c.id);
+    if(!p) return '';
+    return `
+      <div class="order-item-row">
+        <div class="order-item-media">${iconFor(p,54)}</div>
+        <div class="order-item-name">${escapeHtmlClient(p.name)}</div>
+        <div class="order-item-qty">
+          <button onclick="changeOrderQty('${p.id}',-1)">−</button>
+          <span>${c.qty}</span>
+          <button onclick="changeOrderQty('${p.id}',1)">+</button>
+        </div>
+        <div class="order-item-price">${money(p.price * c.qty)}</div>
+        <button class="order-item-remove" onclick="removeOrderItem('${p.id}')" aria-label="Eliminar">🗑</button>
+      </div>
+    `;
+  }).join('');
+}
+
+function changeOrderQty(id, delta){
+  const item = cart.find(c => c.id === id);
+  if(!item) return;
+  item.qty += delta;
+  if(item.qty <= 0) cart = cart.filter(c => c.id !== id);
+  renderOrderItemsList();
+  updateOrderSummary();
+  if(cart.length === 0){ renderCart(); closeCheckout(); }
+}
+function removeOrderItem(id){
+  cart = cart.filter(c => c.id !== id);
+  renderOrderItemsList();
+  updateOrderSummary();
+  if(cart.length === 0){ renderCart(); closeCheckout(); }
+}
+
+function toggleTerms(checked){
+  termsAccepted = checked;
+  updateOrderSummary();
+}
+
+function showTermsModal(){
+  const overlay = document.getElementById('authModalOverlay');
+  const modal = document.getElementById('authModal');
+  modal.innerHTML = `
+    <button class="modal-close" onclick="closeAuthModal()">✕</button>
+    <h3>Términos y Condiciones</h3>
+    <p class="sub" style="line-height:1.6;">Aquí van las políticas de compra, envío, cambios y garantía de Crescen Inc. (pendiente de agregar el texto final).</p>
+    <button class="btn btn-primary" style="width:100%; justify-content:center;" onclick="closeAuthModal()">Cerrar</button>
+  `;
+  overlay.classList.add('open');
+}
+
+function checkoutIsReady(){
+  if(!termsAccepted) return false;
+  if(selectedDelivery === 'pickup') return !!selectedBranch;
+  if(selectedDelivery === 'shipping') return addressIsReady();
+  return false;
+}
+
+function updateOrderSummary(){
+  const lines = document.getElementById('orderSummaryLines');
+  const subtotal = cartTotal();
+  const total = subtotal + shippingCost;
+  if(lines){
+    lines.innerHTML = `
+      <div class="summary-line"><span>Subtotal</span><span>${money(subtotal)}</span></div>
+      <div class="summary-line"><span>Gastos de envío</span><span>${selectedDelivery ? money(shippingCost) : '—'}</span></div>
+      <div class="summary-line summary-total"><span>Total</span><span>${money(total)}</span></div>
+    `;
+  }
+  const btn = document.getElementById('continueDeliveryBtn');
+  if(btn) btn.disabled = !checkoutIsReady();
 }
 
 function selectDelivery(method){
@@ -2199,11 +2339,13 @@ function selectDelivery(method){
   document.getElementById(`deliv-${method}`).checked = true;
 
   const detail = document.getElementById('deliveryDetail');
-  const continueBtn = document.getElementById('continueDeliveryBtn');
 
   if(method === 'pickup'){
+    shippingCost = 0;
+    shippingQuoteOptions = null;
     detail.innerHTML = `
-      <div class="delivery-detail-box">        <label class="field-label">¿En qué sucursal recoges?</label>
+      <div class="delivery-detail-box">
+        <label class="field-label">¿En qué sucursal recoges?</label>
         ${Object.entries(BRANCHES).map(([key, b]) => `
           <div class="branch-option ${selectedBranch === key ? 'selected' : ''}" onclick="selectBranch('${key}')">
             <input type="radio" name="branch" id="branch-${key}" ${selectedBranch === key ? 'checked' : ''}>
@@ -2212,12 +2354,14 @@ function selectDelivery(method){
         `).join('')}
       </div>
     `;
-    continueBtn.disabled = !selectedBranch;
   } else {
     if(selectedSavedAddressId === null && savedAddresses.length > 0) selectedSavedAddressId = savedAddresses[0].id;
+    shippingCost = currentShippingCost();
+    shippingQuoteOptions = null;
     renderShippingAddressDetail();
-    continueBtn.disabled = !addressIsReady();
+    if(selectedSavedAddressId !== null) fetchShippingQuoteInline();
   }
+  updateOrderSummary();
 }
 
 function addressIsReady(){
@@ -2232,7 +2376,6 @@ function addressIsReady(){
 
 function renderShippingAddressDetail(){
   const detail = document.getElementById('deliveryDetail');
-  const shipNote = `Costo estimado: <strong>${money(FLAT_SHIPPING_RATE)}</strong> — calculamos el costo exacto con tu código postal al continuar.`;
 
   let addressBlock = '';
   if(savedAddresses.length > 0){
@@ -2311,14 +2454,89 @@ function renderShippingAddressDetail(){
           Guardar esta dirección para la próxima vez
         </label>
       ` : ''}
-      <p class="ship-cost-note">${shipNote}</p>
+      <div id="shippingOptionsInline"></div>
     </div>
   `;
+  renderShippingOptionsInline();
+}
+
+function renderShippingOptionsInline(){
+  const wrap = document.getElementById('shippingOptionsInline');
+  if(!wrap) return;
+  if(!addressIsReady()){
+    wrap.innerHTML = '';
+    return;
+  }
+  if(shippingQuoteOptions && shippingQuoteOptions.length > 0){
+    wrap.innerHTML = `
+      <label class="field-label" style="margin-top:14px;">Elige tu paquetería</label>
+      ${shippingQuoteOptions.map((opt, i) => `
+        <div class="pay-option ship-opt ${i === selectedShippingOptionIndex ? 'selected' : ''}" data-ship-idx="${i}" onclick="selectShippingOption(${i})">
+          <input type="radio" name="shipopt" id="shipopt-${i}" ${i === selectedShippingOptionIndex ? 'checked' : ''}>
+          <label for="shipopt-${i}">${escapeHtmlClient((opt.carrier || '').toUpperCase())}<span class="sub-lbl">${opt.days ? `Llega en ${opt.days} día${opt.days == 1 ? '' : 's'}` : 'Tiempo de entrega por confirmar'}</span></label>
+          <span class="ship-opt-price">${money(opt.price)}</span>
+        </div>
+      `).join('')}
+    `;
+  } else if(selectedSavedAddressId !== null){
+    // dirección guardada: ya se disparó el cálculo automático, mostramos estado
+    wrap.innerHTML = `<p class="ship-cost-note" id="shipQuoteStatus">Calculando el costo de envío...</p>`;
+  } else {
+    wrap.innerHTML = `
+      <p class="ship-cost-note">Costo estimado: <strong>${money(FLAT_SHIPPING_RATE)}</strong></p>
+      <button type="button" class="btn-ghost-calc" onclick="fetchShippingQuoteInline()">Calcular costo de envío</button>
+    `;
+  }
+}
+
+async function fetchShippingQuoteInline(){
+  const statusEl = document.getElementById('shippingOptionsInline');
+  if(statusEl) statusEl.innerHTML = `<p class="ship-cost-note">Calculando el costo de envío...</p>`;
+
+  try {
+    const { data, error } = await sb.functions.invoke('super-task', {
+      body: getDestinationLocation()
+    });
+    if(error){
+      let detail = error.message;
+      try {
+        if(error.context && typeof error.context.json === 'function'){
+          const body = await error.context.json();
+          detail = body.error || JSON.stringify(body);
+        }
+      } catch(_){}
+      throw new Error(detail);
+    }
+    if(!data || !data.cheapest) throw new Error('la función respondió pero sin opciones de envío: ' + JSON.stringify(data));
+    shippingQuoteOptions = data.options;
+    selectedShippingOptionIndex = 0;
+    shippingCost = shippingQuoteOptions[0].price;
+  } catch(e) {
+    console.warn('Cotización real no disponible, usando estimado. MOTIVO:', e.message);
+    shippingQuoteOptions = null;
+    shippingCost = currentShippingCost();
+  }
+  renderShippingOptionsInline();
+  updateOrderSummary();
+}
+
+function selectShippingOption(i){
+  selectedShippingOptionIndex = i;
+  shippingCost = shippingQuoteOptions[i].price;
+  document.querySelectorAll('#checkoutPage .pay-option[data-ship-idx]').forEach(el => {
+    const match = Number(el.dataset.shipIdx) === i;
+    el.classList.toggle('selected', match);
+    const input = el.querySelector('input');
+    if(input) input.checked = match;
+  });
+  updateOrderSummary();
 }
 
 function onFieldInput(field, value){
   newAddr[field] = value;
-  document.getElementById('continueDeliveryBtn').disabled = !addressIsReady();
+  shippingQuoteOptions = null;
+  renderShippingOptionsInline();
+  updateOrderSummary();
 }
 
 function onCpInput(value){
@@ -2327,10 +2545,12 @@ function onCpInput(value){
   newAddr.colonia = '';
   cpLookupResult = null;
   cpLookupStatus = 'idle';
+  shippingQuoteOptions = null;
   if(cp.length === 5){
     lookupPostalCode(cp);
   } else {
-    document.getElementById('continueDeliveryBtn').disabled = true;
+    renderShippingOptionsInline();
+    updateOrderSummary();
   }
 }
 
@@ -2385,9 +2605,13 @@ function getRecipientInfo(){
 
 function selectSavedAddress(id){
   selectedSavedAddressId = id;
-  if(id === null) resetNewAddressForm();
+  shippingQuoteOptions = null;
+  if(id === null){
+    resetNewAddressForm();
+  }
   renderShippingAddressDetail();
-  document.getElementById('continueDeliveryBtn').disabled = !addressIsReady();
+  updateOrderSummary();
+  if(id !== null) fetchShippingQuoteInline();
 }
 
 async function deleteSavedAddress(e, id){
@@ -2396,7 +2620,7 @@ async function deleteSavedAddress(e, id){
   savedAddresses = savedAddresses.filter(a => a.id !== id);
   if(selectedSavedAddressId === id) selectedSavedAddressId = savedAddresses.length > 0 ? savedAddresses[0].id : null;
   renderShippingAddressDetail();
-  document.getElementById('continueDeliveryBtn').disabled = !addressIsReady();
+  updateOrderSummary();
   await sb.from('shipping_addresses').delete().eq('id', id);
 }
 
@@ -2408,87 +2632,12 @@ function selectBranch(key){
     el.classList.toggle('selected', match);
     if(input) input.checked = match;
   });
-  document.getElementById('continueDeliveryBtn').disabled = false;
+  updateOrderSummary();
 }
 
-async function goToPaymentStep(){
-  if(selectedDelivery !== 'shipping'){
-    shippingCost = currentShippingCost();
-    shippingQuoteOptions = null;
-    renderPaymentStep();
-    return;
-  }
-
-  const continueBtn = document.getElementById('continueDeliveryBtn');
-  continueBtn.disabled = true;
-  continueBtn.textContent = 'Calculando envío...';
-
-  try {
-    const { data, error } = await sb.functions.invoke('super-task', {
-      body: getDestinationLocation()
-    });
-    if(error){
-      let detail = error.message;
-      try {
-        if(error.context && typeof error.context.json === 'function'){
-          const body = await error.context.json();
-          detail = body.error || JSON.stringify(body);
-        }
-      } catch(_){}
-      throw new Error(detail);
-    }
-    if(!data || !data.cheapest) throw new Error('la función respondió pero sin opciones de envío: ' + JSON.stringify(data));
-    shippingCost = Math.round(data.cheapest.price);
-    shippingQuoteOptions = data.options;
-  } catch(e) {
-    // La función de cotización real aún no está lista o falló — usamos el estimado plano, sin interrumpir la compra
-    console.warn('Cotización real no disponible, usando estimado. MOTIVO:', e.message);
-    shippingCost = currentShippingCost();
-    shippingQuoteOptions = null;
-  }
-
-  continueBtn.disabled = false;
-  continueBtn.textContent = 'Continuar';
-
-  if(shippingQuoteOptions && shippingQuoteOptions.length > 0){
-    selectedShippingOptionIndex = 0;
-    shippingCost = shippingQuoteOptions[0].price;
-    renderShippingOptionsStep();
-  } else {
-    renderPaymentStep();
-  }
-}
-
-let selectedShippingOptionIndex = 0;
-
-function renderShippingOptionsStep(){
-  const modal = document.getElementById('checkoutPage');
-  modal.innerHTML = `
-    <div class="modal checkout-card">
-      <div class="breadcrumb"><button onclick="renderDeliveryStep()">← Volver a entrega</button></div>
-      <h3>Elige tu paquetería</h3>
-      <p class="sub">Productos: <strong style="font-family:var(--font-mono)">${money(cartTotal())}</strong></p>
-      ${shippingQuoteOptions.map((opt, i) => `
-        <div class="pay-option ${i === selectedShippingOptionIndex ? 'selected' : ''}" data-ship-idx="${i}" onclick="selectShippingOption(${i})">
-          <input type="radio" name="shipopt" id="shipopt-${i}" ${i === selectedShippingOptionIndex ? 'checked' : ''}>
-          <label for="shipopt-${i}">${escapeHtmlClient((opt.carrier || '').toUpperCase())}<span class="sub-lbl">${opt.days ? `Llega en ${opt.days} día${opt.days == 1 ? '' : 's'}` : 'Tiempo de entrega estimado por confirmar'}</span></label>
-          <span class="ship-opt-price">${money(opt.price)}</span>
-        </div>
-      `).join('')}
-      <button class="btn btn-primary" onclick="renderPaymentStep()">Continuar</button>
-    </div>
-  `;
-}
-
-function selectShippingOption(i){
-  selectedShippingOptionIndex = i;
-  shippingCost = shippingQuoteOptions[i].price;
-  document.querySelectorAll('#checkoutPage .pay-option[data-ship-idx]').forEach(el => {
-    const match = Number(el.dataset.shipIdx) === i;
-    el.classList.toggle('selected', match);
-    const input = el.querySelector('input');
-    if(input) input.checked = match;
-  });
+function proceedToPayment(){
+  if(!checkoutIsReady()) return;
+  renderPaymentStep();
 }
 
 function renderPaymentStep(){
@@ -2496,7 +2645,7 @@ function renderPaymentStep(){
   const grandTotal = cartTotal() + shippingCost;
   modal.innerHTML = `
     <div class="modal checkout-card">
-      <div class="breadcrumb"><button onclick="${shippingQuoteOptions && shippingQuoteOptions.length > 0 ? 'renderShippingOptionsStep()' : 'renderDeliveryStep()'}">← Volver</button></div>
+      <div class="breadcrumb"><button onclick="renderOrderStep()">← Volver</button></div>
       <h3>Método de pago</h3>
       <p class="sub">
         Productos: <strong style="font-family:var(--font-mono)">${money(cartTotal())}</strong>
