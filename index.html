@@ -347,6 +347,16 @@
     letter-spacing:.04em; color:#C1543B; border:1px solid #C1543B; border-radius:5px;
     padding:4px 10px; margin-bottom:14px;
   }
+  .similar-products-box{background:var(--paper-2); border-radius:10px; padding:14px 16px; margin-bottom:16px;}
+  .similar-products-title{font-size:12.5px; font-weight:700; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.02em; margin-bottom:10px;}
+  .similar-product-item{display:flex; align-items:center; gap:10px; padding:8px 0; border-top:1px solid var(--line); cursor:pointer;}
+  .similar-product-item:first-of-type{border-top:none;}
+  .similar-product-item:hover .similar-product-name{color:var(--gold-dark);}
+  .similar-product-media{width:44px; height:44px; flex-shrink:0; background:var(--white); border-radius:6px; display:flex; align-items:center; justify-content:center;}
+  .similar-product-info{flex:1; min-width:0;}
+  .similar-product-name{font-size:13px; font-weight:500; line-height:1.3;}
+  .similar-product-brand{font-size:11px; color:var(--ink-soft); text-transform:capitalize;}
+  .similar-product-price{font-family:var(--font-mono); font-size:13px; font-weight:600; white-space:nowrap;}
   .fav-heart{
     position:absolute; top:8px; right:8px; z-index:5; background:rgba(255,255,255,.9);
     border:1px solid var(--line); border-radius:50%; width:30px; height:30px; font-size:16px;
@@ -1928,6 +1938,47 @@ function resetBannerTimer(){
 
 /* ---------- PRODUCT DETAIL ---------- */
 let detailQty = 1;
+function extractOemCode(name){
+  let m = name.match(/Equiv\.\s*([A-Za-z0-9]+)/i);
+  if(m) return m[1].toUpperCase();
+  m = name.match(/\b([0-9]{1,4}[A-Z]{1,3})\b/);
+  return m ? m[1].toUpperCase() : null;
+}
+function findRelatedProducts(p){
+  const code = extractOemCode(p.name);
+  if(!code) return [];
+  return PRODUCTS.filter(x =>
+    x.id !== p.id &&
+    x.compatBrand === p.compatBrand &&
+    extractOemCode(x.name) === code
+  );
+}
+
+function renderRelatedProductsBlock(p){
+  const related = findRelatedProducts(p);
+  if(related.length === 0) return '';
+  const outOfStock = p.stock !== null && p.stock !== undefined && p.stock <= 0;
+  const title = outOfStock ? 'Sí disponibles para el mismo modelo:' : 'Productos relacionados:';
+  return `
+    <div class="similar-products-box">
+      <div class="similar-products-title">${title}</div>
+      ${related.map(s => {
+        const brandStr = Array.isArray(s.brand) ? s.brand.join(' ') : (s.brand || '');
+        const sOutOfStock = s.stock !== null && s.stock !== undefined && s.stock <= 0;
+        return `
+        <div class="similar-product-item" onclick="showProduct('${s.id}')">
+          <div class="similar-product-media">${iconFor(s,44)}</div>
+          <div class="similar-product-info">
+            <div class="similar-product-name">${escapeHtmlClient(s.name)}</div>
+            <div class="similar-product-brand">${escapeHtmlClient(brandStr)}${sOutOfStock ? ' · <span style="color:#B1402F;">Agotado</span>' : ''}</div>
+          </div>
+          <div class="similar-product-price">${isLoggedIn ? money(s.price) : '🔒'}</div>
+        </div>`;
+      }).join('')}
+    </div>
+  `;
+}
+
 function showProduct(id){
   const p = PRODUCTS.find(x => x.id === id);
   if(!p) return;
@@ -1955,6 +2006,7 @@ function showProduct(id){
           <div class="detail-compat">Compatible con: ${p.compat}</div>
           <div class="detail-price">${priceOrLock(money(p.price))}</div>
           ${isLoggedIn && outOfStock ? `<div class="stock-out-banner">SIN EXISTENCIAS</div>` : ''}
+          ${renderRelatedProductsBlock(p)}
           <div class="detail-price-note">IVA incluido · Mismo día en CDMX · Envíos a toda la república con costo adicional</div>
           ${!isLoggedIn ? `<div class="login-hint-banner">Los precios son exclusivos para clientes registrados. <button onclick="promptLogin()">Inicia sesión con Google</button> para verlos.</div>` : ''}
           <table class="spec-table">
