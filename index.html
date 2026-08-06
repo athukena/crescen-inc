@@ -1746,7 +1746,7 @@ function renderGrid(){
   const grid = document.getElementById('productGrid');
   const list = getFilteredProducts();
   if(list.length === 0){
-    grid.innerHTML = `<div class="no-results"><b>Sin resultados</b>No encontramos productos para "${searchQuery}". Intenta con otro término o quita algún filtro.</div>`;
+    grid.innerHTML = `<div class="no-results"><b>Sin resultados</b>No encontramos productos para "${escapeHtmlClient(searchQuery)}". Intenta con otro término o quita algún filtro.</div>`;
     return;
   }
   grid.innerHTML = list.map(productCardHTML).join('');
@@ -1870,7 +1870,7 @@ function openSearchResults(){
   subtitle.textContent = parts.length ? `${list.length} resultado(s) para ${parts.join(' · ')}` : `${list.length} producto(s)`;
 
   if(list.length === 0){
-    grid.innerHTML = `<div class="no-results"><b>Sin resultados</b>No encontramos productos para "${searchQuery}". Intenta con otro término o quita algún filtro.</div>`;
+    grid.innerHTML = `<div class="no-results"><b>Sin resultados</b>No encontramos productos para "${escapeHtmlClient(searchQuery)}". Intenta con otro término o quita algún filtro.</div>`;
   } else {
     grid.innerHTML = list.map(productCardHTML).join('');
   }
