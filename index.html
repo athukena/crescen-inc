@@ -190,6 +190,12 @@
   .offer-badge{position:absolute; top:8px; right:8px; background:#A3402C; color:#fff; font-family:var(--font-mono); font-size:10.5px; font-weight:700; padding:3px 8px; border-radius:5px; z-index:2;}
   .carousel-card .product-media{aspect-ratio:1/0.85;}
   .carousel-card .old-price{font-family:var(--font-mono); font-size:11.5px; color:var(--ink-soft); text-decoration:line-through; margin-right:6px;}
+  .reco-block{margin-bottom:36px;}
+  .reco-title{font-family:var(--font-display); font-size:22px; font-weight:600;}
+  .reco-cta{background:none; color:var(--gold-dark); font-weight:600; font-size:13px;}
+  .reco-cta:hover{text-decoration:underline;}
+  #recommendationsSection{max-width:1200px; margin:0 auto; padding:32px 20px 0;}
+  #recommendationsSection:empty{padding:0;}
 
   /* SECTION HEADERS */
   .section{padding:66px 0;}
@@ -474,6 +480,11 @@
   .modal-close{position:absolute; top:18px; right:18px; font-size:20px; width:32px; height:32px; border-radius:50%;}
   .modal-close:hover{background:var(--paper-2);}
   .modal h3{font-family:var(--font-display); font-size:22px; margin-bottom:6px; font-weight:600;}
+  .terms-content{font-size:13px; line-height:1.6; color:var(--ink); max-height:50vh; overflow-y:auto; margin:16px 0; padding-right:6px;}
+  .terms-content p{margin-bottom:14px;}
+  .terms-content strong{color:var(--gold-dark);}
+  .terms-content ul{margin:0 0 14px 18px;}
+  .terms-content li{margin-bottom:5px;}
   .modal .sub{font-size:13.5px; color:var(--ink-soft); margin-bottom:22px;}
   .pay-option{display:flex; align-items:center; gap:12px; border:1.5px solid var(--line); border-radius:8px; padding:14px 16px; margin-bottom:10px; transition:border-color .15s;}
   .pay-option input{accent-color:var(--gold-dark);}
@@ -536,7 +547,9 @@
   .order-summary-lines{margin-bottom:14px;}
   .summary-line{display:flex; justify-content:space-between; font-size:13.5px; color:var(--ink-soft); padding:6px 0;}
   .summary-line.summary-total{border-top:1px solid var(--line); margin-top:6px; padding-top:12px; font-size:15px; font-weight:700; color:var(--ink); font-family:var(--font-mono);}
-  .terms-check{display:flex; align-items:flex-start; gap:8px; font-size:12.5px; color:var(--ink-soft); margin-bottom:16px; cursor:pointer; line-height:1.4;}
+  .terms-check{display:flex; align-items:flex-start; gap:8px; font-size:12.5px; color:var(--ink-soft); margin-bottom:4px; cursor:pointer; line-height:1.4;}
+  .terms-hint{font-size:11.5px; color:#B1402F; margin-bottom:16px;}
+  .terms-scroll-hint{text-align:center; font-size:12px; color:var(--gold-dark); font-weight:600; margin-top:-8px; margin-bottom:12px;}
   .terms-check input{margin-top:2px; accent-color:var(--gold-dark);}
   .terms-check a{color:var(--gold-dark); font-weight:600;}
   .add-more-btn{width:100%; text-align:center; background:none; color:var(--gold-dark); font-weight:600; font-size:13px; margin-top:12px;}
@@ -714,6 +727,8 @@
     </div>
     <div class="banner-dots" id="bannerDots"></div>
   </section>
+
+  <div id="recommendationsSection"></div>
 
   <section class="section wrap" id="offersCarousel" style="padding-top:48px;">
     <div class="carousel-head">
@@ -1107,11 +1122,14 @@ async function initAuth(){
       isLoggedIn = false;
       favoriteIds = new Set();
       notifications = [];
+      recentlyViewedIds = [];
+      purchaseHistoryIds = [];
       updateAuthUI();
       renderNotifBell();
       renderGrid();
       renderOffers();
       renderCart();
+      renderHomeRecommendations();
     }
   });
 }
@@ -1131,6 +1149,8 @@ function applySession(session, justSignedIn){
   loadNotifications();
   loadSavedAddresses();
   loadCartFromServer();
+  loadRecentlyViewed();
+  loadPurchaseHistory();
   renderGrid();
   renderOffers();
   renderCart();
@@ -1160,20 +1180,47 @@ async function loadFavorites(){
   favoriteIds = new Set((data || []).map(r => r.product_id));
   renderGrid();
   renderOffers();
+  renderHomeRecommendations();
 }
+
+/* ---------- VISTOS RECIENTEMENTE ---------- */
+let recentlyViewedIds = [];
+async function loadRecentlyViewed(){
+  if(!isLoggedIn || !currentUser?.email) return;
+  const { data, error } = await sb.from('recently_viewed').select('product_id').eq('user_email', currentUser.email).order('viewed_at', {ascending:false}).limit(10);
+  if(error){ console.error('Error cargando vistos recientemente:', error); return; }
+  recentlyViewedIds = (data || []).map(r => r.product_id);
+  renderHomeRecommendations();
+}
+async function trackRecentlyViewed(id){
+  recentlyViewedIds = [id, ...recentlyViewedIds.filter(x => x !== id)].slice(0, 10);
+  if(!isLoggedIn || !currentUser?.email) return;
+  await sb.from('recently_viewed').upsert({ user_email: currentUser.email, product_id: id, viewed_at: new Date().toISOString() });
+}
+
+/* ---------- HISTORIAL DE COMPRA (para "Cómpralo de nuevo") ---------- */
+let purchaseHistoryIds = [];
+async function loadPurchaseHistory(){
+  if(!isLoggedIn || !currentUser?.email) return;
+  const { data, error } = await sb.from('customer_product_history').select('product_id').eq('user_email', currentUser.email).order('last_purchased_at', {ascending:false}).limit(10);
+  if(error){ console.error('Error cargando historial de compra:', error); return; }
+  purchaseHistoryIds = (data || []).map(r => r.product_id);
+  renderHomeRecommendations();
+}
+
 async function toggleFavorite(id){
   if(!isLoggedIn || !currentUser?.email){ promptLogin(); return; }
   const isFav = favoriteIds.has(id);
   if(isFav){
     favoriteIds.delete(id);
-    renderGrid(); renderOffers();
+    renderGrid(); renderOffers(); renderHomeRecommendations();
     const { error } = await sb.from('favorites').delete().eq('user_email', currentUser.email).eq('product_id', id);
-    if(error){ favoriteIds.add(id); renderGrid(); renderOffers(); showToast('No se pudo quitar de favoritos'); }
+    if(error){ favoriteIds.add(id); renderGrid(); renderOffers(); renderHomeRecommendations(); showToast('No se pudo quitar de favoritos'); }
   } else {
     favoriteIds.add(id);
-    renderGrid(); renderOffers();
+    renderGrid(); renderOffers(); renderHomeRecommendations();
     const { error } = await sb.from('favorites').insert({ user_email: currentUser.email, product_id: id });
-    if(error){ favoriteIds.delete(id); renderGrid(); renderOffers(); showToast('No se pudo agregar a favoritos'); }
+    if(error){ favoriteIds.delete(id); renderGrid(); renderOffers(); renderHomeRecommendations(); showToast('No se pudo agregar a favoritos'); }
     else showToast('Agregado a favoritos ♥');
   }
   const p = PRODUCTS.find(x => x.id === id);
@@ -1334,7 +1381,7 @@ function renderNotifList(){
     return;
   }
   wrap.innerHTML = notifications.map(n => `
-    <div class="notif-item ${n.read ? '' : 'unread'}" onclick="showProduct('${n.product_id}'); toggleNotifPanel();">
+    <div class="notif-item ${n.read ? '' : 'unread'}" onclick="${n.product_id ? `showProduct('${n.product_id}')` : 'openCart()'}; toggleNotifPanel();">
       <div class="notif-msg">${n.message}</div>
       <div class="notif-date">${new Date(n.created_at).toLocaleDateString('es-MX', {day:'numeric', month:'short'})}</div>
     </div>
@@ -1936,6 +1983,85 @@ function renderOffers(){
     </div>`;
   }).join('');
 }
+function recoCardHTML(p){
+  const outOfStock = p.stock !== null && p.stock !== undefined && p.stock <= 0;
+  const isFav = favoriteIds.has(p.id);
+  return `
+    <div class="carousel-card">
+      <div class="product-media" onclick="showProduct('${p.id}')">
+        ${compatBrandTag(p)}
+        <button class="fav-heart ${isFav ? 'active' : ''}" aria-label="Favoritos" onclick="toggleFavorite('${p.id}'); event.stopPropagation();">${isFav ? '♥' : '♡'}</button>
+        ${iconFor(p,90)}
+        ${outOfStock ? '<span class="oos-badge">Agotado</span>' : ''}
+      </div>
+      <div class="product-body">
+        <div class="product-cat">${catLabel(p.cat)}</div>
+        <div class="product-name" onclick="showProduct('${p.id}')">${p.name}</div>
+        <div class="product-foot">
+          <div class="product-price">${outOfStock ? '<span style="color:#B1402F; font-weight:700; font-size:12px;">Agotado</span>' : priceOrLock(isLoggedIn ? money(p.price) : '')}</div>
+          ${outOfStock
+            ? `<button class="add-btn add-btn-disabled" aria-label="Sin existencias" disabled title="Sin existencias">✕</button>`
+            : `<button class="add-btn" aria-label="Agregar al carrito" onclick="addToCart('${p.id}',1); event.stopPropagation();">+</button>`}
+        </div>
+      </div>
+    </div>`;
+}
+
+function recoSectionHTML(title, products, actionHtml){
+  if(!products || products.length === 0) return '';
+  return `
+    <div class="reco-block">
+      <div class="carousel-head">
+        <h2 class="reco-title">${title}</h2>
+        ${actionHtml || ''}
+      </div>
+      <div class="carousel-wrap">
+        <div class="carousel-track">${products.map(recoCardHTML).join('')}</div>
+      </div>
+    </div>
+  `;
+}
+
+function idsToProducts(ids){
+  return ids.map(id => PRODUCTS.find(p => p.id === id)).filter(Boolean);
+}
+
+function renderHomeRecommendations(){
+  const el = document.getElementById('recommendationsSection');
+  if(!el) return;
+  if(!isLoggedIn || PRODUCTS.length === 0){ el.innerHTML = ''; return; }
+
+  let html = '';
+
+  // 1. Retoma tu carrito
+  const cartProducts = idsToProducts(cart.map(c => c.id));
+  html += recoSectionHTML('Retoma tu carrito', cartProducts, `<button class="reco-cta" onclick="openCart()">Ir al carrito →</button>`);
+
+  // 2. Cómpralo de nuevo
+  const repurchase = idsToProducts(purchaseHistoryIds);
+  html += recoSectionHTML('Cómpralo de nuevo', repurchase);
+
+  // 3. Tus favoritos
+  const favs = PRODUCTS.filter(p => favoriteIds.has(p.id));
+  html += recoSectionHTML('Tus favoritos', favs, `<button class="reco-cta" onclick="showAccount('favoritos')">Ver todos →</button>`);
+
+  // 4. Vistos recientemente
+  const recent = idsToProducts(recentlyViewedIds);
+  html += recoSectionHTML('Vistos recientemente', recent);
+
+  // 5. Porque te interesa — aproximación por categoría, según favoritos/compras/vistos
+  const seedIds = new Set([...favoriteIds, ...purchaseHistoryIds, ...recentlyViewedIds]);
+  const cats = new Set();
+  PRODUCTS.forEach(p => { if(seedIds.has(p.id)) cats.add(p.cat); });
+  const excludeIds = new Set([...seedIds, ...cart.map(c => c.id)]);
+  const interest = cats.size > 0
+    ? PRODUCTS.filter(p => cats.has(p.cat) && !excludeIds.has(p.id) && (p.stock === null || p.stock === undefined || p.stock > 0)).slice(0, 8)
+    : [];
+  html += recoSectionHTML('Porque te interesa', interest);
+
+  el.innerHTML = html;
+}
+
 function scrollCarousel(dir){
   const track = document.getElementById('offersTrack');
   track.scrollBy({left: dir * 240, behavior:'smooth'});
@@ -2021,6 +2147,7 @@ function showProduct(id){
   const p = PRODUCTS.find(x => x.id === id);
   if(!p) return;
   detailQty = 1;
+  trackRecentlyViewed(id);
   const outOfStock = p.stock !== null && p.stock !== undefined && p.stock <= 0;
   const isFav = favoriteIds.has(p.id);
   document.getElementById('view-home').style.display = 'none';
@@ -2045,6 +2172,7 @@ function showProduct(id){
           <div class="detail-price">${outOfStock ? '' : priceOrLock(money(p.price))}</div>
           ${isLoggedIn && outOfStock ? `<div class="stock-out-banner">SIN EXISTENCIAS</div>` : ''}
           ${renderRelatedProductsBlock(p)}
+          <div id="freqBoughtTogether"></div>
           <div class="detail-price-note">IVA incluido · Mismo día en CDMX · Envíos a toda la república con costo adicional</div>
           ${!isLoggedIn ? `<div class="login-hint-banner">Los precios son exclusivos para clientes registrados. <button onclick="promptLogin()">Inicia sesión con Google</button> para verlos.</div>` : ''}
           <table class="spec-table">
@@ -2071,6 +2199,36 @@ function showProduct(id){
     </div>
   `;
   window.scrollTo({top:0, behavior:'smooth'});
+  loadFrequentlyBoughtTogether(p.id);
+}
+async function loadFrequentlyBoughtTogether(productId){
+  const el = document.getElementById('freqBoughtTogether');
+  if(!el) return;
+  const { data, error } = await sb.rpc('get_frequently_bought_with', { p_product_id: productId, p_limit: 4 });
+  if(error || !data || data.length === 0){ el.innerHTML = ''; return; }
+  const products = data.map(r => PRODUCTS.find(p => p.id === r.product_id)).filter(Boolean);
+  if(products.length === 0){ el.innerHTML = ''; return; }
+  el.innerHTML = `
+    <div class="similar-products-box">
+      <div class="similar-products-title">🛒 Frecuentemente comprados juntos</div>
+      ${products.map(s => {
+        const brandStr = Array.isArray(s.brand) ? s.brand.join(' ') : (s.brand || '');
+        const sOutOfStock = s.stock !== null && s.stock !== undefined && s.stock <= 0;
+        return `
+        <div class="similar-product-item" onclick="showProduct('${s.id}')">
+          <div class="similar-product-media">${iconFor(s,44)}</div>
+          <div class="similar-product-info">
+            <div class="similar-product-name">${escapeHtmlClient(s.name)}</div>
+            <div class="similar-product-brand">${escapeHtmlClient(brandStr)}${sOutOfStock ? ' · <span style="color:#B1402F;">Agotado</span>' : ''}</div>
+          </div>
+          ${sOutOfStock
+            ? ''
+            : `<button class="add-btn" style="flex-shrink:0;" aria-label="Agregar al carrito" onclick="addToCart('${s.id}',1); event.stopPropagation();">+</button>`}
+          <div class="similar-product-price">${sOutOfStock ? '' : (isLoggedIn ? money(s.price) : '🔒')}</div>
+        </div>`;
+      }).join('')}
+    </div>
+  `;
 }
 function changeDetailQty(delta){
   detailQty = Math.max(1, detailQty + delta);
@@ -2187,6 +2345,7 @@ function cartTotal(){
   }, 0);
 }
 function renderCart(){
+  renderHomeRecommendations();
   const count = cart.reduce((s,c) => s + c.qty, 0);
   document.getElementById('cartCount').textContent = count;
   document.getElementById('cartMini').textContent = isLoggedIn ? money(cartTotal()) : '🔒';
@@ -2328,6 +2487,7 @@ function openCheckout(){
   shippingQuoteOptions = null;
   selectedShippingOptionIndex = 0;
   termsAccepted = false;
+  termsRead = false;
   selectedSavedAddressId = savedAddresses.length > 0 ? savedAddresses[0].id : null;
 
   closeCart();
@@ -2342,6 +2502,7 @@ function openCheckout(){
 
 let selectedShippingOptionIndex = 0;
 let termsAccepted = false;
+let termsRead = false;
 
 function renderOrderStep(){
   const page = document.getElementById('checkoutPage');
@@ -2372,10 +2533,11 @@ function renderOrderStep(){
           <div class="modal order-card order-summary-card">
             <h3>Resumen de compra</h3>
             <div class="order-summary-lines" id="orderSummaryLines"></div>
-            <label class="terms-check">
-              <input type="checkbox" id="termsCheckbox" onchange="toggleTerms(this.checked)">
+            <label class="terms-check" id="termsCheckLabel">
+              <input type="checkbox" id="termsCheckbox" onchange="toggleTerms(this.checked)" disabled>
               Acepto los <a href="#" onclick="showTermsModal(); return false;">Términos y Condiciones</a>
             </label>
+            <p class="terms-hint" id="termsHint">Ábrelos y léelos completos para poder aceptarlos.</p>
             <button class="btn btn-primary" id="continueDeliveryBtn" onclick="proceedToPayment()" disabled style="width:100%; justify-content:center;">Continuar a pago</button>
             <button class="add-more-btn" onclick="closeCheckout()">Agregar más productos →</button>
           </div>
@@ -2390,6 +2552,10 @@ function renderOrderStep(){
     selectDelivery(selectedDelivery);
   } else {
     updateOrderSummary();
+  }
+  if(termsRead){
+    document.getElementById('termsCheckbox').disabled = false;
+    document.getElementById('termsHint').style.display = 'none';
   }
   if(termsAccepted) document.getElementById('termsCheckbox').checked = true;
 }
@@ -2437,16 +2603,70 @@ function toggleTerms(checked){
   updateOrderSummary();
 }
 
+const TERMS_VERSION = '2026-08-06-v2'; // cámbialo cada vez que el texto de abajo cambie
+const TERMS_TEXT_HTML = `
+  <p><strong>1. Cambios y devoluciones</strong><br>
+  Una vez que el producto sale de la tienda, no hay cambios ni devoluciones. La compatibilidad del producto adquirido es responsabilidad enteramente del cliente — te recomendamos revisar manuales y modelos con detalle antes de comprar. Si solicitaste un modelo distinto al que en realidad necesitabas, Crescen Inc no es responsable y no procede cambio ni devolución.</p>
+
+  <p><strong>2. Productos nuevos y sellados</strong><br>
+  Por la naturaleza de los productos que ofrecemos, no se realizan cambios ni devoluciones — todos vienen sellados y garantizados por el fabricante. Crescen Inc Technology solo ofrece productos nuevos.</p>
+
+  <p><strong>3. Pedidos sobre pedido</strong><br>
+  Requieren 50% de anticipo, liquidable contra entrega. Los tiempos estimados dependen de la disponibilidad del proveedor — Crescen Inc no es responsable de variaciones en esos tiempos. Una vez generada la orden con su anticipo, no se puede cancelar. No hay cancelaciones ni devoluciones sobre una orden ya generada, y el producto se entrega solo cuando se liquide al 100%.</p>
+
+  <p><strong>Validez de garantía</strong><br>
+  Aplica contra defectos de fabricación o mal funcionamiento en uso normal. Tienes 5 días naturales a partir de la entrega para reportarlo, presentando el producto en tienda con su empaque original y ticket de compra. Los gastos de transporte/paquetería corren por tu cuenta. Crescen Inc se reserva el derecho de determinar si un artículo presenta mal uso, en cuyo caso no aplica garantía. Toda revisión fuera de garantía tiene un costo de $150. Una vez aplicada la garantía, tienes 30 días naturales para recoger tu producto — pasado ese tiempo, no nos hacemos responsables de consumibles no reclamados.</p>
+
+  <p><strong>La garantía no es válida si:</strong></p>
+  <ul>
+    <li>No presentas ticket/factura y empaque original</li>
+    <li>No lo presentas en el tiempo estipulado, en la sucursal donde lo adquiriste</li>
+    <li>El producto tiene daño físico por mal uso, abuso, manipulación, transporte o descuido</li>
+    <li>Hay daño por descarga eléctrica o voltaje incorrecto</li>
+    <li>Hay daño por líquidos, ácidos, polvo u otras sustancias ajenas al diseño del equipo</li>
+    <li>El producto fue alterado o reparado por personas no autorizadas por el fabricante o por Crescen Inc Technology</li>
+  </ul>
+
+  <p><strong>Sin garantía ni devolución, por su naturaleza:</strong><br>
+  Tinta, tóner-polvo, cilindros, filminas, engranes, grasa, gomas, chips, grasa para filmina, tarjetas lógicas, uñas, papel fotográfico, aire comprimido, alcohol isopropílico, destapa cabezales, limpiador de circuitos, espuma limpiadora, ventosas, jeringas.</p>
+
+  <p><strong>Impresoras</strong><br>
+  Tienen un año de garantía directamente con el fabricante, y se reportan en los centros de atención al cliente de la marca correspondiente.</p>
+
+  <p style="color:var(--ink-soft); font-size:12px; margin-top:16px;">Al recibir tu ticket, factura o cualquier documento que certifique el despacho, aceptas incondicionalmente estas políticas y condiciones de garantía, renunciando a cualquier reclamo no considerado en este documento.</p>
+
+  <p style="color:var(--ink-soft); font-size:12px; margin-top:8px;">Esta política no sustituye ni limita los derechos que la Ley Federal de Protección al Consumidor te otorga.</p>
+`;
+
 function showTermsModal(){
   const overlay = document.getElementById('authModalOverlay');
   const modal = document.getElementById('authModal');
   modal.innerHTML = `
     <button class="modal-close" onclick="closeAuthModal()">✕</button>
     <h3>Términos y Condiciones</h3>
-    <p class="sub" style="line-height:1.6;">Aquí van las políticas de compra, envío, cambios y garantía de Crescen Inc. (pendiente de agregar el texto final).</p>
+    <div class="terms-content" id="termsScrollBox" onscroll="checkTermsScroll()">${TERMS_TEXT_HTML}</div>
+    <p class="terms-scroll-hint" id="termsScrollHint">Desliza hasta el final para poder aceptarlos ↓</p>
     <button class="btn btn-primary" style="width:100%; justify-content:center;" onclick="closeAuthModal()">Cerrar</button>
   `;
   overlay.classList.add('open');
+  // por si el texto ya cabe completo sin necesitar scroll
+  setTimeout(checkTermsScroll, 100);
+}
+function checkTermsScroll(){
+  const box = document.getElementById('termsScrollBox');
+  if(!box) return;
+  const reachedEnd = box.scrollTop + box.clientHeight >= box.scrollHeight - 16;
+  if(reachedEnd) markTermsRead();
+}
+function markTermsRead(){
+  if(termsRead) return;
+  termsRead = true;
+  const hint = document.getElementById('termsScrollHint');
+  if(hint) hint.style.display = 'none';
+  const checkbox = document.getElementById('termsCheckbox');
+  const pageHint = document.getElementById('termsHint');
+  if(checkbox){ checkbox.disabled = false; }
+  if(pageHint){ pageHint.textContent = 'Ya puedes marcar la casilla para aceptar.'; pageHint.style.color = 'var(--gold-dark)'; }
 }
 
 function checkoutIsReady(){
@@ -2816,6 +3036,15 @@ async function confirmOrder(){
   const confirmBtn = document.getElementById('confirmPayBtn');
   if(confirmBtn){ confirmBtn.disabled = true; confirmBtn.textContent = 'Confirmando...'; }
 
+  let clientIp = null;
+  try {
+    const ipRes = await fetch('https://api.ipify.org?format=json');
+    const ipData = await ipRes.json();
+    clientIp = ipData.ip || null;
+  } catch(_) {
+    // si falla, seguimos sin bloquear la compra — no es crítico, solo un dato extra de evidencia
+  }
+
   const orderNum = 'CRN-' + Math.floor(100000 + Math.random()*899999);
   const payLabel = {tarjeta:'Tarjeta', oxxo:'OXXO', transferencia:'Transferencia SPEI'}[selectedPayment];
   const productsTotal = cartTotal();
@@ -2863,6 +3092,17 @@ async function confirmOrder(){
     };
   });
   await sb.from('order_items').insert(itemRows);
+
+  // Registro del consentimiento — evidencia por si hay un reclamo futuro
+  await sb.from('terms_acceptances').insert({
+    order_id: orderData.id,
+    order_number: orderNum,
+    user_email: currentUser.email,
+    terms_version: TERMS_VERSION,
+    terms_text: TERMS_TEXT_HTML,
+    user_agent: navigator.userAgent,
+    ip_address: clientIp,
+  });
 
   if(selectedDelivery === 'shipping' && selectedSavedAddressId === null && saveNewAddress && newAddr.street.trim()){
     const { data: savedAddrRow, error: addrError } = await sb.from('shipping_addresses').insert({
