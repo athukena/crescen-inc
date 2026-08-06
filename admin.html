@@ -114,6 +114,11 @@
   .status-cancelado{background:#3A1E1A; color:#E08A78; border-color:#8A3A2A;}
   .attended-tag{font-size:12px; color:var(--gold-light); font-family:var(--font-mono);}
   .unattended-tag{font-size:12px; color:var(--text-dim); font-style:italic;}
+  .delivery-info-box{
+    background:var(--katun-blue-bg); border:1px solid var(--katun-blue); border-radius:8px;
+    padding:14px 16px; margin-bottom:16px; font-size:13px; color:var(--katun-blue-dark); line-height:1.5;
+  }
+  .delivery-info-title{font-weight:700; margin-bottom:6px; color:var(--katun-blue-dark);}
 
   /* ---------- table ---------- */
   .table-wrap{border:1px solid var(--line); border-radius:8px; overflow:hidden;}
@@ -516,6 +521,26 @@ async function openOrderDetail(orderId) {
 
   const items = o.order_items || [];
   const modal = document.getElementById('order-detail-modal');
+
+  let deliveryBlock = '';
+  if (o.delivery_method === 'pickup') {
+    deliveryBlock = `
+      <div class="delivery-info-box">
+        <div class="delivery-info-title">📍 Recoge en sucursal</div>
+        <div>${escapeHtml(o.pickup_branch || '—')}</div>
+      </div>
+    `;
+  } else if (o.delivery_method === 'shipping') {
+    deliveryBlock = `
+      <div class="delivery-info-box">
+        <div class="delivery-info-title">📦 Envío a domicilio</div>
+        <div><strong>${escapeHtml(o.recipient_name || 'Sin nombre registrado')}</strong>${o.recipient_phone ? ' · ' + escapeHtml(o.recipient_phone) : ''}</div>
+        <div style="margin-top:4px;">${escapeHtml(o.shipping_address || 'Sin dirección registrada')}</div>
+        ${o.shipping_carrier ? `<div style="margin-top:6px; color:var(--text-dim);">Paquetería: ${escapeHtml(o.shipping_carrier.toUpperCase())}${o.shipping_days ? ` · ${o.shipping_days} día(s) hábiles` : ''} · Costo: $${Number(o.shipping_cost || 0).toLocaleString('es-MX', {minimumFractionDigits:2})}</div>` : ''}
+      </div>
+    `;
+  }
+
   modal.innerHTML = `
     <h2>Pedido ${escapeHtml(o.order_number)}</h2>
     <p style="color:var(--text-dim); font-size:13px; margin-bottom:16px;">
@@ -523,6 +548,7 @@ async function openOrderDetail(orderId) {
       Método de pago: ${escapeHtml(o.payment_method || '—')}<br>
       Atendido por: ${o.attended_by_name ? escapeHtml(o.attended_by_name) : 'sin atender'}
     </p>
+    ${deliveryBlock}
     <div class="table-wrap">
       <table>
         <thead><tr><th>Producto</th><th style="text-align:right">Cant.</th><th style="text-align:right">Precio</th><th style="text-align:right">Subtotal</th></tr></thead>
