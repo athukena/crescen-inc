@@ -566,6 +566,8 @@
     .header-inner{padding:14px 16px;}
     .hero{padding:44px 0 36px;}
   }
+  /* ---------- protección ligera de imágenes ---------- */
+  img{ -webkit-user-drag:none; user-drag:none; -webkit-user-select:none; user-select:none; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
@@ -2941,6 +2943,12 @@ animateBars();
 renderBannerDots();
 resetBannerTimer();
 syncSearchCatLabel('all');
+document.addEventListener('contextmenu', function(e){
+  if(e.target.tagName === 'IMG'){
+    e.preventDefault();
+  }
+});
+
 initAuth();
 loadProducts();
 </script>
