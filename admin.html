@@ -2165,6 +2165,7 @@ function showProduct(id){
           <div class="detail-price">${outOfStock ? '' : priceOrLock(money(p.price))}</div>
           ${isLoggedIn && outOfStock ? `<div class="stock-out-banner">SIN EXISTENCIAS</div>` : ''}
           ${renderRelatedProductsBlock(p)}
+          <div id="freqBoughtTogether"></div>
           <div class="detail-price-note">IVA incluido · Mismo día en CDMX · Envíos a toda la república con costo adicional</div>
           ${!isLoggedIn ? `<div class="login-hint-banner">Los precios son exclusivos para clientes registrados. <button onclick="promptLogin()">Inicia sesión con Google</button> para verlos.</div>` : ''}
           <table class="spec-table">
@@ -2191,6 +2192,36 @@ function showProduct(id){
     </div>
   `;
   window.scrollTo({top:0, behavior:'smooth'});
+  loadFrequentlyBoughtTogether(p.id);
+}
+async function loadFrequentlyBoughtTogether(productId){
+  const el = document.getElementById('freqBoughtTogether');
+  if(!el) return;
+  const { data, error } = await sb.rpc('get_frequently_bought_with', { p_product_id: productId, p_limit: 4 });
+  if(error || !data || data.length === 0){ el.innerHTML = ''; return; }
+  const products = data.map(r => PRODUCTS.find(p => p.id === r.product_id)).filter(Boolean);
+  if(products.length === 0){ el.innerHTML = ''; return; }
+  el.innerHTML = `
+    <div class="similar-products-box">
+      <div class="similar-products-title">🛒 Frecuentemente comprados juntos</div>
+      ${products.map(s => {
+        const brandStr = Array.isArray(s.brand) ? s.brand.join(' ') : (s.brand || '');
+        const sOutOfStock = s.stock !== null && s.stock !== undefined && s.stock <= 0;
+        return `
+        <div class="similar-product-item" onclick="showProduct('${s.id}')">
+          <div class="similar-product-media">${iconFor(s,44)}</div>
+          <div class="similar-product-info">
+            <div class="similar-product-name">${escapeHtmlClient(s.name)}</div>
+            <div class="similar-product-brand">${escapeHtmlClient(brandStr)}${sOutOfStock ? ' · <span style="color:#B1402F;">Agotado</span>' : ''}</div>
+          </div>
+          ${sOutOfStock
+            ? ''
+            : `<button class="add-btn" style="flex-shrink:0;" aria-label="Agregar al carrito" onclick="addToCart('${s.id}',1); event.stopPropagation();">+</button>`}
+          <div class="similar-product-price">${sOutOfStock ? '' : (isLoggedIn ? money(s.price) : '🔒')}</div>
+        </div>`;
+      }).join('')}
+    </div>
+  `;
 }
 function changeDetailQty(delta){
   detailQty = Math.max(1, detailQty + delta);
