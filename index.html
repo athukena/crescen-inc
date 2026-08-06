@@ -110,8 +110,7 @@
 
   /* ---------- barra de departamentos con menú desplegable ---------- */
   .dept-navbar{background:var(--charcoal); border-top:1px solid rgba(232,206,122,.12); border-bottom:1px solid rgba(232,206,122,.12); position:relative; z-index:35;}
-  .dept-navbar-inner{display:flex; align-items:center; gap:2px; overflow-x:auto; -ms-overflow-style:none; scrollbar-width:none;}
-  .dept-navbar-inner::-webkit-scrollbar{display:none;}
+  .dept-navbar-inner{display:flex; align-items:center; gap:2px; flex-wrap:wrap;}
   .dnav-item{position:relative; flex-shrink:0;}
   .dnav-item > button{
     background:none; color:var(--text, #F1EEDF); font-size:13px; font-weight:600; padding:12px 14px;
@@ -124,6 +123,7 @@
     border-radius:0 0 8px 8px; box-shadow:0 16px 32px rgba(0,0,0,.25); min-width:200px; padding:8px 0; z-index:36;
   }
   .dnav-item.has-dropdown:hover .dnav-dropdown{display:block;}
+  .dnav-dropdown.force-open{display:block;}
   .dnav-dropdown button{
     display:block; width:100%; text-align:left; padding:9px 18px; font-size:13.5px; color:var(--ink);
     background:none; white-space:nowrap;
@@ -726,7 +726,7 @@
       <button onclick="filterCat('cuchilla')">Cuchillas</button>
     </div>
     <div class="dnav-item has-dropdown">
-      <button>Marcas <span class="dnav-chevron">▾</span></button>
+      <button onclick="toggleDeptDropdown(event, this)">Marcas <span class="dnav-chevron">▾</span></button>
       <div class="dnav-dropdown dnav-dropdown-grid">
         <button onclick="filterByBrand('hp')">HP</button>
         <button onclick="filterByBrand('canon')">Canon</button>
@@ -746,7 +746,7 @@
       </div>
     </div>
     <div class="dnav-item has-dropdown">
-      <button>Nuestras Marcas <span class="dnav-chevron">▾</span></button>
+      <button onclick="toggleDeptDropdown(event, this)">Nuestras Marcas <span class="dnav-chevron">▾</span></button>
       <div class="dnav-dropdown">
         <button onclick="filterByCompatBrand('katun')">Katun</button>
         <button onclick="filterByCompatBrand('cit')">CIT</button>
@@ -1936,6 +1936,17 @@ function toggleCatGroup(groupId, labelEl){
   group.classList.toggle('open');
   labelEl.classList.toggle('open');
 }
+function toggleDeptDropdown(e, btn){
+  e.stopPropagation();
+  const dropdown = btn.nextElementSibling;
+  const isOpen = dropdown.classList.contains('force-open');
+  document.querySelectorAll('.dnav-dropdown.force-open').forEach(d => d.classList.remove('force-open'));
+  if(!isOpen) dropdown.classList.add('force-open');
+}
+document.addEventListener('click', function(){
+  document.querySelectorAll('.dnav-dropdown.force-open').forEach(d => d.classList.remove('force-open'));
+});
+
 function filterByBrand(brand){
   currentCat = 'all';
   selectedBrands = new Set([brand]);
