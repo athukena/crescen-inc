@@ -480,6 +480,11 @@
   .modal-close{position:absolute; top:18px; right:18px; font-size:20px; width:32px; height:32px; border-radius:50%;}
   .modal-close:hover{background:var(--paper-2);}
   .modal h3{font-family:var(--font-display); font-size:22px; margin-bottom:6px; font-weight:600;}
+  .terms-content{font-size:13px; line-height:1.6; color:var(--ink); max-height:50vh; overflow-y:auto; margin:16px 0; padding-right:6px;}
+  .terms-content p{margin-bottom:14px;}
+  .terms-content strong{color:var(--gold-dark);}
+  .terms-content ul{margin:0 0 14px 18px;}
+  .terms-content li{margin-bottom:5px;}
   .modal .sub{font-size:13.5px; color:var(--ink-soft); margin-bottom:22px;}
   .pay-option{display:flex; align-items:center; gap:12px; border:1.5px solid var(--line); border-radius:8px; padding:14px 16px; margin-bottom:10px; transition:border-color .15s;}
   .pay-option input{accent-color:var(--gold-dark);}
@@ -2589,13 +2594,46 @@ function toggleTerms(checked){
   updateOrderSummary();
 }
 
+const TERMS_VERSION = '2026-08-05-v1'; // cámbialo cada vez que el texto de abajo cambie
+const TERMS_TEXT_HTML = `
+  <p><strong>1. Cambios y devoluciones</strong><br>
+  Una vez que el producto sale de la tienda, no hay cambios ni devoluciones. La compatibilidad del producto adquirido es responsabilidad enteramente del cliente — te recomendamos revisar manuales y modelos con detalle antes de comprar. Si solicitaste un modelo distinto al que en realidad necesitabas, Crescen Inc no es responsable y no procede cambio ni devolución.</p>
+
+  <p><strong>2. Productos nuevos y sellados</strong><br>
+  Por la naturaleza de los productos que ofrecemos, no se realizan cambios ni devoluciones — todos vienen sellados y garantizados por el fabricante. Crescen Inc Technology solo ofrece productos nuevos.</p>
+
+  <p><strong>3. Pedidos sobre pedido</strong><br>
+  Requieren 50% de anticipo, liquidable contra entrega. Los tiempos estimados dependen de la disponibilidad del proveedor — Crescen Inc no es responsable de variaciones en esos tiempos. Una vez generada la orden con su anticipo, no se puede cancelar. No hay cancelaciones ni devoluciones sobre una orden ya generada, y el producto se entrega solo cuando se liquide al 100%.</p>
+
+  <p><strong>Validez de garantía</strong><br>
+  Aplica contra defectos de fabricación o mal funcionamiento en uso normal. Tienes 5 días naturales a partir de la entrega para reportarlo, presentando el producto en tienda con su empaque original y ticket de compra. Los gastos de transporte/paquetería corren por tu cuenta. Crescen Inc se reserva el derecho de determinar si un artículo presenta mal uso, en cuyo caso no aplica garantía. Toda revisión fuera de garantía tiene un costo de $150. Una vez aplicada la garantía, tienes 30 días naturales para recoger tu producto — pasado ese tiempo, no nos hacemos responsables de consumibles no reclamados.</p>
+
+  <p><strong>La garantía no es válida si:</strong></p>
+  <ul>
+    <li>No presentas ticket/factura y empaque original</li>
+    <li>No lo presentas en el tiempo estipulado, en la sucursal donde lo adquiriste</li>
+    <li>El producto tiene daño físico por mal uso, abuso, manipulación, transporte o descuido</li>
+    <li>Hay daño por descarga eléctrica o voltaje incorrecto</li>
+    <li>Hay daño por líquidos, ácidos, polvo u otras sustancias ajenas al diseño del equipo</li>
+    <li>El producto fue alterado o reparado por personas no autorizadas por el fabricante o por Crescen Inc Technology</li>
+  </ul>
+
+  <p><strong>Sin garantía ni devolución, por su naturaleza:</strong><br>
+  Tinta, tóner-polvo, cilindros, filminas, engranes, grasa, gomas, chips, grasa para filmina, tarjetas lógicas, uñas, papel fotográfico, aire comprimido, alcohol isopropílico, destapa cabezales, limpiador de circuitos, espuma limpiadora, ventosas, jeringas.</p>
+
+  <p><strong>Impresoras</strong><br>
+  Tienen un año de garantía directamente con el fabricante, y se reportan en los centros de atención al cliente de la marca correspondiente.</p>
+
+  <p style="color:var(--ink-soft); font-size:12px; margin-top:16px;">Al recibir tu ticket, factura o cualquier documento que certifique el despacho, aceptas incondicionalmente estas políticas y condiciones de garantía, renunciando a cualquier reclamo no considerado en este documento.</p>
+`;
+
 function showTermsModal(){
   const overlay = document.getElementById('authModalOverlay');
   const modal = document.getElementById('authModal');
   modal.innerHTML = `
     <button class="modal-close" onclick="closeAuthModal()">✕</button>
     <h3>Términos y Condiciones</h3>
-    <p class="sub" style="line-height:1.6;">Aquí van las políticas de compra, envío, cambios y garantía de Crescen Inc. (pendiente de agregar el texto final).</p>
+    <div class="terms-content">${TERMS_TEXT_HTML}</div>
     <button class="btn btn-primary" style="width:100%; justify-content:center;" onclick="closeAuthModal()">Cerrar</button>
   `;
   overlay.classList.add('open');
@@ -3015,6 +3053,16 @@ async function confirmOrder(){
     };
   });
   await sb.from('order_items').insert(itemRows);
+
+  // Registro del consentimiento — evidencia por si hay un reclamo futuro
+  await sb.from('terms_acceptances').insert({
+    order_id: orderData.id,
+    order_number: orderNum,
+    user_email: currentUser.email,
+    terms_version: TERMS_VERSION,
+    terms_text: TERMS_TEXT_HTML,
+    user_agent: navigator.userAgent,
+  });
 
   if(selectedDelivery === 'shipping' && selectedSavedAddressId === null && saveNewAddress && newAddr.street.trim()){
     const { data: savedAddrRow, error: addrError } = await sb.from('shipping_addresses').insert({
