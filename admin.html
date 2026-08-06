@@ -547,7 +547,9 @@
   .order-summary-lines{margin-bottom:14px;}
   .summary-line{display:flex; justify-content:space-between; font-size:13.5px; color:var(--ink-soft); padding:6px 0;}
   .summary-line.summary-total{border-top:1px solid var(--line); margin-top:6px; padding-top:12px; font-size:15px; font-weight:700; color:var(--ink); font-family:var(--font-mono);}
-  .terms-check{display:flex; align-items:flex-start; gap:8px; font-size:12.5px; color:var(--ink-soft); margin-bottom:16px; cursor:pointer; line-height:1.4;}
+  .terms-check{display:flex; align-items:flex-start; gap:8px; font-size:12.5px; color:var(--ink-soft); margin-bottom:4px; cursor:pointer; line-height:1.4;}
+  .terms-hint{font-size:11.5px; color:#B1402F; margin-bottom:16px;}
+  .terms-scroll-hint{text-align:center; font-size:12px; color:var(--gold-dark); font-weight:600; margin-top:-8px; margin-bottom:12px;}
   .terms-check input{margin-top:2px; accent-color:var(--gold-dark);}
   .terms-check a{color:var(--gold-dark); font-weight:600;}
   .add-more-btn{width:100%; text-align:center; background:none; color:var(--gold-dark); font-weight:600; font-size:13px; margin-top:12px;}
@@ -2485,6 +2487,7 @@ function openCheckout(){
   shippingQuoteOptions = null;
   selectedShippingOptionIndex = 0;
   termsAccepted = false;
+  termsRead = false;
   selectedSavedAddressId = savedAddresses.length > 0 ? savedAddresses[0].id : null;
 
   closeCart();
@@ -2499,6 +2502,7 @@ function openCheckout(){
 
 let selectedShippingOptionIndex = 0;
 let termsAccepted = false;
+let termsRead = false;
 
 function renderOrderStep(){
   const page = document.getElementById('checkoutPage');
@@ -2529,10 +2533,11 @@ function renderOrderStep(){
           <div class="modal order-card order-summary-card">
             <h3>Resumen de compra</h3>
             <div class="order-summary-lines" id="orderSummaryLines"></div>
-            <label class="terms-check">
-              <input type="checkbox" id="termsCheckbox" onchange="toggleTerms(this.checked)">
+            <label class="terms-check" id="termsCheckLabel">
+              <input type="checkbox" id="termsCheckbox" onchange="toggleTerms(this.checked)" disabled>
               Acepto los <a href="#" onclick="showTermsModal(); return false;">Términos y Condiciones</a>
             </label>
+            <p class="terms-hint" id="termsHint">Ábrelos y léelos completos para poder aceptarlos.</p>
             <button class="btn btn-primary" id="continueDeliveryBtn" onclick="proceedToPayment()" disabled style="width:100%; justify-content:center;">Continuar a pago</button>
             <button class="add-more-btn" onclick="closeCheckout()">Agregar más productos →</button>
           </div>
@@ -2547,6 +2552,10 @@ function renderOrderStep(){
     selectDelivery(selectedDelivery);
   } else {
     updateOrderSummary();
+  }
+  if(termsRead){
+    document.getElementById('termsCheckbox').disabled = false;
+    document.getElementById('termsHint').style.display = 'none';
   }
   if(termsAccepted) document.getElementById('termsCheckbox').checked = true;
 }
@@ -2633,10 +2642,29 @@ function showTermsModal(){
   modal.innerHTML = `
     <button class="modal-close" onclick="closeAuthModal()">✕</button>
     <h3>Términos y Condiciones</h3>
-    <div class="terms-content">${TERMS_TEXT_HTML}</div>
+    <div class="terms-content" id="termsScrollBox" onscroll="checkTermsScroll()">${TERMS_TEXT_HTML}</div>
+    <p class="terms-scroll-hint" id="termsScrollHint">Desliza hasta el final para poder aceptarlos ↓</p>
     <button class="btn btn-primary" style="width:100%; justify-content:center;" onclick="closeAuthModal()">Cerrar</button>
   `;
   overlay.classList.add('open');
+  // por si el texto ya cabe completo sin necesitar scroll
+  setTimeout(checkTermsScroll, 100);
+}
+function checkTermsScroll(){
+  const box = document.getElementById('termsScrollBox');
+  if(!box) return;
+  const reachedEnd = box.scrollTop + box.clientHeight >= box.scrollHeight - 16;
+  if(reachedEnd) markTermsRead();
+}
+function markTermsRead(){
+  if(termsRead) return;
+  termsRead = true;
+  const hint = document.getElementById('termsScrollHint');
+  if(hint) hint.style.display = 'none';
+  const checkbox = document.getElementById('termsCheckbox');
+  const pageHint = document.getElementById('termsHint');
+  if(checkbox){ checkbox.disabled = false; }
+  if(pageHint){ pageHint.textContent = 'Ya puedes marcar la casilla para aceptar.'; pageHint.style.color = 'var(--gold-dark)'; }
 }
 
 function checkoutIsReady(){
@@ -3006,6 +3034,15 @@ async function confirmOrder(){
   const confirmBtn = document.getElementById('confirmPayBtn');
   if(confirmBtn){ confirmBtn.disabled = true; confirmBtn.textContent = 'Confirmando...'; }
 
+  let clientIp = null;
+  try {
+    const ipRes = await fetch('https://api.ipify.org?format=json');
+    const ipData = await ipRes.json();
+    clientIp = ipData.ip || null;
+  } catch(_) {
+    // si falla, seguimos sin bloquear la compra — no es crítico, solo un dato extra de evidencia
+  }
+
   const orderNum = 'CRN-' + Math.floor(100000 + Math.random()*899999);
   const payLabel = {tarjeta:'Tarjeta', oxxo:'OXXO', transferencia:'Transferencia SPEI'}[selectedPayment];
   const productsTotal = cartTotal();
@@ -3062,6 +3099,7 @@ async function confirmOrder(){
     terms_version: TERMS_VERSION,
     terms_text: TERMS_TEXT_HTML,
     user_agent: navigator.userAgent,
+    ip_address: clientIp,
   });
 
   if(selectedDelivery === 'shipping' && selectedSavedAddressId === null && saveNewAddress && newAddr.street.trim()){
