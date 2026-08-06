@@ -1927,7 +1927,7 @@ function renderOffers(){
         <div class="product-name" onclick="showProduct('${p.id}')">${p.name}</div>
         <div class="product-stars">${stars(p.rating)}</div>
         <div class="product-foot">
-          <div class="product-price">${isLoggedIn ? `<span class="old-price">${money(p.price)}</span>${money(newPrice)}` : priceOrLock('')}</div>
+          <div class="product-price">${outOfStock ? '<span style="color:#B1402F; font-weight:700; font-size:12px;">Agotado</span>' : (isLoggedIn ? `<span class="old-price">${money(p.price)}</span>${money(newPrice)}` : priceOrLock(''))}</div>
           ${outOfStock
             ? `<button class="add-btn add-btn-disabled" aria-label="Sin existencias" disabled title="Sin existencias">✕</button>`
             : `<button class="add-btn" aria-label="Agregar al carrito" onclick="addToCart('${p.id}',1); event.stopPropagation();">+</button>`}
@@ -2010,7 +2010,7 @@ function renderRelatedProductsBlock(p){
             <div class="similar-product-name">${escapeHtmlClient(s.name)}</div>
             <div class="similar-product-brand">${escapeHtmlClient(brandStr)}${sOutOfStock ? ' · <span style="color:#B1402F;">Agotado</span>' : ''}</div>
           </div>
-          <div class="similar-product-price">${isLoggedIn ? money(s.price) : '🔒'}</div>
+          <div class="similar-product-price">${sOutOfStock ? '' : (isLoggedIn ? money(s.price) : '🔒')}</div>
         </div>`;
       }).join('')}
     </div>
@@ -2042,7 +2042,7 @@ function showProduct(id){
           <div class="detail-cat">${catLabel(p.cat)} · Marca compatible: ${COMPAT_BRAND_LABELS[p.compatBrand] || p.compatBrand}</div>
           <h1 class="detail-title">${p.name}</h1>
           <div class="detail-compat">Compatible con: ${p.compat}</div>
-          <div class="detail-price">${priceOrLock(money(p.price))}</div>
+          <div class="detail-price">${outOfStock ? '' : priceOrLock(money(p.price))}</div>
           ${isLoggedIn && outOfStock ? `<div class="stock-out-banner">SIN EXISTENCIAS</div>` : ''}
           ${renderRelatedProductsBlock(p)}
           <div class="detail-price-note">IVA incluido · Mismo día en CDMX · Envíos a toda la república con costo adicional</div>
