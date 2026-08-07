@@ -747,11 +747,12 @@
     </div>
     <div class="dnav-item has-dropdown">
       <button onclick="toggleDeptDropdown(event, this)">Nuestras Marcas <span class="dnav-chevron">▾</span></button>
-      <div class="dnav-dropdown">
+      <div class="dnav-dropdown" id="navCompatBrandDropdown">
         <button onclick="filterByCompatBrand('katun')">Katun</button>
         <button onclick="filterByCompatBrand('cit')">CIT</button>
         <button onclick="filterByCompatBrand('premium')">Premium</button>
         <button onclick="filterByCompatBrand('cet')">Cet</button>
+        <button onclick="filterByCompatBrand('ikon')">Ikon</button>
         <button onclick="filterByCompatBrand('uninet')">Uninet</button>
       </div>
     </div>
@@ -1060,6 +1061,7 @@
             <label class="check-item"><input type="checkbox" value="cit" onchange="toggleCompatBrandFilter('cit')"> CIT</label>
             <label class="check-item"><input type="checkbox" value="premium" onchange="toggleCompatBrandFilter('premium')"> Premium</label>
             <label class="check-item"><input type="checkbox" value="cet" onchange="toggleCompatBrandFilter('cet')"> Cet</label>
+            <label class="check-item"><input type="checkbox" value="ikon" onchange="toggleCompatBrandFilter('ikon')"> Ikon</label>
             <label class="check-item"><input type="checkbox" value="uninet" onchange="toggleCompatBrandFilter('uninet')"> Uninet <span class="deprecating-tag">próx. desaparece</span></label>
           </div>
         </div>
@@ -1193,6 +1195,30 @@ async function loadProducts(){
   renderOffers();
   removeOutOfStockFromCart();
   renderCart();
+  renderCompatBrandOptions();
+}
+
+function renderCompatBrandOptions(){
+  const brands = new Set();
+  PRODUCTS.forEach(p => { if(Array.isArray(p.brand) && p.brand.length > 0) brands.add(p.brand[0]); });
+  const sorted = [...brands].sort((a,b) => a.localeCompare(b, 'es'));
+
+  const sidebar = document.getElementById('compatBrandTabs');
+  if(sidebar){
+    sidebar.innerHTML = sorted.map(b => {
+      const key = b.toLowerCase().replace(/\s+/g, '_');
+      const checked = selectedCompatBrands.has(key) ? 'checked' : '';
+      return `<label class="check-item"><input type="checkbox" value="${key}" ${checked} onchange="toggleCompatBrandFilter('${key}')"> ${escapeHtmlClient(b)}</label>`;
+    }).join('');
+  }
+
+  const navDropdown = document.getElementById('navCompatBrandDropdown');
+  if(navDropdown){
+    navDropdown.innerHTML = sorted.map(b => {
+      const key = b.toLowerCase().replace(/\s+/g, '_');
+      return `<button onclick="filterByCompatBrand('${key}')">${escapeHtmlClient(b)}</button>`;
+    }).join('');
+  }
 }
 
 
@@ -1842,10 +1868,10 @@ function getFilteredProducts(){
     list = PRODUCTS.filter(p => p.cat === currentCat);
   }
   if(selectedBrands.size > 0){
-    list = list.filter(p => p.brand && p.brand.some(b => selectedBrands.has(b)));
+    list = list.filter(p => p.compatBrand && selectedBrands.has(p.compatBrand.toLowerCase()));
   }
   if(selectedCompatBrands.size > 0){
-    list = list.filter(p => selectedCompatBrands.has(p.compatBrand));
+    list = list.filter(p => p.brand && p.brand.some(b => selectedCompatBrands.has(b.toLowerCase())));
   }
   if(searchQuery.trim() !== ''){
     const words = normalizeText(searchQuery.trim()).split(/\s+/).filter(Boolean);
@@ -3325,4 +3351,3 @@ loadProducts();
 
 </body>
 </html>
-
