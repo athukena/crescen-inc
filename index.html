@@ -1286,8 +1286,12 @@ async function handleGoogleAuth(){
   });
   if (error) showToast('No se pudo iniciar con Google: ' + error.message);
 }
-function handleFacebookLogin(){
-  showToast('El inicio con Facebook aún se está configurando — usa Google o crea una cuenta');
+async function handleFacebookLogin(){
+  const { error } = await sb.auth.signInWithOAuth({
+    provider: 'facebook',
+    options: { redirectTo: window.location.origin + window.location.pathname }
+  });
+  if (error) showToast('No se pudo iniciar con Facebook: ' + error.message);
 }
 async function handleLogout(){
   await sb.auth.signOut();
